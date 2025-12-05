@@ -1,0 +1,209 @@
+{
+  "form1": {
+    "tabs": [
+      {
+        "tab": "Información de la Consulta",
+        "card": [
+          {
+            "title": "Motivo de la consulta",
+            "class": "col-12",
+            "fields": [
+              {
+                "id": "motivoConsulta",
+                "label": "",
+                "type": "textarea",
+                "name": "motivoConsulta"
+              }
+            ]
+          }
+        ],
+        "card2": [
+          {
+            "title": "Contexto de los sintomas/Enfermedad actual",
+            "fields": [
+              {
+                "id": "contextoSintoma",
+                "label": "",
+                "type": "textarea",
+                "name": "contextoSintoma"
+              }
+            ]
+          }
+        ],
+        "card3": [
+          {
+            "title": "¿Qué ha tomado?",
+            "fields": [
+              {
+                "id": "haTomado",
+                "label": "",
+                "type": "textarea",
+                "name": "haTomado"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Signos vitales",
+        "card": [
+          {
+            "title": "",
+            "fields": [
+              {
+                "id": "peso",
+                "label": "Peso Corporal [Lbs]",
+                "type": "number",
+                "name": "peso"
+              },
+              {
+                "id": "altura",
+                "label": "Altura [cm]",
+                "type": "number",
+                "name": "altura"
+              },
+              {
+                "id": "imc",
+                "label": "Índice de Masa Corporal (IMC)",
+                "type": "number",
+                "name": "imc",
+                "readonly": true
+              },
+              {
+                "id": "porcentajeGrasaCorporal",
+                "label": "Porcentaje de Grasa Corporal [%]",
+                "type": "number",
+                "name": "porcentajeGrasaCorporal"
+              }
+            ]
+          }
+        ],
+        "card2": [
+          {
+            "title": "",
+            "fields": [
+              {
+                "id": "presionArterialDiastolica",
+                "label": "Presión Arterial Diastólica [mmHg]",
+                "type": "number",
+                "name": "presionArterialDiastolica"
+              },
+              {
+                "id": "presionArterialSistolica",
+                "label": "Presión Arterial Sistólica [mmHg]",
+                "type": "number",
+                "name": "presionArterialSistolica"
+              },
+              {
+                "id": "tensionArterialMedia",
+                "label": "Tensión Arterial Media [mmHg]",
+                "type": "number",
+                "name": "tensionArterialMedia",
+                "readonly": true
+              },
+              {
+                "id": "saturacion",
+                "label": "Saturación de Oxígeno [%]",
+                "type": "number",
+                "name": "saturacion"
+              }
+            ]
+          }
+        ],
+        "card3": [
+          {
+            "title": "",
+            "fields": [
+              {
+                "id": "circunferenciaAbdominal",
+                "label": "Circunferencia Abdominal [cm]",
+                "type": "number",
+                "name": "circunferenciaAbdominal"
+              },
+              {
+                "id": "circunferenciaCintura",
+                "label": "Circunferencia de Cintura [cm]",
+                "type": "number",
+                "name": "circunferenciaCintura"
+              },
+              {
+                "id": "perimetroCefalico",
+                "label": "Perímetro Cefálico [cm]",
+                "type": "number",
+                "name": "perimetroCefalico"
+              }
+            ]
+          }
+        ],
+        "card4": [
+          {
+            "title": "",
+            "fields": [
+              {
+                "id": "frecuenciaRespiratoria",
+                "label": "Frecuencia Respiratoria [rpm]",
+                "type": "number",
+                "name": "frecuenciaRespiratoria"
+              },
+              {
+                "id": "frecuenciaCardiaca",
+                "label": "Frecuencia Cardíaca [lpm]",
+                "type": "number",
+                "name": "frecuenciaCardiaca"
+              },
+              {
+                "id": "temperatura",
+                "label": "Temperatura Corporal [°C]",
+                "type": "number",
+                "name": "temperatura"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Exámen general",
+        "card": [
+          {
+            "title": "Sonidos Cardiacos",
+            "fields": [
+              {
+                "id": "sonidosCardiacos",
+                "label": "",
+                "type": "textarea",
+                "name": "sonidosCardiacos"
+              }
+            ]
+          }
+        ],
+        "card2": [
+          {
+            "title": "Revisión tórax",
+            "fields": [
+              {
+                "id": "revisionTorax",
+                "label": "",
+                "type": "textarea",
+                "name": "revisionTorax"
+              }
+            ]
+          }
+        ],
+        "card3": [
+          {
+            "title": "Observaciones",
+            "class": "col-12",
+            "fields": [
+              {
+                "id": "observaciones",
+                "label": "",
+                "type": "textarea",
+                "name": "observaciones"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

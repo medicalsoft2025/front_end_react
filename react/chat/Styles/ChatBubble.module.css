@@ -1,0 +1,148 @@
+/* ChatBubble.module.css */
+
+/* Botón flotante */
+.chatButton {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background-color: #2563EB;
+  color: white;
+  font-size: 24px;
+  border: none;
+  cursor: pointer;
+  z-index: 1000;
+}
+
+/* Ventana de chat */
+.chatWindow {
+  position: fixed;
+  bottom: 80px;
+  right: 20px;
+  width: 360px;
+  height: 600px;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 1000;
+  transform: scale(0);
+  opacity: 0;
+  transition: all 0.3s ease;
+}
+
+.chatWindowOpen {
+  transform: scale(1);
+  opacity: 1;
+}
+
+/* Header */
+.chatHeader {
+  padding: 12px;
+  background-color: #2563EB;
+  color: white;
+  border-bottom: 1px solid #ccc;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.backButton, .closeButton {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+/* Lista de contactos */
+.chatContacts {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.contactItem {
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+
+.contactItem:hover {
+  background-color: #f3f3f3;
+}
+
+.statusDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+/* Mensajes */
+.chatMessages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+}
+
+.messageRow {
+  display: flex;
+  margin-bottom: 8px;
+}
+
+.messageRowUser { 
+  justify-content: flex-end; 
+}
+
+.messageRowContact { 
+  justify-content: flex-start; 
+}
+
+.messageBubble {
+  padding: 8px 12px;
+  border-radius: 16px;
+  max-width: 75%;
+}
+
+.messageRowUser .messageBubble {
+  background-color: #2563EB;
+  color: white;
+}
+
+.messageRowContact .messageBubble {
+  background-color: #E5E7EB;
+  color: black;
+}
+
+.messageTime {
+  font-size: 10px;
+  color: #6B7280;
+  align-self: flex-end;
+  margin-left: 6px;
+  margin-right: 6px;
+}
+
+.typing {
+  font-style: italic;
+  color: #6B7280;
+  margin-top: 4px;
+}
+
+/* Input */
+.chatInputArea {
+  display: flex;
+  padding: 12px;
+  border-top: 1px solid #ccc;
+  gap: 8px;
+}
+
+.chatInput {
+  flex: 1;
+}

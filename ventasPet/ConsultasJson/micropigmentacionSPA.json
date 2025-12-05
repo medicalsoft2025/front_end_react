@@ -1,0 +1,191 @@
+{
+  "form1": {
+    "tabs": [
+      {
+        "tab": "Información de la Consulta",
+        "card": [
+          {
+            "title": "Motivo de la consulta",
+            "fields": [
+              {
+                "id": "motivoConsulta",
+                "label": "",
+                "type": "textarea",
+                "name": "motivoConsulta"
+              }
+            ]
+          }
+        ],
+        "card2": [
+          {
+            "title": "Evolución de los sintomas",
+            "fields": [
+              {
+                "id": "evolucionSintomas",
+                "label": "",
+                "type": "textarea",
+                "name": "evolucionSintomas"
+              }
+            ]
+          }
+        ],
+        "card3": [
+          {
+            "title": "Contexto de los sintomas",
+            "fields": [
+              {
+                "id": "contextoSintoma",
+                "label": "",
+                "type": "textarea",
+                "name": "contextoSintoma"
+              }
+            ]
+          }
+        ],
+        "card4": [
+          {
+            "title": "Manejo de los sintomas",
+            "fields": [
+              {
+                "id": "haTomado",
+                "label": "",
+                "type": "textarea",
+                "name": "haTomado"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Tratamiento",
+        "card": [
+          {
+            "title": "Procedimiento",
+            "fields": [
+              {
+                "id": "procedimiento",
+                "label": "Selecciona el procedimiento",
+                "type": "select",
+                "name": "procedimiento",
+                "options": [
+                  {
+                    "value": "microblading",
+                    "text": "Microblading"
+                  },
+                  {
+                    "value": "shading",
+                    "text": "Shading"
+                  },
+                  {
+                    "value": "microshading",
+                    "text": "Microshading"
+                  },
+                  {
+                    "value": "microLabios",
+                    "text": "Micro Labios"
+                  },
+                  {
+                    "value": "areola",
+                    "text": "Areola"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "card2": [
+          {
+            "title": "Tratamientos Anteriores",
+            "fields": [
+              {
+                "id": "tratamientosAnteriores",
+                "label": "¿Has tenido tratamientos anteriores?",
+                "type": "checkbox",
+                "name": "tratamientosAnteriores",
+                "toggleFields": [
+                  {
+                    "id": "cualesTratamientos",
+                    "label": "¿Cuáles?",
+                    "type": "textarea",
+                    "name": "cualesTratamientos"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "card3": [
+          {
+            "title": "Pigmento",
+            "class": "col-12",
+            "fields": [
+              {
+                "id": "marcaPigmento",
+                "label": "Marca",
+                "type": "textarea",
+                "name": "marcaPigmento",
+                "class": "col-6"
+              },
+              {
+                "id": "colorPigmento",
+                "label": "Color",
+                "type": "textarea",
+                "name": "colorPigmento",
+                "class": "col-6"
+              },
+              {
+                "id": "notaPigmento",
+                "label": "Notas",
+                "type": "textarea",
+                "name": "notaPigmento",
+                "class": "col-12"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Fotos",
+        "card": [
+          {
+            "title": "Antes",
+            "fields": [
+              {
+                "id": "fotoAntes",
+                "label": "",
+                "type": "file",
+                "name": "fotoAntes"
+              }
+            ]
+          }
+        ],
+        "card2": [
+          {
+            "title": "Durante",
+            "fields": [
+              {
+                "id": "fotoDurante",
+                "label": "",
+                "type": "file",
+                "name": "fotoDurante"
+              }
+            ]
+          }
+        ],
+        "card3": [
+          {
+            "title": "Después",
+            "fields": [
+              {
+                "id": "fotoDespues",
+                "label": "",
+                "type": "file",
+                "name": "fotoDespues"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,759 @@
+import React, { useEffect, useState } from "react";
+import { Tag } from "primereact/tag";
+import { formatDateDMY } from "../../../services/utilidades";
+import { useProductDelivery } from "./hooks/useProductDelivery";
+import { MedicalSupplyManager } from "../../helpers/MedicalSupplyManager";
+import "../../extensions/number.extensions";
+import { CustomPRTable } from "../../components/CustomPRTable";
+import { useLoggedUser } from "../../users/hooks/useLoggedUser";
+import { Button } from "primereact/button";
+import { ProductDeliveryDetailDialog } from "./ProductDeliveryDetailDialog";
+import { useProductDeliveryDetailFormat } from "../../documents-generation/hooks/useProductDeliveryDetailFormat";
+import { useVerifyAndSaveProductDelivery } from "./hooks/useVerifyAndSaveProductDelivery";
+import { useFieldArray, useForm, useWatch } from "react-hook-form";
+import { Dropdown, DropdownChangeEvent } from "primereact/dropdown";
+import { useInvoicePurchase } from "../../billing/purchase_billing/hooks/usePurchaseBilling";
+import { SwalManager } from "../../../services/alertManagerImported";
+import { Dialog } from "primereact/dialog";
+import { OTPModal } from "../../login/modal/OTPModal";
+import { useAuth } from "../../login/hooks/useAuth";
+import { Toast } from "primereact/toast";
+import { Panel } from "primereact/panel";
+import { DataTable } from "primereact/datatable";
+import { Column } from "primereact/column";
+import { Badge } from "primereact/badge";
+
+interface ProductDeposit {
+    product_id: string;
+    product_name: string;
+    quantity: number;
+    deposit_id: string | null;
+}
+
+interface ProductDeliveryDetailFormInputs {
+    productsDeposits: ProductDeposit[];
+}
+
+export interface ProductDeliveryDetailFormData {
+    productsDeposits: {
+        [key: string]: string | null;
+    };
+}
+
+interface ProductDeliveryDetailProps {
+    deliveryId: string;
+}
+
+export const ProductDeliveryDetail = ({
+    deliveryId,
+}: ProductDeliveryDetailProps) => {
+    const { delivery, getDelivery } = useProductDelivery();
+    const { loggedUser } = useLoggedUser();
+    const { generateFormat } = useProductDeliveryDetailFormat();
+    const { verifyAndSaveProductDelivery } = useVerifyAndSaveProductDelivery();
+
+    const {
+        verifyOtp,
+        verifyOtpBasic,
+        resendOtp,
+        sendOtp,
+        Toast: toastRef,
+    } = useAuth();
+
+    const [showVerifyDialog, setShowVerifyDialog] = useState(false);
+    const [otp, setOtp] = useState<string[]>(["", "", "", "", "", ""]);
+
+    const {
+        control,
+        handleSubmit,
+        setValue,
+        getValues,
+        formState: { errors },
+    } = useForm<ProductDeliveryDetailFormInputs>({
+        defaultValues: {
+            productsDeposits: [],
+        },
+    });
+
+    const {
+        fields,
+        append: appendProductDeposit,
+        remove: removeProductDeposit,
+        update: updateProductDeposit,
+    } = useFieldArray({
+        control,
+        name: "productsDeposits",
+        rules: {
+            required: true,
+            validate: (value) => {
+                if (value.length === 0) {
+                    return "Debe seleccionar al menos un deposito";
+                }
+                if (
+                    value.some(
+                        (productDeposit: ProductDeposit) =>
+                            productDeposit.deposit_id === null
+                    )
+                ) {
+                    return "Debe seleccionar un deposito para cada insumo";
+                }
+                return true;
+            },
+        },
+    });
+
+    const productsDeposits = useWatch({
+        control,
+        name: "productsDeposits",
+    });
+
+    const [deliveryManager, setDeliveryManager] =
+        useState<MedicalSupplyManager | null>(null);
+    const [dialogVisible, setDialogVisible] = useState(false);
+
+    useEffect(() => {
+        getDelivery(deliveryId);
+    }, [deliveryId]);
+
+    useEffect(() => {
+        if (delivery) {
+            setDeliveryManager(new MedicalSupplyManager(delivery));
+        }
+    }, [delivery]);
+
+    useEffect(() => {
+        setValue("productsDeposits", []);
+        if (deliveryManager && deliveryManager.products.length > 0) {
+            appendProductDeposit(
+                deliveryManager.products.map((product) => ({
+                    product_id: product.product.id,
+                    product_name: product.product.name,
+                    quantity: product.pending_quantity,
+                    deposit_id: null,
+                }))
+            );
+        }
+    }, [deliveryManager]);
+
+    const handlePrint = () => {
+        if (!delivery || !deliveryManager) return;
+        generateFormat({
+            delivery: delivery,
+            deliveryManager: deliveryManager,
+            type: "Impresion",
+        });
+    };
+
+    const handleVerifyAndSaveProductDelivery = async (
+        data: ProductDeliveryDetailFormInputs
+    ) => {
+        if (!delivery || !deliveryManager) return;
+
+        //setShowVerifyDialog(true);
+
+        // if (!deliveryManager.requestedBy?.external_id) return;
+        // await sendOtp(deliveryManager.requestedBy?.external_id)
+
+        handleUserVerificationSuccess();
+    };
+
+    const handleUserVerificationSuccess = async () => {
+        setShowVerifyDialog(false);
+
+        const data = getValues();
+
+        const productsDepositsFormated = data.productsDeposits.reduce(
+            (obj, product) => {
+                obj[product.product_id] = product.deposit_id;
+                return obj;
+            },
+            {}
+        );
+
+        try {
+            const response = await verifyAndSaveProductDelivery(
+                delivery!.id.toString(),
+                {
+                    productsDeposits: productsDepositsFormated,
+                }
+            );
+
+            if (response) {
+                const apiMessage =
+                    response.data?.original?.message ||
+                    "Entrega validada exitosamente";
+
+                SwalManager.success({
+                    title: "Entrega validada",
+                    text: apiMessage,
+                });
+            }
+            getDelivery(deliveryId);
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    const getFormErrorMessage = (
+        name: keyof ProductDeliveryDetailFormInputs
+    ) => {
+        return (
+            errors[name] && (
+                <small className="p-error">
+                    {errors[name].message || errors[name].root?.message}
+                </small>
+            )
+        );
+    };
+
+    const handleVerifyOtp = async () => {
+        const otpCode = otp.join("");
+        if (otpCode.length === 6 && deliveryManager?.requestedBy?.email) {
+            const result = await verifyOtpBasic(
+                otpCode,
+                deliveryManager?.requestedBy?.email,
+                deliveryManager?.requestedBy?.phone
+            );
+            if (result.status === 200) {
+                console.log("OTP verificado exitosamente");
+                setOtp(["", "", "", "", "", ""]); // Reset OTP
+                handleUserVerificationSuccess();
+            }
+        }
+    };
+
+    const handleResendOtp = async () => {
+        await resendOtp(deliveryManager?.requestedBy?.email);
+    };
+
+    const delivered = () => {
+        return ["entregado"].includes(delivery?.status || "");
+    };
+
+    const hasProductDeliveries = () => {
+        return delivery?.products?.some(
+            (product: any) => product.delivery_details?.length > 0
+        );
+    };
+
+    return (
+        <>
+            <Toast ref={toastRef} />
+            <form onSubmit={handleSubmit(handleVerifyAndSaveProductDelivery)}>
+                <div className="d-flex flex-column gap-2">
+                    <div className="d-flex justify-content-between align-items-center gap-2">
+                        <b>Solicitud #{delivery?.id}</b>
+                        <span
+                            className={`badge fs-7 bg-${deliveryManager?.statusSeverity}`}
+                            style={{ fontSize: "0.7rem" }}
+                        >
+                            {deliveryManager?.statusLabel}
+                        </span>
+                    </div>
+                    <p>Creado: {formatDateDMY(delivery?.created_at)}</p>
+                    <div className="row">
+                        <div className="col-md-6">
+                            <div className="card">
+                                <div className="card-body">
+                                    <h6 className="card-title">
+                                        Información del solicitante
+                                    </h6>
+
+                                    <div className="mb-2">
+                                        <strong>Nombre: </strong>
+                                        <span>
+                                            {deliveryManager?.requestedBy
+                                                ?.name || "--"}
+                                        </span>
+                                    </div>
+
+                                    <div className="mb-2">
+                                        <strong>Correo electrónico: </strong>
+                                        <span>
+                                            {deliveryManager?.requestedBy
+                                                ?.email || "--"}
+                                        </span>
+                                    </div>
+
+                                    <div className="mb-2">
+                                        <strong>Teléfono: </strong>
+                                        <span>
+                                            {deliveryManager?.requestedBy
+                                                ?.phone || "--"}
+                                        </span>
+                                    </div>
+
+                                    <div className="mb-2">
+                                        <strong>Dirección: </strong>
+                                        <span>
+                                            {deliveryManager?.requestedBy
+                                                ?.address || "--"}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="col-md-6">
+                            <div className="card">
+                                <div className="card-body">
+                                    <h6 className="card-title">
+                                        Gestionado por
+                                    </h6>
+
+                                    <div className="mb-2">
+                                        <strong>Nombre: </strong>
+                                        <span>{`${
+                                            loggedUser?.first_name || ""
+                                        } ${loggedUser?.middle_name || ""} ${
+                                            loggedUser?.last_name || ""
+                                        } ${
+                                            loggedUser?.second_last_name || ""
+                                        }`}</span>
+                                    </div>
+
+                                    <div className="mb-2">
+                                        <strong>Correo electrónico: </strong>
+                                        <span>{loggedUser?.email}</span>
+                                    </div>
+
+                                    <div className="mb-2">
+                                        <strong>Teléfono: </strong>
+                                        <span>{loggedUser?.phone}</span>
+                                    </div>
+
+                                    <div className="mb-2">
+                                        <strong>Dirección: </strong>
+                                        <span>{loggedUser?.address}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {hasProductDeliveries() && (
+                        <DeliveryDetailsTable data={delivery?.products} />
+                    )}
+                    {!delivered() && (
+                        <CustomPRTable
+                            data={productsDeposits}
+                            columns={[
+                                { field: "product_name", header: "Insumos" },
+                                { field: "quantity", header: "Cantidad" },
+                                {
+                                    field: "deposit.name",
+                                    header: "Depósito",
+                                    body: (deposit) => (
+                                        <>
+                                            <SupplyDeliveryDepositColumn
+                                                productsDeposits={
+                                                    productsDeposits
+                                                }
+                                                deposit={deposit}
+                                                onUpdateProductDeposit={(
+                                                    index,
+                                                    deposit
+                                                ) =>
+                                                    updateProductDeposit(
+                                                        index,
+                                                        deposit
+                                                    )
+                                                }
+                                            />
+                                        </>
+                                    ),
+                                },
+                            ]}
+                            disablePaginator
+                            disableReload
+                            disableSearch
+                        />
+                    )}
+                    {getFormErrorMessage("productsDeposits")}
+                    <div className="card">
+                        <div className="card-body">
+                            <div className="d-flex gap-2">
+                                <div className="d-flex flex-column flex-grow-1">
+                                    <div className="d-flex align-items-center mb-3">
+                                        <i className="fas fa-file-prescription text-primary me-2 fs-4"></i>
+                                        <div>
+                                            <div className="fw-medium">
+                                                Solicitud #{delivery?.id}
+                                            </div>
+                                            <div className="text-muted small">
+                                                {deliveryManager?.requestedBy
+                                                    ?.name || "--"}{" "}
+                                                -{" "}
+                                                {formatDateDMY(
+                                                    delivery?.created_at
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="d-flex">
+                                        <button
+                                            type="button"
+                                            className="btn btn-sm btn-outline-primary me-2"
+                                            onClick={() =>
+                                                setDialogVisible(true)
+                                            }
+                                        >
+                                            <i className="fas fa-eye me-1"></i>{" "}
+                                            Ver solicitud
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="btn btn-sm btn-outline-secondary"
+                                            onClick={handlePrint}
+                                        >
+                                            <i className="fas fa-print me-1"></i>{" "}
+                                            Imprimir
+                                        </button>
+                                    </div>
+                                </div>
+                                {delivered() && (
+                                    <div className="d-flex flex-grow-1">
+                                        <div className="d-flex flex-column">
+                                            <div className="text-muted small">
+                                                Observaciones:{" "}
+                                                {delivery?.observations || "--"}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                    {!delivered() && (
+                        <div className="d-flex justify-content-end align-items-center">
+                            <Button
+                                icon={<i className="fas fa-check me-2"></i>}
+                                label="Entregar Productos"
+                                className="btn btn-sm btn-primary"
+                                type="submit"
+                            />
+                        </div>
+                    )}
+                </div>
+
+                <ProductDeliveryDetailDialog
+                    visible={dialogVisible}
+                    onHide={() => setDialogVisible(false)}
+                    delivery={delivery}
+                />
+            </form>
+
+            <Dialog
+                visible={showVerifyDialog}
+                onHide={() => setShowVerifyDialog(false)}
+                header="Verificación de usuario"
+                footer={
+                    <div className="d-flex justify-content-end">
+                        <Button
+                            label="Cancelar"
+                            icon="pi pi-times"
+                            className="btn btn-sm btn-outline-secondary me-2"
+                            onClick={() => setShowVerifyDialog(false)}
+                        />
+                        <Button
+                            label="Verificar"
+                            icon="pi pi-check"
+                            className="btn btn-sm btn-primary"
+                            onClick={handleVerifyOtp}
+                        />
+                    </div>
+                }
+            >
+                {deliveryManager?.requestedBy?.email &&
+                    deliveryManager?.requestedBy?.phone && (
+                        <OTPModal
+                            otp={otp}
+                            setOtp={setOtp}
+                            onResendOTP={handleResendOtp}
+                            email={deliveryManager?.requestedBy?.email}
+                            phone={deliveryManager?.requestedBy?.phone}
+                        />
+                    )}
+            </Dialog>
+        </>
+    );
+};
+
+interface ProductDeliveryDepositColumnProps {
+    productsDeposits: ProductDeposit[];
+    deposit: ProductDeposit;
+    onUpdateProductDeposit: (index: number, deposit: ProductDeposit) => void;
+}
+
+const SupplyDeliveryDepositColumn = (
+    props: ProductDeliveryDepositColumnProps
+) => {
+    const { productsDeposits, deposit, onUpdateProductDeposit } = props;
+
+    const { getAllDeposits } = useInvoicePurchase();
+
+    const [formattedDeposits, setFormattedDeposits] = useState<
+        {
+            id: string;
+            name: string;
+            originalData: any;
+        }[]
+    >([]);
+
+    useEffect(() => {
+        const loadDeposits = async () => {
+            try {
+                const depositsData = await getAllDeposits();
+                console.log("depositsData", depositsData);
+                const formatted = depositsData.map((deposit: any) => ({
+                    id: deposit.id,
+                    name: deposit.attributes.name,
+                    originalData: deposit,
+                }));
+                setFormattedDeposits(formatted);
+            } catch (error) {
+                console.error("Error loading deposits:", error);
+            }
+        };
+
+        loadDeposits();
+    }, []);
+
+    return (
+        <>
+            <label>Depósito</label>
+            <Dropdown
+                value={deposit.deposit_id}
+                options={formattedDeposits}
+                optionLabel="name"
+                optionValue="id"
+                placeholder="Seleccione depósito"
+                className="w-100"
+                onChange={(e: DropdownChangeEvent) => {
+                    onUpdateProductDeposit(
+                        productsDeposits.indexOf(deposit) || 0,
+                        { ...deposit, deposit_id: e.value }
+                    );
+                }}
+            />
+        </>
+    );
+};
+
+const DeliveryDetailsTable = ({ data }: { data: any }) => {
+    // Agrupar los datos por producto
+    const groupedByProduct = data.reduce((acc: any, item: any) => {
+        const productId = item.product_id;
+        if (!acc[productId]) {
+            acc[productId] = {
+                product: item.product,
+                deliveries: [],
+            };
+        }
+        acc[productId].deliveries.push(item);
+        return acc;
+    }, {});
+
+    // Función para obtener la severidad según el estado
+    const getStatusSeverity = (status: string) => {
+        switch (status) {
+            case "entregado":
+                return "success";
+            case "pendiente":
+                return "warning";
+            case "parcialmente_entregado":
+                return "warning";
+            case "cancelado":
+                return "danger";
+            default:
+                return "info";
+        }
+    };
+
+    const getStatusLabel = (status: string) => {
+        switch (status) {
+            case "entregado":
+                return "Entregado";
+            case "pendiente":
+                return "Pendiente";
+            case "parcialmente_entregado":
+                return "Parcialmente entregado";
+            case "cancelado":
+                return "Cancelado";
+            default:
+                return "Info";
+        }
+    };
+
+    // Función para formatear la fecha
+    const formatDate = (dateString: string) => {
+        return new Date(dateString).toLocaleDateString("es-ES", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+        });
+    };
+
+    // Template para el estado
+    const statusBodyTemplate = (rowData: any) => {
+        return (
+            <span
+                className={`badge fs-7 bg-${getStatusSeverity(rowData.status)}`}
+                style={{ fontSize: "0.7rem" }}
+            >
+                {getStatusLabel(rowData.status)}
+            </span>
+        );
+    };
+
+    // Template para cantidades con badges
+    const quantityBodyTemplate = (rowData: any) => {
+        return (
+            <div className="d-flex gap-2 align-items-center">
+                <span
+                    className={`badge fs-7 bg-primary`}
+                    style={{ fontSize: "0.7rem" }}
+                >
+                    {rowData.quantity}
+                </span>
+            </div>
+        );
+    };
+
+    // Template para cantidades entregadas
+    const deliveredBodyTemplate = (rowData: any) => {
+        return (
+            <span
+                className={`badge fs-7 bg-success`}
+                style={{ fontSize: "0.7rem" }}
+            >
+                {rowData.delivered_quantity}
+            </span>
+        );
+    };
+
+    // Template para cantidades pendientes
+    const pendingBodyTemplate = (rowData: any) => {
+        return (
+            <span
+                className={`badge fs-7 bg-warning`}
+                style={{ fontSize: "0.7rem" }}
+            >
+                {rowData.pending_quantity}
+            </span>
+        );
+    };
+
+    // Header del panel con información del producto
+    const productPanelHeader = (product: any, deliveries: any) => {
+        const totalQuantity = deliveries.reduce(
+            (sum: any, delivery: any) => sum + delivery.quantity,
+            0
+        );
+        const totalDelivered = deliveries.reduce(
+            (sum: any, delivery: any) => sum + delivery.delivered_quantity,
+            0
+        );
+        const totalPending = deliveries.reduce(
+            (sum: any, delivery: any) => sum + delivery.pending_quantity,
+            0
+        );
+
+        return (
+            <div className="d-flex justify-content-between align-items-center w-100 gap-3">
+                <div>
+                    <h5 className="mb-0 text-primary">{product.name}</h5>
+                    <small className="text-muted">
+                        {product.category_product?.name} •{" "}
+                        {product.product_type?.name}
+                    </small>
+                </div>
+                <div className="d-flex gap-3">
+                    <div className="text-center">
+                        <div className="fw-bold">{deliveries.length}</div>
+                        <small className="text-muted">Entregas</small>
+                    </div>
+                    <div className="text-center">
+                        <div className="fw-bold text-success">
+                            {totalDelivered}
+                        </div>
+                        <small className="text-muted">Entregado</small>
+                    </div>
+                    <div className="text-center">
+                        <div className="fw-bold text-warning">
+                            {totalPending}
+                        </div>
+                        <small className="text-muted">Pendiente</small>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    return (
+        <div className="container-fluid">
+            {Object.entries(groupedByProduct).map(
+                ([productId, { product, deliveries }]) => (
+                    <Panel
+                        key={productId}
+                        header={productPanelHeader(product, deliveries)}
+                        className="mb-4 shadow-sm"
+                        toggleable
+                    >
+                        <DataTable
+                            value={deliveries}
+                            responsiveLayout="scroll"
+                            className="p-datatable-sm"
+                            stripedRows
+                            showGridlines
+                        >
+                            <Column
+                                field="id"
+                                header="ID Entrega"
+                                sortable
+                                style={{ width: "100px" }}
+                            />
+                            <Column
+                                field="quantity"
+                                header="Cantidad"
+                                body={quantityBodyTemplate}
+                                sortable
+                                style={{ width: "120px" }}
+                            />
+                            <Column
+                                field="delivered_quantity"
+                                header="Entregado"
+                                body={deliveredBodyTemplate}
+                                sortable
+                                style={{ width: "120px" }}
+                            />
+                            <Column
+                                field="pending_quantity"
+                                header="Pendiente"
+                                body={pendingBodyTemplate}
+                                sortable
+                                style={{ width: "120px" }}
+                            />
+                            <Column
+                                field="status"
+                                header="Estado"
+                                body={statusBodyTemplate}
+                                sortable
+                                style={{ width: "130px" }}
+                            />
+                            <Column
+                                field="created_at"
+                                header="Fecha de entrega"
+                                body={(rowData) =>
+                                    formatDate(rowData.created_at)
+                                }
+                                sortable
+                                style={{ width: "180px" }}
+                            />
+                        </DataTable>
+                    </Panel>
+                )
+            )}
+        </div>
+    );
+};

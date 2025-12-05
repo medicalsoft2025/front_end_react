@@ -1,0 +1,92 @@
+{
+  "form1": {
+    "tabs": [
+      {
+        "tab": "Información de la Consulta",
+        "card": [
+          {
+            "title": "Motivo de la consulta",
+            "class": "col-12",
+            "fields": [
+              {
+                "id": "motivoConsulta",
+                "label": "",
+                "type": "textarea",
+                "name": "motivoConsulta"
+              }
+            ]
+          }
+        ],
+        "card2": [
+          {
+            "title": "Contexto de los sintomas/Enfermedad actual",
+            "fields": [
+              {
+                "id": "contextoSintoma",
+                "label": "",
+                "type": "textarea",
+                "name": "contextoSintoma"
+              }
+            ]
+          }
+        ],
+        "card3": [
+          {
+            "title": "¿Qué ha tomado?",
+            "fields": [
+              {
+                "id": "haTomado",
+                "label": "",
+                "type": "textarea",
+                "name": "haTomado"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Diagnóstico",
+        "card": [
+          {
+            "title": "Escolaridad del paciente",
+            "fields": [
+              {
+                "id": "escolaridadDelPaciente",
+                "label": "",
+                "type": "textarea",
+                "name": "escolaridadDelPaciente"
+              }
+            ]
+          }
+        ],
+        "card2": [
+          {
+            "title": "Etapa",
+            "fields": [
+              {
+                "id": "etapa",
+                "label": "",
+                "type": "textarea",
+                "name": "etapa"
+              }
+            ]
+          }
+        ],
+        "card4": [
+          {
+            "title": "Diagnóstico",
+            "class": "col-12",
+            "fields": [
+              {
+                "id": "diagnostico",
+                "label": "",
+                "type": "textarea",
+                "name": "diagnostico"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

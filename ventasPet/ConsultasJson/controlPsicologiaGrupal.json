@@ -1,0 +1,142 @@
+{
+  "form1": {
+    "tabs": [
+      {
+        "tab": "Información de la Consulta",
+        "card": [
+          {
+            "title": "Motivo de la consulta",
+            "fields": [
+              {
+                "id": "motivoConsulta",
+                "label": "",
+                "type": "textarea",
+                "name": "motivoConsulta"
+              }
+            ]
+          }
+        ],
+        "card2": [
+          {
+            "title": "Evolución de los sintomas",
+            "fields": [
+              {
+                "id": "evolucionSintomas",
+                "label": "",
+                "type": "textarea",
+                "name": "evolucionSintomas"
+              }
+            ]
+          }
+        ],
+        "card3": [
+          {
+            "title": "Contexto de los sintomas",
+            "fields": [
+              {
+                "id": "contextoSintoma",
+                "label": "",
+                "type": "textarea",
+                "name": "contextoSintoma"
+              }
+            ]
+          }
+        ],
+        "card4": [
+          {
+            "title": "¿Qué ha tomado?",
+            "fields": [
+              {
+                "id": "haTomado",
+                "label": "",
+                "type": "textarea",
+                "name": "haTomado"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Seguimiento/Asistencia",
+        "card": [
+          {
+            "title": "Objetivo",
+            "fields": [
+              {
+                "id": "objetivo",
+                "label": "",
+                "type": "textarea",
+                "name": "objetivo"
+              }
+            ]
+          }
+        ],
+        "card2": [
+          {
+            "title": "Desarrollo de la sesión",
+            "fields": [
+              {
+                "id": "desarrolloSesion",
+                "label": "",
+                "type": "textarea",
+                "name": "desarrolloSesion"
+              }
+            ]
+          }
+        ],
+        "card3": [
+          {
+            "title": "Participación",
+            "fields": [
+              {
+                "id": "participacion",
+                "label": "",
+                "type": "textarea",
+                "name": "participacion"
+              }
+            ]
+          }
+        ],
+        "card4": [
+          {
+            "title": "Expresión de sentimientos y emociones",
+            "fields": [
+              {
+                "id": "expresionSentimientosEmociones",
+                "label": "",
+                "type": "textarea",
+                "name": "expresionSentimientosEmociones"
+              }
+            ]
+          }
+        ],
+        "card5": [
+          {
+            "title": "Reflexiones y compromisos",
+            "fields": [
+              {
+                "id": "reflexionesCompromisos",
+                "label": "",
+                "type": "textarea",
+                "name": "reflexionesCompromisos"
+              }
+            ]
+          }
+        ],
+        "card6": [
+          {
+            "title": "Conclusiones",
+            "fields": [
+              {
+                "id": "conclusiones",
+                "label": "",
+                "type": "textarea",
+                "name": "conclusiones"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

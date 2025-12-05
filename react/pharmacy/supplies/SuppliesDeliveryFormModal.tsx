@@ -1,0 +1,60 @@
+import React from "react";
+import { Dialog } from "primereact/dialog";
+import { Divider } from "primereact/divider";
+import { Button } from "primereact/button";
+import { SuppliesDeliveryForm } from "./SuppliesDeliveryForm";
+import {
+    SuppliesDeliveryFormModalProps,
+    SuppliesDeliveryFormData,
+} from "./interfaces";
+import { Toast } from "primereact/toast";
+import { useSendSuppliesRequest } from "./hooks/useSendSuppliesRequest";
+
+export const SuppliesDeliveryFormModal = (
+    props: SuppliesDeliveryFormModalProps
+) => {
+    const { visible, onHide, onSave } = props;
+
+    const { sendSuppliesRequest, toast } = useSendSuppliesRequest();
+
+    const formId = "suppliesDeliveryForm";
+
+    const handleSubmit = async (data: SuppliesDeliveryFormData) => {
+        try {
+            await sendSuppliesRequest(data);
+            onSave();
+            onHide();
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    return (
+        <>
+            <Toast ref={toast} />
+            <Dialog
+                visible={visible}
+                onHide={onHide}
+                header="Solicitud de Insumos"
+                style={{ width: "60vw" }}
+            >
+                <SuppliesDeliveryForm formId={formId} onSubmit={handleSubmit} />
+                <Divider />
+                <div className="d-flex justify-content-end gap-2">
+                    <Button
+                        label="Cancelar"
+                        icon={<i className="fas fa-times me-1"></i>}
+                        onClick={onHide}
+                        className="p-button-secondary"
+                    />
+                    <Button
+                        form={formId}
+                        label="Enviar Solicitud"
+                        icon={<i className="fas fa-paper-plane me-1"></i>}
+                        className="p-button-primary"
+                    />
+                </div>
+            </Dialog>
+        </>
+    );
+};

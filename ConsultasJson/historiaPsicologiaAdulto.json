@@ -1,0 +1,158 @@
+{
+  "form1": {
+    "tabs": [
+      {
+        "tab": "Información de la Consulta",
+        "card": [
+          {
+            "title": "Motivo de la consulta",
+            "class": "col-12",
+            "fields": [
+              {
+                "id": "motivoConsulta",
+                "label": "",
+                "type": "textarea",
+                "name": "motivoConsulta"
+              }
+            ]
+          }
+        ],
+        "card2": [
+          {
+            "title": "Contexto de los sintomas/Enfermedad actual",
+            "fields": [
+              {
+                "id": "contextoSintoma",
+                "label": "",
+                "type": "textarea",
+                "name": "contextoSintoma"
+              }
+            ]
+          }
+        ],
+        "card3": [
+          {
+            "title": "¿Qué ha tomado?",
+            "fields": [
+              {
+                "id": "haTomado",
+                "label": "",
+                "type": "textarea",
+                "name": "haTomado"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Exámen mental",
+        "card": [
+          {
+            "title": "Cognición",
+            "fields": [
+              {
+                "id": "funcionesMentales",
+                "label": "Funciones Mentales",
+                "type": "textarea",
+                "name": "funcionesMentales"
+              },
+              {
+                "id": "funcionesEjecutivas",
+                "label": "Funciones Ejecutivas",
+                "type": "textarea",
+                "name": "funcionesEjecutivas"
+              }
+            ]
+          }
+        ],
+        "card2": [
+          {
+            "title": "Afecto",
+            "fields": [
+              {
+                "id": "aspectoVolitivoIniciativa",
+                "label": "Aspecto Volitivo e Iniciativa",
+                "type": "textarea",
+                "name": "aspectoVolitivoIniciativa"
+              },
+              {
+                "id": "tonoEmocional",
+                "label": "Tono Emocional",
+                "type": "textarea",
+                "name": "tonoEmocional"
+              },
+              {
+                "id": "regulacionEmocional",
+                "label": "Regulación Emocional",
+                "type": "textarea",
+                "name": "regulacionEmocional"
+              }
+            ]
+          }
+        ],
+        "card3": [
+          {
+            "title": "Comportamiento",
+            "fields": [
+              {
+                "id": "actividadMotora",
+                "label": "Actividad Motora",
+                "type": "textarea",
+                "name": "actividadMotora"
+              },
+              {
+                "id": "impulsividad",
+                "label": "Impulsividad",
+                "type": "textarea",
+                "name": "impulsividad"
+              },
+              {
+                "id": "autonomia",
+                "label": "Autonomía",
+                "type": "textarea",
+                "name": "autonomia"
+              }
+            ]
+          }
+        ],
+        "card4": [
+          {
+            "title": "Personalidad",
+            "fields": [
+              {
+                "id": "aperturaExperiencia",
+                "label": "Apertura a la Experiencia",
+                "type": "textarea",
+                "name": "aperturaExperiencia"
+              },
+              {
+                "id": "responsabilidad",
+                "label": "Responsabilidad",
+                "type": "textarea",
+                "name": "responsabilidad"
+              },
+              {
+                "id": "extroversion",
+                "label": "Extroversión",
+                "type": "textarea",
+                "name": "extroversion"
+              },
+              {
+                "id": "amabilidad",
+                "label": "Amabilidad",
+                "type": "textarea",
+                "name": "amabilidad"
+              },
+              {
+                "id": "estabilidadEmocional",
+                "label": "Estabilidad Emocional",
+                "type": "textarea",
+                "name": "estabilidadEmocional"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

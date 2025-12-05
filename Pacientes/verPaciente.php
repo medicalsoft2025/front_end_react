@@ -1,0 +1,770 @@
+<?php
+include "../menu.php";
+include "../header.php";
+include "../ConsultasJson/dataPaciente.php";
+
+$resumenPaciente = [
+  'contenido' => '<h3>Antecedentes Médicos Relevantes</h3>
+        <ul>
+            <li>Hipertensión arterial controlada</li>
+            <li>Dislipidemia en tratamiento</li>
+            <li>Exfumador (último consumo hace más de 2 años)</li>
+        </ul>
+
+        <h3>Exploración Física y Pruebas</h3>
+        <ul>
+            <li>Presión arterial: 135/85 mmHg</li>
+            <li>Frecuencia cardiaca: 76 lpm</li>
+            <li>Electrocardiograma: signos de isquemia subendocárdica</li>
+            <li>Troponinas: dentro de rango normal</li>
+        </ul>
+
+        <h3>Diagnóstico Presuntivo</h3>
+        <p>Angina de pecho estable posiblemente relacionada con enfermedad coronaria crónica.</p>
+
+        <h3>Plan de Tratamiento</h3>
+        <ul>
+            <li>Beta bloqueadores</li>
+            <li>Antiagregante plaquetario (aspirina)</li>
+            <li>Estatinas</li>
+            <li>Modificación del estilo de vida: dieta, ejercicio moderado, evitar tabaco y alcohol</li>
+        </ul>
+
+        <h3>Seguimiento</h3>
+        <p>Control clínico en 1 mes y evaluación con prueba de esfuerzo o ecocardiograma de estrés según disponibilidad.</p>
+    '
+]
+
+?>
+
+<style type="text/css">
+  .custom-btn {
+    width: 150px;
+    /* Establece el ancho fijo */
+    height: 40px;
+    /* Establece la altura fija */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    margin-bottom: 5px;
+    /* Espaciado opcional entre botones */
+  }
+  .breadcrumb{
+
+    margin: 1rem 0 2rem 0  !important;
+    background: rgba(0, 0, 0, 0.02);
+  }
+
+  .custom-btn i {
+    margin-right: 5px;
+    /* Espaciado entre el ícono y el texto */
+  }
+</style>
+<div class="componete">
+  <div class="content">
+    <nav class="mb-4" aria-label="breadcrumb">
+      <ol class="breadcrumb mb-0">
+        <li class="breadcrumb-item"><a href="Dashboard">Inicio</a></li>
+        <li class="breadcrumb-item"><a href="pacientescontrol">Pacientes</a></li>
+        <li class="breadcrumb-item active" onclick="location.reload()" id="nameBradcumb"></li>
+      </ol>
+    </nav>
+    <div class="pb-9">
+
+      <div class="row g-0">
+        <h2 class="mb-0">
+          <? echo $nombres ?>
+        </h2>
+<div class="col-12 col-md-12 col-lg-5">
+          <div id="patientProfile"></div>
+          <?php
+          // include './infoPaciente.php';
+          ?>
+        
+        </div>
+
+        <div class="col-md-7 ps-3">
+
+          <div class="card">
+            <div class="accordion" id="accordionExample">
+              <div class="accordion-item border border-0">
+                <h2 class="accordion-header px-3" id="headingOne">
+                  <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                    <h5 class="card-title mb-0">Evolución del paciente</h5>
+                  </button>
+                </h2>
+                <div class="accordion-collapse collapse" id="collapseOne" aria-labelledby="headingOne"
+                  data-bs-parent="#accordionExample">
+                  <div class="accordion-body pt-3">
+                    <div class="timeline-vertical" id="patient-evolution-container">
+
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card mt-2 mb-2">
+            <div class="accordion" id="resumenAccordion">
+              <div class="accordion-item border border-0">
+                <h2 class="accordion-header px-3" id="resumenHeading">
+                  <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#resumenCollapse" aria-expanded="false"
+                    aria-controls="resumenCollapse">
+                    <h5 class="card-title mb-0">Resumen del paciente</h5>
+                  </button>
+                </h2>
+                <div class="accordion-collapse collapse" id="resumenCollapse"
+                  aria-labelledby="resumenHeading" data-bs-parent="#resumenAccordion">
+                  <div class="accordion-body pt-3">
+                    <div class="patient-summary-container" id="resumenPacienteContainer"
+                      style="margin-left: 1.2rem;">
+                      <!-- Contenido del resumen irá aquí -->
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="tabsReact"></div>
+
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<template id="patient-evolution">
+  <div class="timeline-item align-items-start">
+    <div class="row g-md-3 align-items-start mb-8 mb-lg-5">
+      <div class="col-12 col-md-auto d-flex">
+        <div class="timeline-item-date text-end order-1 order-md-0 me-md-4">
+          <p class="fs-10 fw-semibold text-body-tertiary mb-0">23 August, 2023<br class="d-none d-md-block">
+            10:30 AM</p>
+        </div>
+        <div class="timeline-item-bar position-relative me-3 me-md-0">
+          <div class="icon-item icon-item-sm bg-success" data-bs-theme="light"><span
+              class="fa-solid fa-check text-white fs-10"></span></div><span
+            class="timeline-bar border-end border-success"></span>
+        </div>
+      </div>
+      <div class="col">
+        <div class="timeline-item-content text-start ps-6 ps-md-3">
+          <h5 class="text-start">Order is processing</h5>
+          <p class="fs-9 text-body-secondary mb-0"
+            style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis;">
+            Your package is ready for the seller to prepare.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script type="module">
+  import React from "react"
+  import ReactDOMClient from "react-dom/client"
+  import {
+    PreviewCurrentUserPatientViewCards
+  } from './react-dist/fe-config/speciality/components/PreviewCurrentUserPatientViewCards.js';
+
+  ReactDOMClient.createRoot(document.getElementById('tabsReact')).render(React.createElement(PreviewCurrentUserPatientViewCards));
+</script>
+
+
+<script type="module">
+  import React from "react"
+  import ReactDOMClient from "react-dom/client"
+  import {
+    PatientProfileCard
+  } from './react-dist/patients/patientProfile/components/PatientProfileCard.js';
+
+  ReactDOMClient.createRoot(document.getElementById('patientProfile')).render(React.createElement(PatientProfileCard));
+</script>
+
+<script>
+  const resumenPaciente = {
+    resumenGeneral: "Paciente masculino de mediana edad, con cuadro clínico estable, bajo tratamiento por enfermedad cardiovascular crónica. Evolución favorable en los últimos controles, adherente al tratamiento y con seguimiento activo en consultas ambulatorias.",
+    
+    diagnosticos: [
+      "Angina de pecho estable",
+      "Hipertensión arterial esencial",
+      "Dislipidemia mixta"
+    ],
+
+    antecedentes: [
+      "Hipertensión diagnosticada hace 8 años",
+      "Exfumador (último consumo hace 2 años)",
+      "Antecedentes familiares de cardiopatía isquémica",
+      "Colesterol elevado desde hace 5 años"
+    ],
+
+    citasRecientes: [{
+        fecha: "2025-03-20",
+        especialidad: "Cardiología",
+        motivo: "Control de angina y ajuste de tratamiento",
+        observaciones: "Paciente sin dolor torácico, se mantiene con buena tolerancia al esfuerzo"
+      },
+      {
+        fecha: "2025-02-15",
+        especialidad: "Medicina Interna",
+        motivo: "Control general",
+        observaciones: "Se solicitó perfil lipídico y ECG de control"
+      }
+    ],
+
+    tratamientos: [
+      "Control farmacológico de factores de riesgo cardiovascular",
+      "Modificación de estilo de vida: alimentación saludable y ejercicio regular",
+      "Monitoreo periódico con pruebas funcionales"
+    ],
+
+    medicamentos: [{
+        nombre: "Aspirina",
+        dosis: "100 mg",
+        frecuencia: "1 vez al día"
+      },
+      {
+        nombre: "Atorvastatina",
+        dosis: "20 mg",
+        frecuencia: "1 vez al día"
+      },
+      {
+        nombre: "Metoprolol",
+        dosis: "50 mg",
+        frecuencia: "2 veces al día"
+      }
+    ],
+
+    planManejo: "Continuar con tratamiento actual. Se recomienda control cardiológico trimestral, adherencia al tratamiento, realizar dieta baja en grasas saturadas, mantener ejercicio regular y evitar factores de riesgo como el estrés y el consumo de alcohol."
+  };
+
+  function mostrarResumenPacienteTextual(resumenPaciente) {
+    const container = document.getElementById('resumenPacienteContainer');
+
+    container.innerHTML = `
+    <div class="resumen-textual">
+      <div class="mb-4">
+        <h6 class="fw-bold">Resumen general</h6>
+        <p class="mb-0">${resumenPaciente.resumenGeneral}</p>
+      </div>
+      
+      <div class="mb-4">
+        <h6 class="fw-bold">Diagnósticos</h6>
+        <p class="mb-2">El paciente presenta los siguientes diagnósticos registrados:</p>
+        <ul class="ps-3">
+          ${resumenPaciente.diagnosticos.map(d => `<li>${d}</li>`).join('')}
+        </ul>
+      </div>
+      
+      <div class="mb-4">
+        <h6 class="fw-bold">Antecedentes relevantes</h6>
+        <p class="mb-2">En su historial médico se destacan:</p>
+        <ul class="ps-3">
+          ${resumenPaciente.antecedentes.map(a => `<li>${a}</li>`).join('')}
+        </ul>
+      </div>
+      
+      <div class="mb-4">
+        <h6 class="fw-bold">Medicamentos</h6>
+        <p class="mb-2">Al paciente se le han recetado los siguientes medicamentos:</p>
+        <ul class="ps-3">
+          ${resumenPaciente.medicamentos.map(m => 
+            `<li>${m.nombre} (${m.dosis}, ${m.frecuencia})</li>`
+          ).join('')}
+        </ul>
+      </div>
+      
+      <div class="mb-4">
+        <h6 class="fw-bold">Tratamiento actual</h6>
+        <p class="mb-2">El plan de manejo incluye:</p>
+        <ul class="ps-3">
+          ${resumenPaciente.tratamientos.map(t => `<li>${t}</li>`).join('')}
+        </ul>
+      </div>
+      
+      <div>
+        <h6 class="fw-bold">Plan de seguimiento</h6>
+        <p>${resumenPaciente.planManejo}</p>
+      </div>
+    </div>
+  `;
+  }
+
+  // Llamar a la función con los datos del paciente
+  mostrarResumenPacienteTextual(resumenPaciente);
+</script>
+
+<!-- <script type="module">
+  import {
+    patientService
+  } from './services/api/index.js';
+  import {
+    getPatientNextAppointment
+  } from './services/patientHelpers.js';
+
+  const tabsContainer = document.getElementById('contenedor-tabs');
+  const tabsLoadingContainer = document.getElementById('tabs-loading-container');
+  const patientId = new URLSearchParams(window.location.search).get('id') || new URLSearchParams(window
+    .location.search).get('patient_id');
+
+  const patient = await patientService.get(patientId);
+  const currentAppointment = getPatientNextAppointment(patient);
+  const attentionType = currentAppointment?.attention_type;
+
+  tabsContainer.classList.remove('d-none');
+  tabsLoadingContainer.classList.remove('d-flex');
+  tabsLoadingContainer.classList.add('d-none');
+
+  if (currentAppointment && attentionType === 'REHABILITATION') {
+
+    const tabsToDisplay = [
+      'col-consulta',
+      'col-citas',
+      'col-llamar-paciente',
+      'col-antecedentes',
+      'col-consentimientos',
+      'col-notas-enfermeria',
+      'col-evoluciones',
+      'col-remisiones'
+    ];
+
+    const tabs = document.querySelectorAll('.card-tab');
+    tabs.forEach(tab => {
+      const id = tab.id;
+
+      if (!tabsToDisplay.includes(`${id}`)) {
+        tab.style.display = 'none';
+      }
+    });
+  }
+</script> -->
+
+<script type="module">
+  import {
+    patientService
+  } from './services/api/index.js';
+  import UserManager from './services/userManager.js';
+
+  document.addEventListener('DOMContentLoaded', async function() {
+    const clinicalRecordCard = document.getElementById('consulta');
+    clinicalRecordCard.style.display = 'none';
+    const patientId = new URLSearchParams(window.location.search).get('id') || new URLSearchParams(window
+      .location.search).get('patient_id');
+    const exampleData = await patientService.evolution(patientId);
+
+    UserManager.onAuthChange((isAuthenticated, user) => {
+      if (user) {
+        clinicalRecordCard.style.display = 'block';
+        clinicalRecordCard.setAttribute('data-url',
+          `historialConsultasEspecialidad?patient_id=${patientId}&especialidad=${user.specialty.name}`
+        );
+      }
+    })
+
+    const container = document.getElementById('patient-evolution-container');
+    const template = document.getElementById('patient-evolution').content;
+
+    exampleData.forEach(item => {
+      const clone = document.importNode(template, true);
+      const date = new Date(item.created_at);
+      clone.querySelector('.timeline-item-date').innerHTML =
+        `${date.toLocaleDateString()}<br>${date.toLocaleTimeString()}`;
+      clone.querySelector('.timeline-item-content h5').textContent = item.title;
+      clone.querySelector('.timeline-item-content p').textContent = item.content;
+      container.appendChild(clone);
+    });
+  });
+</script>
+
+<!-- <script type="module">
+  import {
+    patientService,
+    appointmentService,
+    msMasivaService,
+    templateService,
+    infoCompanyService,
+    ticketService
+  } from './services/api/index.js';
+
+  import {
+    formatWhatsAppMessage,
+    getIndicativeByCountry,
+    formatDate,
+  } from "../services/utilidades";
+
+  import {
+    createMassMessaging
+  } from '../funciones/funcionesJS/massMessage.js';
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    try {
+      const tenant = window.location.hostname.split(".")[0];
+      const data = {
+        tenantId: tenant,
+        belongsTo: "turnos-llamadoPaciente",
+        type: "whatsapp",
+      };
+      const companies = await infoCompanyService.getCompany();
+      const communications = await infoCompanyService.getInfoCommunication(companies.data[0].id);
+      let template;
+      try {
+        template = await templateService.getTemplate(data);
+      } catch (error) {
+        console.error('Error al obtener template:', error);
+      }
+      const infoInstance = {
+        api_key: communications.api_key,
+        instance: communications.instance
+      }
+
+      const messaging = createMassMessaging(infoInstance);
+
+      function sendMessageWhatsapp(data, currentAppointment) {
+        const replacements = {
+          NOMBRE_PACIENTE: `${data?.patient?.first_name ?? ""} ${data?.patient?.middle_name ?? ""
+          } ${data?.patient?.last_name ?? ""} ${data?.patient?.second_last_name ?? ""
+          }`,
+          TICKET: `${data?.ticket_number ?? ""}`,
+          MODULO: `${data?.module?.name ?? ""}`,
+          ESPECIALISTA: `${currentAppointment?.user_availability?.user?.specialty?.name ?? ""}`,
+          CONSULTORIO: `${data?.branch?.address ?? ""}`,
+        };
+
+        const templateFormatted = formatWhatsAppMessage(
+          template?.data?.template,
+          replacements
+        );
+
+        const dataMessage = {
+          channel: "whatsapp",
+          message_type: "text",
+          recipients: [
+            getIndicativeByCountry(data?.patient.country_id) +
+            data?.patient.whatsapp,
+          ],
+          message: templateFormatted,
+          webhook_url: "https://example.com/webhook",
+        };
+        messaging.sendMessage(dataMessage).then(() => {});
+      }
+
+      function handleTabClick(element) {
+        const url = element.getAttribute('data-url');
+        switch (url) {
+          case 'llamar_paciente':
+            Swal.fire({
+              title: '¿Estás seguro de llamar al paciente al consultorio?',
+              icon: 'warning',
+              showCancelButton: true,
+              confirmButtonColor: '#3085d6',
+              cancelButtonColor: '#d33',
+              confirmButtonText: 'Sí, llamar'
+            }).then(async (result) => {
+              if (result.isConfirmed) {
+                const patientId = new URLSearchParams(window.location.search).get('id') ||
+                  new URLSearchParams(window.location.search).get('patient_id');
+                const patient = await patientService.get(patientId);
+                const currentAppointment = patient.appointments.find(appointment => (
+                  appointment.appointment_state.name === 'pending_consultation' &&
+                  appointment.appointment_date == new Date().toISOString().split('T')[0]
+                ));
+
+
+                if (currentAppointment) {
+                  await appointmentService.changeStatus(currentAppointment.id, 'called');
+                  await ticketService.lastByPatient(patientId).then((response) => {
+
+                    if (response?.patient?.whatsapp_notifications) {
+                      sendMessageWhatsapp(response, currentAppointment);
+                    }
+                    Swal.fire(
+                      '¡Paciente llamado!',
+                      'Se ha llamado al paciente para que se acerque al consultorio.',
+                      'success'
+                    )
+
+                  });
+                } else {
+                  Swal.fire(
+                    'Error',
+                    'El paciente no está en espera de consulta.',
+                    'error'
+                  )
+                }
+              }
+            });
+            break;
+            // case 'verRecetasOptometria':
+            //   async function consultarDatosDoctor(doctorId) {
+            //       let data = await obtenerDatosPorId("users", doctorId);
+
+            //       let especialidad = await getSpecialtyName(data.user_specialty_id);
+            //       // pendiente consultar
+            //       // Datos firma
+            //       return {
+            //         especialidad,
+            //       };
+            //     }
+            //     (async () => {
+            //       try {
+            //         const resultado = await consultarDatosDoctor(doctorId);
+            //         url += '&especialidad=' + encodeURIComponent(resultado.especialidad);
+            //         window.location.href = url;
+            //       } catch (error) {
+            //         console.error('Error al obtener datos del doctor:', error);
+            //         window.location.href = url;
+            //       }
+            //     })();
+            //   break;
+          default:
+            window.location.href = url;
+            break;
+        }
+      }
+      const buttons = document.querySelectorAll('.btn-tab');
+      buttons.forEach(button => {
+        button.addEventListener('click', function() {
+          handleTabClick(button);
+        });
+      });
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  });
+</script> -->
+
+
+<style type="text/css">
+    .componente {
+        padding: 1rem 0;
+    }
+    
+    .container-small {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 15px;
+    }
+    
+    .cards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 2rem;
+        margin-top: 2rem;
+    }
+    
+    .dashboard-card {
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.05);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        overflow: hidden;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        border: 1px solid rgba(0, 0, 0, 0.06);
+        position: relative;
+    }
+    
+    .dashboard-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #4a6cf7, #6c8eff);
+        transform: scaleX(0);
+        transition: transform 0.3s ease;
+    }
+    
+    .dashboard-card:hover {
+        transform: translateY(-12px);
+        box-shadow: 0 20px 30px rgba(0, 0, 0, 0.15), 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+    
+    .dashboard-card:hover::before {
+        transform: scaleX(1);
+    }
+    
+    .dashboard-card .card-body {
+        padding: 2rem 1.5rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        flex-grow: 1;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .dashboard-card .card-icon {
+        margin-bottom: 1.2rem;
+        color: #4a6cf7;
+        font-size: 1.2rem;
+        transition: all 0.3s ease;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .dashboard-card .card-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        color: #2d3748;
+        line-height: 1.3;
+    }
+    
+    .dashboard-card .card-text {
+        color: #718096;
+        margin-bottom: 2rem;
+        flex-grow: 1;
+        line-height: 1.6;
+        max-width: 90%;
+    }
+    
+    .dashboard-card .btn {
+        background: #132030 ;
+        border: none;
+        border-radius: 10px;
+        padding: 0.75rem 1.5rem;
+        transition: all 0.3s ease;
+        margin-top: auto;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .dashboard-card .btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: left 0.5s ease;
+    }
+    
+    .dashboard-card .btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(74, 108, 247, 0.4);
+        background: linear-gradient(120deg, #1A99FB);
+    }
+    
+    .dashboard-card .btn:hover::before {
+        left: 100%;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 992px) {
+        .cards-grid {
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .dashboard-card .card-body {
+            padding: 1.5rem 1.25rem;
+        }
+        
+        .dashboard-card .card-icon {
+            font-size: 2.6rem;
+            width: 80px;
+            height: 80px;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .cards-grid {
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.25rem;
+        }
+        
+        .dashboard-card .card-title {
+            font-size: 1.2rem;
+        }
+        
+        .dashboard-card .card-text {
+            font-size: 0.9rem;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .cards-grid {
+            grid-template-columns: 1fr;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+            gap: 1.25rem;
+        }
+        
+        .dashboard-card .card-body {
+            padding: 1.25rem 1rem;
+        }
+        
+        .dashboard-card .card-icon {
+            font-size: 1rem;
+            width: 70px;
+            height: 70px;
+        }
+    }
+    
+    /* Estilos para el tema oscuro */
+    html[data-bs-theme="dark"] .dashboard-card {
+        background: linear-gradient(135deg, #2d3748, #1a202c);
+        border-color: #4a5568;
+    }
+    
+    html[data-bs-theme="dark"] .dashboard-card .card-title {
+        color: #f7fafc;
+    }
+    
+    html[data-bs-theme="dark"] .dashboard-card .card-text {
+        color: #cbd5e0;
+    }
+    
+    html[data-bs-theme="dark"] .dashboard-card .card-icon {
+        background: linear-gradient(135deg, rgba(74, 108, 247, 0.2), rgba(108, 142, 255, 0.1));
+    }
+    
+    /* Estilos para el breadcrumb */
+    .breadcrumb {
+        font-size: 0.9rem;
+        padding: 1rem 1.5rem;
+        margin: -1rem -1.5rem 2rem -1.5rem;
+        background: rgba(0, 0, 0, 0.02);
+        border-radius: 8px;
+    }
+    
+    html[data-bs-theme="dark"] .breadcrumb {
+        background: rgba(255, 255, 255, 0.05);
+    }
+    
+    .custom-btn {
+        width: 150px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        margin-bottom: 5px;
+    }
+
+    .custom-btn i {
+        margin-right: 5px;
+    }
+</style>
+
+<?php
+// include "../Consultas/modalAntencedentes.php";
+// include "../Consultas/modalInfoPacientes.php";
+include "../footer.php";
+?>

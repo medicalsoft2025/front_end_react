@@ -1,0 +1,412 @@
+<IfModule mod_mime.c>
+    AddType application/javascript .js
+</IfModule>
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresDefault "access plus 0 seconds"
+</IfModule>
+<IfModule mod_headers.c>
+    Header set Cache-Control "no-cache, no-store, must-revalidate"
+    Header set Pragma "no-cache"
+    Header set Expires 0
+</IfModule>
+<IfModule mod_rewrite.c>
+RewriteEngine On
+#RewriteBase /ventasPetbackup/
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME}\.js -f
+RewriteRule ^(.+)$ $1.js [L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+Options -Indexes
+
+# RewriteCond %{ENV:REDIRECT_MW_PASSED} !^1$
+# RewriteRule ^(.*)$ middleware.php [E=MW_PASSED:1,L]
+
+# Generales [INICIO]
+RewriteRule portada$ portada.php
+RewriteRule ^inicio$ index.php
+RewriteRule ^validarKeys$ login/verificarLogin.php
+RewriteRule ^validarKeys_Dom$ login/verificarLoginDom.php
+# Generales [FIN]
+
+# Perfil de Usuario [INICIO]
+RewriteRule ^ConfigProfile$ Config/profile.php
+# Perfil de Usuario [FIN]
+RewriteRule ^LoginPrueba$ login/loginPrueba.php
+RewriteRule ^ConfiguracionGeneral$ generalConfiguration.php
+
+
+##dejenme de borrar esta ruta porfa
+##que no me borren esta ruta, segundo aviso, el que me la borre le pongo una denuncia, att: jeffer
+RewriteRule ^Landing$ Portada/portadaTest.php
+
+# Configuración[INICIO]
+RewriteRule ^HomeReportes$ Reportes/homeReportes.php
+RewriteRule ^RIPS_Report$ Reportes/ReportesRIPS.php
+RewriteRule ^Menu_reports$ Reportes/Menu_reports_v2.php
+RewriteRule ^Registered_patients$ Reportes/Report_details/Registered_patient_report.php
+RewriteRule ^Clinical_histories_general$ Reportes/Report_details/Clinical_histories_general_report.php
+RewriteRule ^Clinical_histories_by_patient$ Reportes/Report_details/Clinical_histories_by_patient_report.php
+RewriteRule ^Clients$ Reportes/Report_details/Clients_report.php
+RewriteRule ^Schedule$ Reportes/Report_details/Schedule_report.php
+RewriteRule ^Dates_by_status$ Reportes/Report_details/Dates_by_status_report.php
+RewriteRule ^Invoices$ Reportes/Report_details/Invoices_report.php
+RewriteRule ^ClinicalRecordReports$ Reportes/Report_details/Clinical_record_report.php
+RewriteRule ^Commissions$ Reportes/Report_details/Commissions_report.php
+RewriteRule ^CommissionsCopy$ Reportes/Report_details/Commissions_report_copy.php
+RewriteRule ^InvoicesByEntity$ Reportes/Report_details/Invoices_by_entity_report.php
+RewriteRule ^AppointmentsReport$ Reportes/Report_details/Appointments_report.php
+RewriteRule ^InvoicesDoctors$ Reportes/Report_details/Invoices_doctors_report.php
+RewriteRule ^Estimates$ Reportes/Report_details/Estimates_report.php
+RewriteRule ^Accounts_receivable$ Reportes/Report_details/Accounts_receivable_report.php
+RewriteRule ^Sales_commission_by_user$ Reportes/Report_details/Sales_commission_by_user_report.php
+RewriteRule ^Config_PDF$ Configuracion/Print_format.php
+RewriteRule ^configPrecios$ Configuracion/homeConfig/configPrecios.php
+
+# Configuración [FIN]
+
+# Contabilidad[INICIO]
+RewriteRule ^FE_Contabilidad$ Contabilidad/Contabilidad.php
+RewriteRule ^FE_ContabilidadCopy$ Contabilidad/ContabilidadD.php
+RewriteRule ^FECCPrint$ Contabilidad/Impresion/FE_ImprimirComprobanteContable.php
+RewriteRule ^FERPPrint$ Contabilidad/Impresion/FE_ImprimirReciboPago.php
+RewriteRule ^FERCPrint$ Contabilidad/Impresion/FE_ImprimirReciboCaja.php
+RewriteRule ^FE_ContabilidadNueva$ Contabilidad/logsAuditoriaAdmin.php
+# Contabilidad [FIN]
+
+
+#ContabilidadNueva[INICIO]
+RewriteRule ^CuentasContables$ ContabilidadNueva/vistaContabilidad.php
+RewriteRule ^RecibosDePagos$ ContabilidadNueva/reciboPago.php
+RewriteRule ^RecibosDeCajas$ ContabilidadNueva/reciboCaja.php
+RewriteRule ^ActivosFijos$ ContabilidadNueva/activosFijos.php
+RewriteRule ^BancosContables$ ContabilidadNueva/bancos.php
+RewriteRule ^GestionarTerceros$ ContabilidadNueva/terceros/vistaTerceros.php
+RewriteRule ^CierresContables$ ContabilidadNueva/cierresContables.php
+
+RewriteRule ^NuevaFormaPago$ ContabilidadNueva/nuevaFormaPago.php
+RewriteRule ^CuentasCobrarPagar$ ContabilidadNueva/cuentasCobrarPagar.php
+RewriteRule ^CrearComprobantesContable$ ContabilidadNueva/reportes/form/FormComprobantesContables.php
+RewriteRule ^ReportesEstadoResultados$ ContabilidadNueva/reportes/tablas/EstadoResultado.php
+RewriteRule ^ReportesBalanceGeneral$ ContabilidadNueva/reportes/tablas/BalanceGeneral.php
+RewriteRule ^ReportesBalanceCuentaContable$ ContabilidadNueva/reportes/tablas/BalanceCuentaContable.php
+RewriteRule ^ReportesBalancePruebaTercero$ ContabilidadNueva/reportes/tablas/BalancePruebaTercero.php
+RewriteRule ^ReportesMovimientoAuxiliar$ ContabilidadNueva/reportes/tablas/MovimientoAuxiliar.php
+RewriteRule ^ReporteLibroDiario$ ContabilidadNueva/reportes/tablas/LibroDiario.php
+RewriteRule ^ReporteLibroMayorBalance$ ContabilidadNueva/reportes/tablas/LibroMayorBalance.php
+RewriteRule ^ReporteControlCaja$ ContabilidadNueva/reportes/tablas/ControlCaja.php
+
+# ContabilidadNueva [FIN]
+
+# Facturacion [INICIO]
+RewriteRule ^FacturacionPrueba$ Facturacion/FacturacionPrueba.php
+RewriteRule ^FE_FCE$ Facturacion/FE_Facturacion.php
+RewriteRule ^EntidadModalCopy$ Facturacion/includes/modals/EntidadModalCopy.php
+RewriteRule ^Facturacion_Ventas$ Facturacion/Facturacion_ventas.php
+RewriteRule ^Facturacion_Compras$ Facturacion/Facturacion_Compras.php
+RewriteRule ^ReportesContables$ ContabilidadNueva/reportes/ReportesContables.php
+RewriteRule ^ComprobantesContables$ Facturacion/reportes/ComprobantesContables.php
+RewriteRule ^NotasDebitoCredito$ Facturacion/notadebitocredito/NotaDebitoCredito.php
+RewriteRule ^DocumentoSoporte$ Facturacion/documentosoporte/DocumentoSoporte.php
+RewriteRule ^OrdenesCompra$ Facturacion/ordenescompra/OrdenesCompra.php
+
+
+RewriteRule ^metodosPago$ ContabilidadNueva/config/metodoPagos.php
+RewriteRule ^impuestos$ ContabilidadNueva/config/impuestos.php
+RewriteRule ^retenciones$ ContabilidadNueva/config/retenciones.php
+RewriteRule ^centroCosto$ ContabilidadNueva/config/centrocosto.php
+RewriteRule ^facturacionConfiguracion$ ContabilidadNueva/config/billing.php
+
+RewriteRule ^Imprimir_Factura$ Facturacion/Imprimir_Factura.php
+RewriteRule ^Descargar_Factura$ Facturacion/Descargar_Factura.php
+RewriteRule ^Imprimir_FacturaPDF$ Facturacion/Imprimir_FacturaPDF.php
+# RewriteRule ^FE_FacturaCliente$ Cliente/FE_Factura.php
+# Facturacion [FIN]
+
+# Facturacion Empresa [INICIO]
+RewriteRule ^FE_Empresa$ Empresa/FE_Empresa.php
+# Facturacion Empresa [FIN]
+
+# Entidades [INICIO]
+RewriteRule ^FE_Entidades$ Entidades/Entidades.php
+# RewriteRule ^FE_FacturaCliente$ Cliente/FE_Factura.php
+# Entidades [FIN]
+
+# Configuracion de FE [INICIO]
+RewriteRule ^FE_Config$ Configuracion/FE_Config.php
+# Configuracion de FE [FIN]
+
+# Configuracion de Historias [INICIO]
+RewriteRule ^FE_Autorizaciones$ HistoriasRips/FE_Autorizaciones.php
+# Configuracion de Historias [FIN]
+
+# Configuracion de Nomina [INICIO]
+RewriteRule ^FE_Nomina$ Nomina/FE_Nomina.php
+RewriteRule ^FE_DetalleEmpleado$ Nomina/FE_DetalleEmpleado.php
+RewriteRule ^FE_ImprimirNominaG$ Nomina/FE_InprimirNominaGrupal.php
+RewriteRule ^FE_ImprimirNominaI$ Nomina/FE_InprimirNominaIndividual.php
+RewriteRule ^FE_ImprimirLiquidacion$ Nomina/FE_ImprimirLiquidacion.php
+# Configuracion de Nomina [FIN]
+
+# Firma de Contrato por parte del empleado [INICIO]
+RewriteRule ^verContrato/(.+)$ Contrato/index.php?json=$1 
+# RewriteRule ^verContrato/(.+)$ Contrato/index.php?idContrato=$1 
+# RewriteRule ^verContrato2/(.+)$ Contrato/index2.php?json=$1 
+RewriteRule ^FE_ImprimirContrato$ Contrato/descargar.php
+# RewriteRule ^descargarContrato/(.+)$ Contrato/descargar.php?idContrato=$1 
+# Firma de Contrato por parte del empleado [FIN]
+
+#Dahsnoard
+RewriteRule ^Dashboard$  Portada/portada.php
+
+#Pacientes
+RewriteRule ^pacientes$  Pacientes/pacientesV2.php
+RewriteRule ^verPaciente$  Pacientes/verPaciente.php
+
+#Citas
+RewriteRule ^citasControl$  Citas/citasHoy.php
+RewriteRule ^verCitas$  Citas/verCitas.php
+
+#Consultas
+RewriteRule ^consultas$  Consultas/consultas.php
+RewriteRule ^nuevaConsulta$  Consultas/nuevaConsulta.php
+
+#Examenes
+RewriteRule ^verExamenes$  Examenes/verExamenes.php
+RewriteRule ^cargarResultadosExamen$  Examenes/cargarResultadosExamen.php
+
+#Recetas
+RewriteRule ^verRecetas$  Recetas/verRecetas.php
+RewriteRule ^verRecetasOptometria$  Recetas/verRecetasOptometria.php
+RewriteRule ^crearReceta$  Recetas/nuevaReceta.php
+
+#Incapacidades
+RewriteRule ^verIncapacidades$  Incapacidades/verIncapacidades.php
+
+#DocumentosInformados (Consentimientos/informes)
+RewriteRule ^verConcentimientos$  Documentos/verDocumentos.php
+
+#Antecedentes
+RewriteRule ^verAntecedentes$  Antecedentes/verAntecedentes.php
+
+
+#vacunacion
+
+RewriteRule ^Vacunas$  vacunas/homeVacunacion.php
+RewriteRule ^esquemaVacunacion$  vacunas/esquemaVacunacion.php
+#vacunacion
+
+#laboratorio
+RewriteRule ^laboratorio$  Laboratorio/laboratorio.php
+RewriteRule ^examenes$  Laboratorio/nuevoExamen.php
+
+#enfermeria
+RewriteRule ^enfermeria$  NotasEnfermeria/notasEnfermeria.php
+
+#consulta/historia
+RewriteRule ^consulta$  Consultas/consultaPlantilla.php
+RewriteRule ^seleccionarHistoria$  Consultas/consultas.php
+RewriteRule ^consultas-anulacion-pendiente$  Consultas/consultasAnulacionPendiente.php
+RewriteRule ^solicitud-anulacion-recetas$  Consultas/solicitudesAnulacionReceta.php
+
+RewriteRule ^admisiones-anulacion-pendiente$  Citas/admisionesAnulacionesPendientes.php
+RewriteRule ^general-requests$  Auditoria/generalRequests.php
+RewriteRule ^preadmisionControl$  Citas/preadmisionControl.php
+
+RewriteRule ^historiaMedica$  Consultas/nuevaConsulta.php
+
+RewriteRule ^Print_format$ Configuracion/Print_format.php
+
+#mensajeria masiva
+
+RewriteRule ^Mensajes_whatsapp$ mensajeriaMasiva/mensajes_whatsapp.php
+
+
+#telemedicina
+RewriteRule ^telemedicina$ Telemedicina/TelemedicinaNueva.php
+
+#telemedicina video-llamada
+RewriteRule ^videoLlamada$ Telemedicina/VideoLlamada.php
+
+#Invoices-purchase
+RewriteRule ^facturas-compras$ Facturas/FacturasCompras.php
+
+#Invoices-sales
+RewriteRule ^facturas-ventas$ Facturas/FacturasVentas.php
+
+#Generate invoice purchase
+RewriteRule ^generar-factura-compra$ Facturas/GenerarFacturaCompra.php
+
+#Generate invoice purchase
+RewriteRule ^generar-factura-venta$ Facturas/GenerarFacturaVenta.php
+
+#Sala de espera
+RewriteRule ^waiting-room$ WaitingRoom/waiting_room.php
+
+#Evoluciones
+RewriteRule ^evoluciones$ Evoluciones/evoluciones.php
+
+RewriteRule ^pruebaIA$ Consultas/consultaPrueba.php
+
+
+#Odontologia
+RewriteRule ^historiaOrtodoncia$ Odontologia/periodontograma.php
+RewriteRule ^prueba$ Consultas/consultaPrueba.php
+RewriteRule ^registros-presupuestos$ Presupuestos/registros_presupuestos.php
+RewriteRule ^preliminar-presupuesto$ Presupuestos/preliminar-presupuesto.php
+RewriteRule ^generar-presupuesto$ Presupuestos/generar_presupuesto.php
+RewriteRule ^consultas-especialidad$  Consultas/consultasEspecialidad.php
+RewriteRule ^generar_admision$  Citas/includes/modals/AdmissionModalCopyTwo.php
+RewriteRule ^generar_admision_rd$  Citas/includes/modals/AdmissionFormRD.php
+RewriteRule ^Factura_entidad$  Citas/EntidadView.php
+RewriteRule ^homeVacunacion$  vacunas/homeVacunacion.php
+#Inventario
+RewriteRule ^depositosInventario$  Inventario/DepositosInventario.php
+RewriteRule ^homeInventario$  Inventario/homeInventario.php
+RewriteRule ^inventarioGeneral$  Inventario/inventarioGeneral.php
+RewriteRule ^inventarioInventariables$  Inventario/inventarioInventariables.php
+RewriteRule ^inventarioMedicamentos$  Inventario/inventarioMedicamentos.php
+RewriteRule ^inventarioVacunas$  Inventario/inventarioVacunas.php
+RewriteRule ^inventarioInsumos$  Inventario/inventarioInsumos.php
+RewriteRule ^ajustesInventario$  Inventario/ajustesInventarios.php
+RewriteRule ^brandsProducts$  Inventario/brandsProducts.php
+RewriteRule ^categoriesProducts$  Inventario/categoriesProducts.php
+
+RewriteRule ^paquetes$  Paquetes/prescriptionPackagesApp.php
+
+RewriteRule ^solicitarInsumos$  Farmacia/reactTest/solicitarInsumosTest.php
+
+#Farmacioa
+RewriteRule ^homeFarmacia$  Farmacia/homeFarmacia.php
+RewriteRule ^caja$  Caja/caja.php
+RewriteRule ^cajaPrueba$  Caja/cajaPrueba.php
+
+RewriteRule ^insumos$  Insumos/reactTest/entregaInsumosReact.php
+
+RewriteRule ^pharmacyInvoices$  Farmacia/pharmacyInvoices.php
+
+RewriteRule ^homeTurnos$  turnos/homeTurnos.php
+RewriteRule ^solicitud-turnos$  turnos/solicitudTurnos.php
+RewriteRule ^gestion-turnos$  turnos/gestionTurnos.php
+
+RewriteRule ^panel-encuesta$  encuestas/encuentas.php
+
+RewriteRule ^remisiones$  Remisiones/remisiones.php
+
+RewriteRule ^noAutorizado$ Pagesphp/unauthorized.php
+
+RewriteRule ^homeMarketing$ Marketing/homeMarketing.php
+
+RewriteRule ^preadmisiones$ Citas/HistoryPreadmission.php
+RewriteRule ^admisiones-anulacion-pendiente$  Citas/admisionesAnulacionesPendientes.php
+
+RewriteRule ^homeAuditoria$ Auditoria/homeAuditoria.php
+
+RewriteRule ^homeContabilidad$ Contabilidad/homeContabilidad.php
+RewriteRule ^configContabilidad$ Contabilidad/configContabilidad.php
+# RewriteRule ^impuestos$ Contabilidad/impuestos.php
+# RewriteRule ^retenciones$ Contabilidad/retenciones.php
+# RewriteRule ^centroCosto$ Contabilidad/centroCosto.php
+# RewriteRule ^metodosPago$ Contabilidad/metodosPago.php
+
+# RewriteRule ^facturacionConfiguracion$ Contabilidad/configFacturacion.php
+
+RewriteRule ^historialConsultasEspecialidad$  Consultas/historialConsultasEspecialidad.php
+
+RewriteRule ^detalleConsulta$  Consultas/detalleConsulta.php
+
+RewriteRule ^plantillasMensajes$  Marketing/plantillasMensajes.php
+RewriteRule ^configMensajes$  Marketing/configMensajes.php
+RewriteRule ^MassMessage$  Marketing/MassMessage/massMessage.php
+
+RewriteRule ^controlCaja$ ControlCaja/controlCajaForm.php
+
+RewriteRule ^reporteCaja$ ReporteCaja/reporteCaja.php
+
+#Login
+RewriteRule ^forgotPassword$ login/forgotPassword.php
+
+# RewriteRule ^visualizarDocumento$ funciones/visualizarDocumento.php
+RewriteRule ^visualizarDocumento/([^/]+)/([^/]+)/?$ funciones/visualizarDocumento.php?id=$1&tipo=$2 [L,QSA]
+
+RewriteRule ^verOrdenesExamenes$ Examenes/verOrdenesExamenes.php
+RewriteRule ^verResultadosExamen$ Examenes/verResultadosExamen.php
+RewriteRule ^verOrdenesExamenesGenerales$ Laboratorio/verOrdenesGenerales.php
+
+RewriteRule ^modalCitasTest$ Citas/modalCitasTest.php
+
+RewriteRule ^tablaPacientes$ Pacientes/tablaPacientes.php
+
+RewriteRule ^postConsultationGestion$ Citas/PostConsultationGestion.php
+
+
+RewriteRule ^cardModulos$ Configuracion/homeConfig/cardModulos.php
+RewriteRule ^cardComisiones$ Configuracion/homeConfig/cardComisiones.php
+RewriteRule ^cardEspecialidades$ Configuracion/homeConfig/cardEspecialidades.php
+RewriteRule ^cardMotivoConsulta$ Configuracion/homeConfig/cardMotivoConsulta.php
+RewriteRule ^cardHorarios$ Configuracion/homeConfig/cardHorarios.php
+RewriteRule ^cardUsers$ Configuracion/homeConfig/cardUsers.php
+RewriteRule ^cardRoles$ Configuracion/homeConfig/cardRoles.php
+RewriteRule ^cardAusencias$ Configuracion/homeConfig/cardAusencias.php
+RewriteRule ^configUsuarios$ Configuracion/homeConfig/configUsuarios.php
+RewriteRule ^configImportaciones$ Configuracion/homeConfig/configImportaciones.php
+RewriteRule ^configConsentimientos$ Configuracion/homeConfig/configConsentimientos.php
+RewriteRule ^configEntidades$ Configuracion/homeConfig/configEntidades.php
+RewriteRule ^configPreciosPrueba$ Configuracion/homeConfig/configPrecios.php
+RewriteRule ^configPrecios$ Configuracion/homeConfig/ConfigPreciosPrueba.php
+
+RewriteRule ^configExamenes$ Configuracion/homeConfig/configExamenes.php
+RewriteRule ^configuracionEmpresa$ Configuracion/homeConfig/configuracionEmpresa.php
+RewriteRule ^homeConfiguracion$ Configuracion/homeConfig/homeConfiguracion.php
+
+RewriteRule ^facturacionAdmisiones$ Citas/facturacionAdmisiones.php
+RewriteRule ^gestioncitas$ Citas/controlCitas.php
+RewriteRule ^pacientescontrol$ Citas/pacientesControl.php
+RewriteRule ^salaEspera$ Citas/salaEspera.php
+RewriteRule ^postconsultaControl$ Citas/postconsultaControl.php
+RewriteRule ^controlAdmisiones$ Citas/controlAdmisiones.php
+RewriteRule ^addParaclinicalTest$ Consultas/addParaclinicalButtonTest.php
+RewriteRule ^logsAuditoria$ Auditoria/logsAuditoria.php
+RewriteRule ^productInventoryTest$ Inventario/productInventoryTest.php
+RewriteRule ^test$ TEST/test.php
+RewriteRule ^testLabPlus$ Citas/testLabPlus.php
+# Social
+RewriteRule ^social$ Social/home.php
+RewriteRule ^verPublicacion$ Social/verPublicacion.php
+RewriteRule ^verPerfil$ Social/perfil.php
+RewriteRule ^perfilPaciente$ Social/patient/perfilPaciente.php
+
+RewriteRule ^imprimirFacturaVenta$ PlantillasImpresion/Facturas/facturaVenta.php
+RewriteRule ^imprimirFacturaCompra$ PlantillasImpresion/Facturas/facturaCompra.php
+RewriteRule ^imprimirNotaCredito$ PlantillasImpresion/Facturas/notaCredito.php
+RewriteRule ^imprimirNotaDedito$ PlantillasImpresion/Facturas/notaDebito.php
+RewriteRule ^imprimirReciboCaja$ PlantillasImpresion/Facturas/reciboCaja.php
+RewriteRule ^imprimirComprobanteContable$ PlantillasImpresion/Facturas/comprobanteContable.php
+RewriteRule ^imprimirBalanceGeneral$ PlantillasImpresion/Facturas/balanceGeneral.php
+RewriteRule ^medicationInventoryForm$ Inventario/medicationInventoryForm.php
+RewriteRule ^patientAsyncTableTest$ Pacientes/pacientesAsyncTableTest.php
+RewriteRule ^manualUsuario$ ManualUsuario/manualUsuario.php
+RewriteRule ^configTenantConvenios$ Configuracion/homeConfig/configTenantConvenios.php
+RewriteRule ^configIntegraciones$ Configuracion/homeConfig/configIntegraciones.php
+RewriteRule ^arbolContableTest$ Contabilidad/arbolContableTest.php
+RewriteRule ^solicitarInsumosTest$ Farmacia/reactTest/solicitarInsumosTest.php
+RewriteRule ^seePatientInfoButtonTest$ Pacientes/seePatientInfoButtonTest.php
+RewriteRule ^prescriptionPackagesApp$ Paquetes/prescriptionPackagesApp.php
+RewriteRule ^webCreatorApp$ CreadorPaginas/creadorPaginas.php
+RewriteRule ^entregaInsumosReact$ Insumos/reactTest/entregaInsumosReact.php
+RewriteRule ^farmacia$ Farmacia/reactTest/entregaMedicamentosReact.php
+RewriteRule ^consultasRevisionPendiente$ Consultas/consultasRevisionPendiente.php
+
+RewriteRule ^reporteInsumosUsuarios$ Reportes/reporteInsumosUsuarios.php
+RewriteRule ^chatInterno$ Chat/Chat.php
+RewriteRule ^specialtyPastMedicalHistoryFormReactTest$ Consultas/specialtyPastMedicalHistoryFormReactTest.php
+RewriteRule ^specialtyPastMedicalHistoryDetailReactTest$ Consultas/specialtyPastMedicalHistoryDetailReactTest.php
+RewriteRule ^clinicalRecordReviewReactTest$ Consultas/clinicalRecordReviewReactTest.php
+RewriteRule ^cajaFarmacia$ Caja/react/cajaPruebaReact.php
+RewriteRule ^basicPatientFormReactTest$ Pacientes/basicPatientFormReactTest.php
+RewriteRule ^systemConfigReactTest$ Configuracion/react/systemConfigReactTest.php
+RewriteRule ^reporteAnticipos$ ContabilidadNueva/reporteAnticipos.php
+RewriteRule ^saveMenus$ Utils/saveMenus.php 
+RewriteRule ^middlewareTest$ middleware.php
+RewriteRule ^configuracionesGenerales Config/generalConfiguracion.php

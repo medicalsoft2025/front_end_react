@@ -1,0 +1,210 @@
+
+.patient-cards-container {
+}
+
+.patient-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+}
+
+.patient-card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    overflow: hidden;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    position: relative;
+    
+}
+
+.patient-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: #29F6C1;
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+
+.patient-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 25px rgba(0, 0, 0, 0.15), 0 8px 15px rgba(0, 0, 0, 0.1);
+}
+
+.patient-card:hover::before {
+    transform: scaleX(1);
+}
+
+.patient-card .card-body {
+        padding: 1rem 0.5rem 0.5rem 1rem;
+        width:auto;
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+        align-items: center;
+    flex-grow: 1;
+    position: relative;
+    z-index: 1;
+}
+
+.patient-card .card-icon {
+    color: #4a6cf7;
+    font-size: 0.5rem;
+    transition: all 0.3s ease;
+    align-items: center;
+}
+
+.patient-card .card-title {
+    margin-top:2px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #2d3748;
+    line-height: 1.3;
+}
+
+.patient-card .card-text {
+    color: #718096;
+    flex-grow: 1;
+    line-height: 1.5;
+    font-size: 0.67rem;
+}
+
+.patient-card .btn-primary {
+    color: #ffffff !important;
+    background: #1A99FB !important;
+    border: 1px solid #1A99FB;
+    padding: 0.5rem 1rem;
+    transition: all 0.3s ease;
+    border-radius: 0.5rem !important;
+    font-family: 'Inter', sans-serif !important;
+    box-shadow: 0 4px 6px rgba(128, 128, 128, 0.3);
+    margin-top: auto;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    max-width: 50px;
+}
+
+.patient-card .btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+.patient-card .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(26, 153, 251, 0.4);
+    background: linear-gradient(120deg, #1A99FB, #0d8aee) !important;
+}
+
+.patient-card .btn-primary:hover::before {
+    left: 100%;
+}
+
+.patient-card .btn-primary:disabled {
+    background: #6c757d !important;
+    border-color: #6c757d;
+    transform: none;
+    box-shadow: none;
+    cursor: not-allowed;
+}
+
+.patient-card .btn-primary:disabled:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+/* Responsive para pantallas más pequeñas */
+@media (max-width: 1200px) {
+    .patient-cards-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 992px) {
+    .patient-cards-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.25rem;
+    }
+    
+    .patient-card .card-body {
+        padding: 1.25rem;
+    }
+    
+    .patient-card .card-icon {
+        font-size: 1.1rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .patient-cards-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+    
+    .patient-card .card-title {
+        font-size: 1.15rem;
+    }
+    
+    .patient-card .card-text {
+        font-size: 0.85rem;
+    }
+    
+    .patient-cards-container {
+        padding: 1rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .patient-cards-grid {
+        grid-template-columns: 1fr;
+        max-width: 400px;
+        margin-left: auto;
+        margin-right: auto;
+        gap: 1rem;
+    }
+    
+    .patient-card {
+        max-width: none;
+    }
+    
+    .patient-card .card-body {
+        padding: 1.25rem 1rem;
+    }
+    
+    .patient-card .card-icon {
+        font-size: 1rem;
+    }
+}
+
+html[data-bs-theme="dark"] .patient-card {
+    background: linear-gradient(135deg, #2d3748, #1a202c);
+    border-color: #4a5568;
+}
+
+html[data-bs-theme="dark"] .patient-card .card-title {
+    color: #f7fafc;
+}
+
+html[data-bs-theme="dark"] .patient-card .card-text {
+    color: #cbd5e0;
+}
+
+html[data-bs-theme="dark"] .patient-card .card-icon {
+    color: #63b3ed;
+}

@@ -1,0 +1,116 @@
+.custom-appointment-card {
+  background: #fff !important;
+  color: black !important;
+  min-height: 125px !important;
+  max-width: 600px !important;
+  width: 100% !important;
+  margin: 0.5rem auto !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1) !important;
+  border-radius: 8px !important;
+  border-left: 8px solid #007bff !important;
+  box-shadow: 0 4px 8px rgba(0, 123, 255, 0.15);
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  border-radius: 8px;
+  margin-bottom: 0.5rem;
+  width: 100%;
+}
+
+.custom-appointment-card:hover {
+  transform: translateY(-2px) scale(1);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15), 0 4px 12px rgba(0, 123, 255, 0.2) !important;
+}
+
+.custom-appointment-card.appointment-success {
+  height: auto !important;
+  border: 2px solid #28a745 !important;
+  border-left: 4px solid var(--primary-color) !important;
+  box-shadow: 0 4px 8px rgba(40, 167, 69, 0.15);
+}
+
+.appointment-card.appointment-error {
+  border: 1px solid #dc3545 !important;
+  border-left: 4px solid var(--primary-color) !important;
+}
+
+/* El resto de tus estilos se mantienen igual */
+.appointment-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.appointment-actions {
+  flex-shrink: 0;
+  display: flex;
+  width: auto;
+}
+
+/* Asegurar que el card-body use flexbox correctamente */
+.appointment-card .card-body {
+  padding: 1rem;
+}
+
+.appointment-card .card-body > .d-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 100%;
+  gap: 1rem;
+}
+
+/* Estilos para los botones más compactos */
+.appointment-actions .p-button {
+  margin: 0;
+  padding: 0.3rem 0.4rem;
+  min-width: auto;
+  font-size: 0.8rem;
+}
+
+/* Mejorar la presentación del texto */
+.appointment-info small {
+  font-size: 15px;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.appointment-info .fw-bold {
+  font-size: large;
+  min-width: 15px;
+  display: inline-block;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .appointment-card .card-body > .d-flex {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .appointment-info {
+    max-width: 100%;
+    margin-right: 0 !important;
+    width: 100%;
+  }
+
+  .appointment-actions {
+    flex-direction: row;
+    justify-content: flex-end;
+    width: 100%;
+    margin-top: 0.5rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #e9ecef;
+  }
+}
+
+@media (max-width: 576px) {
+  .appointment-card .card-body {
+    padding: 0.75rem;
+  }
+
+  .appointment-actions {
+    justify-content: space-around;
+  }
+
+  .appointment-info .fw-bold {
+    min-width: 70px;
+  }
+}

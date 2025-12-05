@@ -1,0 +1,1306 @@
+{
+  "form1": {
+    "tabs": [
+      {
+        "tab": "Admisión",
+        "card": [
+          {
+            "title": "Diagnóstico",
+            "fields": [
+              {
+                "id": "diagnostico",
+                "label": "",
+                "type": "textarea",
+                "name": "diagnostico"
+              }
+            ]
+          }
+        ],
+        "card2": [
+          {
+            "title": "Procedimiento",
+            "fields": [
+              {
+                "id": "procedimiento",
+                "label": "",
+                "type": "textarea",
+                "name": "procedimiento"
+              }
+            ]
+          }
+        ],
+        "card3": [
+          {
+            "title": "Observaciones",
+            "class": "col-12",
+            "fields": [
+              {
+                "id": "observaciones",
+                "label": "",
+                "type": "textarea",
+                "name": "observaciones"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Verificación",
+        "card": [
+          {
+            "title": "Pre anestesia",
+            "class": "col-12",
+            "fields": [
+              {
+                "id": "confirmacionIdentidad",
+                "label": "¿Se ha confirmado la identidad del paciente?",
+                "type": "radio",
+                "name": "confirmacionIdentidad",
+                "class": "col-6",
+                "options": [
+                  {
+                    "id": "si",
+                    "value": "si",
+                    "text": "Si"
+                  },
+                  {
+                    "id": "noProcede",
+                    "value": "noProcede",
+                    "text": "No procede"
+                  },
+                  {
+                    "id": "noAplica",
+                    "value": "noAplica",
+                    "text": "No aplica"
+                  }
+                ]
+              },
+              {
+                "id": "marcadoSitioQuirurgico",
+                "label": "¿Se ha marcado el sitio quirurgico?",
+                "type": "radio",
+                "name": "marcadoSitioQuirurgico",
+                "class": "col-6",
+                "options": [
+                  {
+                    "id": "si",
+                    "value": "si",
+                    "text": "Si"
+                  },
+                  {
+                    "id": "noProcede",
+                    "value": "noProcede",
+                    "text": "No procede"
+                  },
+                  {
+                    "id": "noAplica",
+                    "value": "noAplica",
+                    "text": "No aplica"
+                  }
+                ]
+              },
+              {
+                "id": "disponibilidadAnestesiaMedicacion",
+                "label": "¿Se ha comprobado la disponibilidad de anestesia y medicación?",
+                "type": "radio",
+                "name": "disponibilidadAnestesiaMedicacion",
+                "class": "col-6",
+                "options": [
+                  {
+                    "id": "si",
+                    "value": "si",
+                    "text": "Si"
+                  },
+                  {
+                    "id": "noProcede",
+                    "value": "noProcede",
+                    "text": "No procede"
+                  },
+                  {
+                    "id": "noAplica",
+                    "value": "noAplica",
+                    "text": "No aplica"
+                  }
+                ]
+              },
+              {
+                "id": "pulsioximetro",
+                "label": "¿Se ha colocado el pulsioximetro al paciente?",
+                "type": "radio",
+                "name": "pulsioximetro",
+                "class": "col-6",
+                "options": [
+                  {
+                    "id": "si",
+                    "value": "si",
+                    "text": "Si"
+                  },
+                  {
+                    "id": "noProcede",
+                    "value": "noProcede",
+                    "text": "No procede"
+                  },
+                  {
+                    "id": "noAplica",
+                    "value": "noAplica",
+                    "text": "No aplica"
+                  }
+                ]
+              },
+              {
+                "id": "alergiasConocidas",
+                "label": "¿El paciente tiene alergias conocidas?",
+                "type": "radio",
+                "name": "alergiasConocidas",
+                "class": "col-6",
+                "options": [
+                  {
+                    "id": "si",
+                    "value": "si",
+                    "text": "Si"
+                  },
+                  {
+                    "id": "noProcede",
+                    "value": "noProcede",
+                    "text": "No procede"
+                  },
+                  {
+                    "id": "noAplica",
+                    "value": "noAplica",
+                    "text": "No aplica"
+                  }
+                ]
+              },
+              {
+                "id": "viaAspiracion",
+                "label": "Vía aérea dificil/riesgo de aspiración",
+                "type": "radio",
+                "name": "viaAspiracion",
+                "class": "col-6",
+                "options": [
+                  {
+                    "id": "si",
+                    "value": "si",
+                    "text": "Si"
+                  },
+                  {
+                    "id": "noProcede",
+                    "value": "noProcede",
+                    "text": "No procede"
+                  },
+                  {
+                    "id": "noAplica",
+                    "value": "noAplica",
+                    "text": "No aplica"
+                  }
+                ]
+              },
+              {
+                "id": "instrumentalAyudaDisponible",
+                "label": "¿En este caso, hay instrumental y equipos de ayuda disponible?",
+                "type": "radio",
+                "name": "instrumentalAyudaDisponible",
+                "class": "col-6",
+                "options": [
+                  {
+                    "id": "si",
+                    "value": "si",
+                    "text": "Si"
+                  },
+                  {
+                    "id": "noProcede",
+                    "value": "noProcede",
+                    "text": "No procede"
+                  },
+                  {
+                    "id": "noAplica",
+                    "value": "noAplica",
+                    "text": "No aplica"
+                  }
+                ]
+              },
+              {
+                "id": "riesgoHemorragia",
+                "label": "Riesgo de hemorragia > 500 ml",
+                "type": "radio",
+                "name": "riesgoHemorragia",
+                "class": "col-6",
+                "options": [
+                  {
+                    "id": "si",
+                    "value": "si",
+                    "text": "Si"
+                  },
+                  {
+                    "id": "noProcede",
+                    "value": "noProcede",
+                    "text": "No procede"
+                  },
+                  {
+                    "id": "noAplica",
+                    "value": "noAplica",
+                    "text": "No aplica"
+                  }
+                ]
+              },
+              {
+                "id": "disponibilidadSangre",
+                "label": "¿En este caso, se ha previsto la disponibilidad de sangre, plasma u otros fluidos?",
+                "type": "radio",
+                "name": "disponibilidadSangre",
+                "class": "col-6",
+                "options": [
+                  {
+                    "id": "si",
+                    "value": "si",
+                    "text": "Si"
+                  },
+                  {
+                    "id": "noProcede",
+                    "value": "noProcede",
+                    "text": "No procede"
+                  },
+                  {
+                    "id": "noAplica",
+                    "value": "noAplica",
+                    "text": "No aplica"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "card2": [
+          {
+            "title": "Pre Procedimiento",
+            "class": "col-12",
+            "fields": [
+              {
+                "id": "presentacionEquipo",
+                "label": "Confirmar que todos los miembros del equipo programados se hayan presentado por su nombre y funcion",
+                "type": "radio",
+                "name": "presentacionEquipo",
+                "class": "col-6",
+                "options": [
+                  {
+                    "id": "si",
+                    "value": "si",
+                    "text": "Si"
+                  },
+                  {
+                    "id": "noProcede",
+                    "value": "noProcede",
+                    "text": "No procede"
+                  },
+                  {
+                    "id": "noAplica",
+                    "value": "noAplica",
+                    "text": "No aplica"
+                  }
+                ]
+              },
+              {
+                "id": "confirmarIdentidadProcedimientoSitio",
+                "label": "Confirmar indentidad del paciente, procedimiento y sitio quirurgico",
+                "type": "radio",
+                "name": "confirmarIdentidadProcedimientoSitio",
+                "class": "col-6",
+                "options": [
+                  {
+                    "id": "si",
+                    "value": "si",
+                    "text": "Si"
+                  },
+                  {
+                    "id": "noProcede",
+                    "value": "noProcede",
+                    "text": "No procede"
+                  },
+                  {
+                    "id": "noAplica",
+                    "value": "noAplica",
+                    "text": "No aplica"
+                  }
+                ]
+              },
+              {
+                "id": "cumplimiento",
+                "label": "Confirmar que todos los miembros del equipo han cumplido correctamente con el",
+                "type": "radio",
+                "name": "cumplimiento",
+                "class": "col-6",
+                "options": [
+                  {
+                    "id": "si",
+                    "value": "si",
+                    "text": "Si"
+                  },
+                  {
+                    "id": "noProcede",
+                    "value": "noProcede",
+                    "text": "No procede"
+                  },
+                  {
+                    "id": "noAplica",
+                    "value": "noAplica",
+                    "text": "No aplica"
+                  }
+                ]
+              },
+              {
+                "id": "administracionProfilaxis",
+                "label": "Se ha administrado profilaxis con antibioticos",
+                "type": "radio",
+                "name": "administracionProfilaxis",
+                "class": "col-6",
+                "options": [
+                  {
+                    "id": "si",
+                    "value": "si",
+                    "text": "Si"
+                  },
+                  {
+                    "id": "noProcede",
+                    "value": "noProcede",
+                    "text": "No procede"
+                  },
+                  {
+                    "id": "noAplica",
+                    "value": "noAplica",
+                    "text": "No aplica"
+                  }
+                ]
+              },
+              {
+                "id": "pasosCriticos",
+                "label": "¿Cuales son los pasos criticos o inesperados?",
+                "type": "radio",
+                "name": "pasosCriticos",
+                "class": "col-6",
+                "options": [
+                  {
+                    "id": "si",
+                    "value": "si",
+                    "text": "Si"
+                  },
+                  {
+                    "id": "noProcede",
+                    "value": "noProcede",
+                    "text": "No procede"
+                  },
+                  {
+                    "id": "noAplica",
+                    "value": "noAplica",
+                    "text": "No aplica"
+                  }
+                ]
+              },
+              {
+                "id": "duracionOperacion",
+                "label": "Duracion de la operación",
+                "type": "radio",
+                "name": "duracionOperacion",
+                "class": "col-6",
+                "options": [
+                  {
+                    "id": "si",
+                    "value": "si",
+                    "text": "Si"
+                  },
+                  {
+                    "id": "noProcede",
+                    "value": "noProcede",
+                    "text": "No procede"
+                  },
+                  {
+                    "id": "noAplica",
+                    "value": "noAplica",
+                    "text": "No aplica"
+                  }
+                ]
+              },
+              {
+                "id": "perdidaSangrePrevista",
+                "label": "Perdida de sangre prevista",
+                "type": "radio",
+                "name": "perdidaSangrePrevista",
+                "class": "col-6",
+                "options": [
+                  {
+                    "id": "si",
+                    "value": "si",
+                    "text": "Si"
+                  },
+                  {
+                    "id": "noProcede",
+                    "value": "noProcede",
+                    "text": "No procede"
+                  },
+                  {
+                    "id": "noAplica",
+                    "value": "noAplica",
+                    "text": "No aplica"
+                  }
+                ]
+              },
+              {
+                "id": "problemaEspecifico",
+                "label": "¿El paciente presenta algún problema en especifico?",
+                "type": "radio",
+                "name": "problemaEspecifico",
+                "class": "col-6",
+                "options": [
+                  {
+                    "id": "si",
+                    "value": "si",
+                    "text": "Si"
+                  },
+                  {
+                    "id": "noProcede",
+                    "value": "noProcede",
+                    "text": "No procede"
+                  },
+                  {
+                    "id": "noAplica",
+                    "value": "noAplica",
+                    "text": "No aplica"
+                  }
+                ]
+              },
+              {
+                "id": "esterilidadRopa",
+                "label": "Se ha confirmado la esterilidad de la ropa",
+                "type": "radio",
+                "name": "esterilidadRopa",
+                "class": "col-6",
+                "options": [
+                  {
+                    "id": "si",
+                    "value": "si",
+                    "text": "Si"
+                  },
+                  {
+                    "id": "noProcede",
+                    "value": "noProcede",
+                    "text": "No procede"
+                  },
+                  {
+                    "id": "noAplica",
+                    "value": "noAplica",
+                    "text": "No aplica"
+                  }
+                ]
+              },
+              {
+                "id": "dudasProblemas",
+                "label": "¿Hay dudas o problemas relacionados con ellos?",
+                "type": "radio",
+                "name": "dudasProblemas",
+                "class": "col-6",
+                "options": [
+                  {
+                    "id": "si",
+                    "value": "si",
+                    "text": "Si"
+                  },
+                  {
+                    "id": "noProcede",
+                    "value": "noProcede",
+                    "text": "No procede"
+                  },
+                  {
+                    "id": "noAplica",
+                    "value": "noAplica",
+                    "text": "No aplica"
+                  }
+                ]
+              },
+              {
+                "id": "imagenesDiagnosticas",
+                "label": "Pueden visualizarse las imagenes diagnosticas esenciales?",
+                "type": "radio",
+                "name": "imagenesDiagnosticas",
+                "class": "col-6",
+                "options": [
+                  {
+                    "id": "si",
+                    "value": "si",
+                    "text": "Si"
+                  },
+                  {
+                    "id": "noProcede",
+                    "value": "noProcede",
+                    "text": "No procede"
+                  },
+                  {
+                    "id": "noAplica",
+                    "value": "noAplica",
+                    "text": "No aplica"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "card3": [
+          {
+            "title": "Pre salida Quirofano",
+            "class": "col-12",
+            "fields": [
+              {
+                "id": "nombreProcedimiento",
+                "label": "El nombre del procedimiento",
+                "type": "radio",
+                "name": "nombreProcedimiento",
+                "class": "col-6",
+                "options": [
+                  {
+                    "id": "si",
+                    "value": "si",
+                    "text": "Si"
+                  },
+                  {
+                    "id": "noProcede",
+                    "value": "noProcede",
+                    "text": "No procede"
+                  },
+                  {
+                    "id": "noAplica",
+                    "value": "noAplica",
+                    "text": "No aplica"
+                  }
+                ]
+              },
+              {
+                "id": "recuentoInstrumentos",
+                "label": "El recuento de instrumentos",
+                "type": "radio",
+                "name": "recuentoInstrumentos",
+                "class": "col-6",
+                "options": [
+                  {
+                    "id": "si",
+                    "value": "si",
+                    "text": "Si"
+                  },
+                  {
+                    "id": "noProcede",
+                    "value": "noProcede",
+                    "text": "No procede"
+                  },
+                  {
+                    "id": "noAplica",
+                    "value": "noAplica",
+                    "text": "No aplica"
+                  }
+                ]
+              },
+              {
+                "id": "etiquetadoMuestras",
+                "label": "El etiquetado de las muestras (lectura de etiquetas en voz alta, incluido el nombre del paciente)",
+                "type": "radio",
+                "name": "etiquetadoMuestras",
+                "class": "col-6",
+                "options": [
+                  {
+                    "id": "si",
+                    "value": "si",
+                    "text": "Si"
+                  },
+                  {
+                    "id": "noProcede",
+                    "value": "noProcede",
+                    "text": "No procede"
+                  },
+                  {
+                    "id": "noAplica",
+                    "value": "noAplica",
+                    "text": "No aplica"
+                  }
+                ]
+              },
+              {
+                "id": "problemasInstrumentalEquipos",
+                "label": "Problemas que resolver relacionados al instrumental y/o equipos",
+                "type": "radio",
+                "name": "problemasInstrumentalEquipos",
+                "class": "col-6",
+                "options": [
+                  {
+                    "id": "si",
+                    "value": "si",
+                    "text": "Si"
+                  },
+                  {
+                    "id": "noProcede",
+                    "value": "noProcede",
+                    "text": "No procede"
+                  },
+                  {
+                    "id": "noAplica",
+                    "value": "noAplica",
+                    "text": "No aplica"
+                  }
+                ]
+              },
+              {
+                "id": "aspectosCriticosRecuperacion",
+                "label": "Aspectos criticos de recuperacion del paciente",
+                "type": "textarea",
+                "name": "aspectosCriticosRecuperacion"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Escala aldrete",
+        "card": [
+          {
+            "title": "",
+            "class": "col-12",
+            "fields": [
+              {
+                "id": "actividadMuscular",
+                "label": "Actividad Muscular",
+                "type": "radio",
+                "name": "actividadMuscular",
+                "class": "col-12",
+                "options": [
+                  {
+                    "value": "2",
+                    "text": "Movimiento Vohmtaño de 4 extremidades"
+                  },
+                  {
+                    "value": "1",
+                    "text": "Movimiento Vohmtaño de 2 extremidades"
+                  },
+                  {
+                    "value": "0",
+                    "text": "Inmovil"
+                  }
+                ]
+              },
+              {
+                "id": "respiratorios",
+                "label": "Respiratorios",
+                "type": "radio",
+                "name": "respiratorios",
+                "class": "col-12",
+                "options": [
+                  {
+                    "value": "2",
+                    "text": "Respiración amplia capaz de toser"
+                  },
+                  {
+                    "value": "1",
+                    "text": "Respiración limitada"
+                  },
+                  {
+                    "value": "0",
+                    "text": "Apnea"
+                  }
+                ]
+              },
+              {
+                "id": "circulatorios",
+                "label": "Circulatorios",
+                "type": "radio",
+                "name": "circulatorios",
+                "class": "col-12",
+                "options": [
+                  {
+                    "value": "2",
+                    "text": "Ta +20 mmhg del nivel"
+                  },
+                  {
+                    "value": "1",
+                    "text": "Ta entre 20 - 50 mmhg del nivel"
+                  },
+                  {
+                    "value": "0",
+                    "text": "Ta +50 mmhg del nivel"
+                  }
+                ]
+              },
+              {
+                "id": "estadoConciencia",
+                "label": "Estado de Conciencia",
+                "type": "radio",
+                "name": "estadoConciencia",
+                "class": "col-12",
+                "options": [
+                  {
+                    "value": "2",
+                    "text": "Completamente despierto"
+                  },
+                  {
+                    "value": "1",
+                    "text": "Responde si llamado"
+                  },
+                  {
+                    "value": "0",
+                    "text": "No responde"
+                  }
+                ]
+              },
+              {
+                "id": "colorMucosas",
+                "label": "Color de mucosas",
+                "type": "radio",
+                "name": "colorMucosas",
+                "class": "col-12",
+                "options": [
+                  {
+                    "value": "2",
+                    "text": "Rosadas"
+                  },
+                  {
+                    "value": "1",
+                    "text": "Pálido, Icénico"
+                  },
+                  {
+                    "value": "0",
+                    "text": "Cianótico"
+                  }
+                ]
+              },
+              {
+                "id": "totalEscala",
+                "label": "Total",
+                "type": "label",
+                "name": "totalEscala",
+                "class": "col-6"
+              },
+              {
+                "id": "progresoEscala",
+                "label": "Escala Analoga Númeca",
+                "type": "progressbar",
+                "name": "progresoEscala",
+                "readonly": true
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Cirugía",
+        "card": [
+          {
+            "title": "",
+            "class": "col-12",
+            "fields": [
+              {
+                "id": "diagnosticoPrincipal",
+                "label": "Diagnóstico principal",
+                "type": "textarea",
+                "name": "diagnosticoPrincipal",
+                "class": "col-6"
+              },
+              {
+                "id": "complicaciones",
+                "label": "Complicaciones",
+                "type": "textarea",
+                "name": "complicaciones",
+                "class": "col-6"
+              }
+            ]
+          }
+        ],
+        "card2": [
+          {
+            "title": "Ojos",
+            "class": "col-12",
+            "fields": [
+              {
+                "id": "derecho",
+                "label": "Derecho",
+                "type": "textarea",
+                "name": "derecho",
+                "class": "col-6"
+              },
+              {
+                "id": "izquierdo",
+                "label": "Izquierdo",
+                "type": "textarea",
+                "name": "izquierdo",
+                "class": "col-6"
+              }
+            ]
+          }
+        ],
+        "card3": [
+          {
+            "title": "Descripción de la cirugía",
+            "class": "col-12",
+            "fields": [
+              {
+                "id": "descripcionCirugia",
+                "label": "",
+                "type": "textarea",
+                "name": "descripcionCirugia"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Hoja enfermeria",
+        "card": [
+          {
+            "title": "",
+            "class": "col-12",
+            "fields": [
+              {
+                "id": "fechaNota",
+                "label": "Fecha - Hora",
+                "type": "dateC",
+                "name": "fechaNota",
+                "class": "col-6"
+              },
+              {
+                "id": "medicamentoNota",
+                "label": "Medicamentos",
+                "type": "text",
+                "name": "medicamentoNota",
+                "class": "col-6"
+              },
+              {
+                "id": "observacionesEnfermeria",
+                "label": "Observaciones",
+                "type": "textarea",
+                "name": "observacionesEnfermeria",
+                "class": "col-12"
+              },
+              {
+                "id": "agregarNotaBtn",
+                "type": "buttonI",
+                "name": "agregarNotaBtn"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Signos vitales",
+        "card": [
+          {
+            "title": "Tensión",
+            "fields": [
+              {
+                "id": "tensionSistólica",
+                "label": "Sistólica",
+                "type": "number",
+                "name": "tensionSistólica",
+                "class": "col-4"
+              },
+              {
+                "id": "tensionDiastólica",
+                "label": "Diastólica",
+                "type": "number",
+                "name": "tensionDiastólica",
+                "class": "col-4"
+              },
+              {
+                "id": "pam",
+                "label": "PAM",
+                "type": "number",
+                "name": "pam",
+                "class": "col-4",
+                "readonly": true
+              }
+            ]
+          }
+        ],
+        "card2": [
+          {
+            "title": "Frecuencia",
+            "fields": [
+              {
+                "id": "frecC",
+                "label": "Cardiaca",
+                "type": "number",
+                "name": "frecC",
+                "class": "col-4"
+              },
+              {
+                "id": "frecR",
+                "label": "Respiratoria",
+                "type": "number",
+                "name": "frecR",
+                "class": "col-4"
+              },
+              {
+                "id": "ayuno",
+                "label": "Ayuno",
+                "type": "checkbox",
+                "name": "ayuno",
+                "class": "col-4"
+              }
+            ]
+          }
+        ],
+        "card3": [
+          {
+            "title": "",
+            "class": "col-12",
+            "fields": [
+              {
+                "id": "anestesia",
+                "label": "Anestesia",
+                "type": "radio",
+                "name": "anestesia",
+                "class": "col-6",
+                "options": [
+                  {
+                    "id": "local",
+                    "value": "local",
+                    "text": "Local"
+                  },
+                  {
+                    "id": "regional",
+                    "value": "regional",
+                    "text": "Regional"
+                  },
+                  {
+                    "id": "general",
+                    "value": "general",
+                    "text": "General"
+                  },
+                  {
+                    "id": "balanceada",
+                    "value": "balanceada",
+                    "text": "Balanceada"
+                  }
+                ]
+              },
+              {
+                "id": "respiracion",
+                "label": "Respiracion",
+                "type": "radio",
+                "name": "respiracion",
+                "class": "col-6",
+                "options": [
+                  {
+                    "id": "espontanea",
+                    "value": "espontanea",
+                    "text": "Espontanea"
+                  },
+                  {
+                    "id": "asistida",
+                    "value": "asistida",
+                    "text": "Asistida"
+                  },
+                  {
+                    "id": "controlada",
+                    "value": "controlada",
+                    "text": "Controlada"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "card4": [
+          {
+            "title": "",
+            "class": "col-12",
+            "fields": [
+              {
+                "id": "agentesInhalados",
+                "label": "Agentes inhalados",
+                "type": "textarea",
+                "name": "agentesInhalados",
+                "class": "col-6"
+              },
+              {
+                "id": "agentesEV",
+                "label": "Agente EV",
+                "type": "textarea",
+                "name": "agentesEV",
+                "class": "col-6"
+              },
+              {
+                "id": "bloqueo",
+                "label": "Bloqueo",
+                "type": "textarea",
+                "name": "bloqueo",
+                "class": "col-6"
+              }
+            ]
+          }
+        ],
+        "card6": [
+          {
+            "title": "",
+            "class": "col-12",
+            "fields": [
+              {
+                "id": "venosa1Check",
+                "label": "Venosa 1",
+                "type": "checkbox",
+                "name": "venosa1Check",
+                "class": "col-6",
+                "toggleFields": [
+                  {
+                    "id": "descripcionVenosa1",
+                    "label": "Descripción",
+                    "type": "textarea",
+                    "name": "descripcionVenosa1"
+                  },
+                  {
+                    "id": "calibreVenosa1",
+                    "label": "Calibre",
+                    "type": "numer",
+                    "name": "calibreVenosa1"
+                  }
+                ]
+              },
+              {
+                "id": "venosa2Check",
+                "label": "Venosa 2",
+                "type": "checkbox",
+                "name": "venosa2Check",
+                "class": "col-6",
+                "toggleFields": [
+                  {
+                    "id": "descripcionVenosa2",
+                    "label": "Descripción",
+                    "type": "textarea",
+                    "name": "descripcionVenosa2"
+                  },
+                  {
+                    "id": "calibreVenosa2",
+                    "label": "Calibre",
+                    "type": "numer",
+                    "name": "calibreVenosa2"
+                  }
+                ]
+              },
+              {
+                "id": "pvcCheck",
+                "label": "PVC",
+                "type": "checkbox",
+                "name": "pvcCheck",
+                "class": "col-6",
+                "toggleFields": [
+                  {
+                    "id": "descripcionPvc",
+                    "label": "Descripción",
+                    "type": "textarea",
+                    "name": "descripcionPvc"
+                  },
+                  {
+                    "id": "calibrePvc",
+                    "label": "Calibre",
+                    "type": "numer",
+                    "name": "calibrePvc"
+                  }
+                ]
+              },
+              {
+                "id": "LArterialCheck",
+                "label": "L Arterial",
+                "type": "checkbox",
+                "name": "LArterialCheck",
+                "class": "col-6",
+                "toggleFields": [
+                  {
+                    "id": "descripcionLArterial",
+                    "label": "Descripción",
+                    "type": "textarea",
+                    "name": "descripcionLArterial"
+                  },
+                  {
+                    "id": "calibreLArterial",
+                    "label": "Calibre",
+                    "type": "numer",
+                    "name": "calibreLArterial"
+                  }
+                ]
+              },
+              {
+                "id": "swanGanzCheck",
+                "label": "Swan ganz",
+                "type": "checkbox",
+                "name": "swanGanzCheck",
+                "class": "col-6",
+                "toggleFields": [
+                  {
+                    "id": "descripcionSwanGanz",
+                    "label": "Descripción",
+                    "type": "textarea",
+                    "name": "descripcionSwanGanz"
+                  },
+                  {
+                    "id": "calibreSwanGanz",
+                    "label": "Calibre",
+                    "type": "numer",
+                    "name": "calibreSwanGanz"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "card7": [
+          {
+            "title": "",
+            "class": "col-12",
+            "fields": [
+              {
+                "id": "induccion",
+                "label": "Induccion",
+                "type": "textarea",
+                "name": "induccion",
+                "class": "col-6"
+              },
+              {
+                "id": "mantenimientos",
+                "label": "Mantenimiento",
+                "type": "textarea",
+                "name": "mantenimientos",
+                "class": "col-6"
+              }
+            ]
+          }
+        ],
+        "card8": [
+          {
+            "title": "",
+            "class": "col-12",
+            "fields": [
+              {
+                "id": "sat02",
+                "label": "Sat. 02",
+                "type": "number",
+                "name": "sat02",
+                "class": "col-6"
+              },
+              {
+                "id": "etc02",
+                "label": "ETC02",
+                "type": "number",
+                "name": "etc02",
+                "class": "col-6"
+              },
+              {
+                "id": "posicion",
+                "label": "Posición",
+                "type": "textarea",
+                "name": "posicion",
+                "class": "col-6"
+              },
+              {
+                "id": "ekg",
+                "label": "EKG",
+                "type": "textarea",
+                "name": "ekg",
+                "class": "col-6"
+              },
+              {
+                "id": "temp",
+                "label": "Temp",
+                "type": "textarea",
+                "name": "temp",
+                "class": "col-6"
+              },
+              {
+                "id": "cam",
+                "label": "Cam",
+                "type": "textarea",
+                "name": "cam",
+                "class": "col-6"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Observaciones postquirúrgicas",
+        "card": [
+          {
+            "title": "",
+            "class": "col-12",
+            "fields": [
+              {
+                "id": "fechaObservacion",
+                "label": "Fecha - Hora",
+                "type": "dateC",
+                "name": "fechaObservacion",
+                "class": "col-6"
+              },
+              {
+                "id": "observacionesPost",
+                "label": "Observaciones",
+                "type": "textarea",
+                "name": "observacionesPost",
+                "class": "col-12"
+              },
+              {
+                "id": "agregarObservacionBtn",
+                "type": "buttonI",
+                "name": "agregarObservacionBtn"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Egreso",
+        "card": [
+          {
+            "title": "Diagnóstico de ingresos",
+            "fields": [
+              {
+                "id": "diagnosticoIngreso",
+                "label": "",
+                "type": "textarea",
+                "name": "diagnosticoIngreso"
+              }
+            ]
+          }
+        ],
+        "card2": [
+          {
+            "title": "Procedimientos",
+            "fields": [
+              {
+                "id": "procedimientos",
+                "label": "",
+                "type": "textarea",
+                "name": "procedimientos"
+              }
+            ]
+          }
+        ],
+        "card3": [
+          {
+            "title": "Diagnóstico de egreso",
+            "fields": [
+              {
+                "id": "diagnosticoEgreso",
+                "label": "",
+                "type": "textarea",
+                "name": "diagnosticoEgreso"
+              }
+            ]
+          }
+        ],
+        "card4": [
+          {
+            "title": "Tratamiento",
+            "fields": [
+              {
+                "id": "tratamiento",
+                "label": "",
+                "type": "textarea",
+                "name": "tratamiento"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

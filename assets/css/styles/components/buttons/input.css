@@ -1,0 +1,33 @@
+/* Estilos generales para inputs de PrimeReact */
+.p-inputtext,
+.p-inputnumber-input {
+  transition: all 0.2s ease-in-out !important;
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+}
+
+.input-billing {
+  border: 2px solid #e2e8f0 !important;
+  border-radius: 12px !important;
+  height: 5.5vh;
+}
+.p-inputtext:focus,
+.p-inputnumber-input:focus,
+.p-inputtext:active,
+.p-inputnumber-input:active {
+  border: 2px solid var(--primary-color) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1) !important;
+}
+
+.p-inputtext.p-filled,
+.p-inputnumber-input.p-filled {
+  background: #ffffff !important;
+  border: 2px solid #e2e8f0 !important;
+}
+
+
+.p-inputtext.p-filled:focus,
+.p-inputnumber-input.p-filled:focus {
+  border: 2px solid var(--primary-color) !important;
+}

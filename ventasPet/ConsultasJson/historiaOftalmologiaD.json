@@ -1,0 +1,374 @@
+{
+  "form1": {
+    "tabs": [
+      {
+        "tab": "Información de la Consulta",
+        "card": [
+          {
+            "title": "Motivo de la consulta",
+            "fields": [
+              {
+                "id": "motivoConsulta",
+                "label": "",
+                "type": "textarea",
+                "name": "motivoConsulta"
+              }
+            ]
+          }
+        ],
+        "card2": [
+          {
+            "title": "Evolución de los sintomas",
+            "fields": [
+              {
+                "id": "evolucionSintomas",
+                "label": "",
+                "type": "textarea",
+                "name": "evolucionSintomas"
+              }
+            ]
+          }
+        ],
+        "card3": [
+          {
+            "title": "Contexto de los sintomas",
+            "fields": [
+              {
+                "id": "contextoSintoma",
+                "label": "",
+                "type": "textarea",
+                "name": "contextoSintoma"
+              }
+            ]
+          }
+        ],
+        "card4": [
+          {
+            "title": "¿Qué ha tomado?",
+            "fields": [
+              {
+                "id": "haTomado",
+                "label": "",
+                "type": "textarea",
+                "name": "haTomado"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Ant. Oftalmológicos",
+        "card": [
+          {
+            "title": "",
+            "class": "col-12",
+            "fields": [
+              {
+                "id": "disminucionVision",
+                "label": "Disminución de la visión",
+                "type": "radio",
+                "name": "disminucionVision",
+                "class": "col-4",
+                "options": [
+                  { "id": "si", "value": "si", "text": "Sí" },
+                  { "id": "no", "value": "no", "text": "No" },
+                  { "id": "noNiega", "value": "noNiega", "text": "No niega" }
+                ]
+              },
+              {
+                "id": "estrabismo",
+                "label": "Estrabismo",
+                "type": "radio",
+                "name": "estrabismo",
+                "class": "col-4",
+                "options": [
+                  {
+                    "id": "si",
+                    "value": "si",
+                    "text": "Sí"
+                  },
+                  {
+                    "id": "no",
+                    "value": "no",
+                    "text": "No"
+                  },
+                  {
+                    "id": "noNiega",
+                    "value": "noNiega",
+                    "text": "No niega"
+                  }
+                ]
+              },
+              {
+                "id": "glaucoma",
+                "label": "Glaucoma",
+                "type": "radio",
+                "name": "glaucoma",
+                "class": "col-4",
+                "options": [
+                  {
+                    "id": "si",
+                    "value": "si",
+                    "text": "Sí"
+                  },
+                  {
+                    "id": "no",
+                    "value": "no",
+                    "text": "No"
+                  },
+                  {
+                    "id": "noNiega",
+                    "value": "noNiega",
+                    "text": "No niega"
+                  }
+                ]
+              },
+              {
+                "id": "ambliopia",
+                "label": "Ambliopia",
+                "type": "radio",
+                "name": "ambliopia",
+                "class": "col-4",
+                "options": [
+                  {
+                    "id": "si",
+                    "value": "si",
+                    "text": "Sí"
+                  },
+                  {
+                    "id": "no",
+                    "value": "no",
+                    "text": "No"
+                  },
+                  {
+                    "id": "noNiega",
+                    "value": "noNiega",
+                    "text": "No niega"
+                  }
+                ]
+              },
+              {
+                "id": "usaLentes",
+                "label": "Usa lentes",
+                "type": "radio",
+                "name": "usaLentes",
+                "class": "col-4",
+                "options": [
+                  {
+                    "id": "si",
+                    "value": "si",
+                    "text": "Sí"
+                  },
+                  {
+                    "id": "no",
+                    "value": "no",
+                    "text": "No"
+                  },
+                  {
+                    "id": "noNiega",
+                    "value": "noNiega",
+                    "text": "No niega"
+                  }
+                ]
+              },
+              {
+                "id": "fumador",
+                "label": "Fumador",
+                "type": "radio",
+                "name": "fumador",
+                "class": "col-4",
+                "options": [
+                  {
+                    "id": "si",
+                    "value": "si",
+                    "text": "Sí"
+                  },
+                  {
+                    "id": "no",
+                    "value": "no",
+                    "text": "No"
+                  },
+                  {
+                    "id": "noNiega",
+                    "value": "noNiega",
+                    "text": "No niega"
+                  }
+                ]
+              },
+              {
+                "id": "otrosInfo",
+                "label": "Otros",
+                "type": "textarea",
+                "name": "otrosInfo",
+                "class": "col-12"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Exámen fisico",
+        "card": [
+          {
+            "title": "Manifestaciones sensitivas",
+            "class": "col-12",
+            "fields": [
+              {
+                "id": "dolorCheck",
+                "label": "Dolor",
+                "type": "checkbox",
+                "name": "dolorCheck",
+                "class": "col-12",
+                "toggleFields": [
+                  {
+                    "id": "ubicacionDolor",
+                    "label": "Ubicación",
+                    "type": "radio",
+                    "name": "ubicacionDolor",
+                    "class": "col-6",
+                    "options": [
+                      { "id": "ocular", "value": "ocular", "text": "Ocular" },
+                      {
+                        "id": "periocular",
+                        "value": "periocular",
+                        "text": "Periocular"
+                      },
+                      {
+                        "id": "retrobulbar",
+                        "value": "retrobulbar",
+                        "text": "Retrobulbar"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "profundidadDolor",
+                    "label": "Profundidad",
+                    "type": "radio",
+                    "name": "profundidadDolor",
+                    "class": "col-6",
+                    "options": [
+                      {
+                        "id": "superficial",
+                        "value": "superficial",
+                        "text": "Superficial"
+                      },
+                      {
+                        "id": "profundo",
+                        "value": "profundo",
+                        "text": "Profundo"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "ardorCheck",
+                "label": "Ardor",
+                "type": "checkbox",
+                "name": "ardorCheck",
+                "class": "col-6"
+              },
+              {
+                "id": "escocerCheck",
+                "label": "Escocer",
+                "type": "checkbox",
+                "name": "escocerCheck",
+                "class": "col-6"
+              },
+              {
+                "id": "sensacionCuerpoExtrañoCheck",
+                "label": "Sensación de cuerpo extraño",
+                "type": "checkbox",
+                "name": "sensacionCuerpoExtrañoCheck",
+                "class": "col-6"
+              },
+              {
+                "id": "lagrimeoCheck",
+                "label": "Lagrimeo",
+                "type": "checkbox",
+                "name": "lagrimeoCheck",
+                "class": "col-6"
+              },
+              {
+                "id": "fotofobiaCheck",
+                "label": "Fotofobia",
+                "type": "checkbox",
+                "name": "fotofobiaCheck",
+                "class": "col-6"
+              },
+              {
+                "id": "deslumbramientoCheck",
+                "label": "Deslumbramiento",
+                "type": "checkbox",
+                "name": "deslumbramientoCheck",
+                "class": "col-6"
+              }
+            ]
+          }
+        ],
+        "card4": [
+          {
+            "title": "Exploración ocular",
+            "class": "col-12",
+            "fields": [
+              {
+                "id": "ojoDerechoSegmentoAnterior",
+                "label": "Ojo derecho segmento anterior",
+                "type": "textarea",
+                "name": "ojoDerechoSegmentoAnterior",
+                "class": "col-6"
+              },
+              {
+                "id": "ojoIzquierdoSegmentoAnterior",
+                "label": "Ojo izquierdo segmento anterior",
+                "type": "textarea",
+                "name": "ojoIzquierdoSegmentoAnterior",
+                "class": "col-6"
+              },
+              {
+                "id": "fondoOjoDerecho",
+                "label": "Fondo de ojo derecho",
+                "type": "textarea",
+                "name": "fondoOjoDerecho",
+                "class": "col-6"
+              },
+              {
+                "id": "fondoOjoIzquierdo",
+                "label": "Fondo de ojo izquierdo",
+                "type": "textarea",
+                "name": "fondoOjoIzquierdo",
+                "class": "col-6"
+              },
+              {
+                "id": "otrosExploracionOcularCheck",
+                "label": "Otros",
+                "type": "checkbox",
+                "name": "otrosExploracionOcularCheck",
+                "class": "col-12",
+                "toggleFields": [
+                  {
+                    "id": "otrosExploracionOcularInfo",
+                    "label": "",
+                    "type": "textarea",
+                    "name": "otrosExploracionOcularInfo"
+                  }
+                ]
+              },
+              {
+                "id": "remisionCirugia",
+                "label": "Remision a cirugia",
+                "type": "radio",
+                "name": "remisionCirugia",
+                "class": "col-12",
+                "options": [
+                  { "id": "si", "value": "si", "text": "Sí" },
+                  { "id": "no", "value": "no", "text": "No" }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

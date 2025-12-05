@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Call | Phoenix</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="./Telemedicina/styles/videoLLamada.css">
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="header d-flex align-items-center px-4">
+        <div class="d-flex align-items-center">
+            <div class="ms-3">
+                <div class="meeting-info">Video Llamada</div>
+                <div class="time-info">12:07 PM</div>
+            </div>
+        </div>
+        <div class="ms-auto d-flex align-items-center">
+            <!-- <button class="btn btn-outline-light btn-sm rounded-pill me-2">
+                <i class="fas fa-info-circle me-1"></i> Meeting details
+            </button> -->
+            <button class="chat-toggle-btn" id="chatToggleBtn" title="Toggle chat">
+                <i class="fas fa-comment-alt"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="main-container">
+        <!-- Video Container -->
+        <div class="video-container">
+            <!-- Main Video (Remote User) -->
+            <div class="main-video">
+                <div class="video-wrapper h-100">
+                    <div class="video-placeholder h-100">
+                        <div class="text-center">
+                            <i class="fas fa-user-circle fa-5x mb-2"></i>
+                            <div></div>
+                        </div>
+                    </div>
+                    <div class="user-info"></div>
+                </div>
+            </div>
+
+            <!-- PIP Video (Local User) -->
+            <div class="pip-video">
+                <div class="video-wrapper h-100">
+                    <div class="video-placeholder h-100">
+                        <div class="text-center">
+                            <i class="fas fa-user-circle fa-2x"></i>
+                            <div style="font-size: 12px;">You</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Video Controls -->
+            <div class="footer d-flex align-items-center justify-content-center">
+                <button class="control-btn" id="startCallBtn" title="Start Call">
+                    <i class="fas fa-phone"></i>
+                </button>
+                <button class="control-btn" title="Mute microphone">
+                    <i class="fas fa-microphone"></i>
+                </button>
+                <button class="control-btn" title="Turn off camera">
+                    <i class="fas fa-video"></i>
+                </button>
+                <button class="control-btn" title="Present now">
+                    <i class="fas fa-desktop"></i>
+                </button>             
+                <button class="control-btn danger" title="Leave call">
+                    <i class="fas fa-phone-slash"></i>
+                </button>
+            </div>
+            
+        </div>
+
+        <!-- Chat Container -->
+        <div class="chat-container" id="chatContainer">
+            <div class="chat-header">
+                <h5 class="mb-0">Mensajes
+
+                </h5>
+                <button class="btn btn-sm text-white" id="closeChatBtn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="chat-messages" id="chatMessages">
+                <!-- <div id="typingIndicator" class="typing-indicator hidden" style="display: none;"></div> -->
+            </div>
+            
+            
+            <div class="chat-input">
+                <div class="input-group">
+                    <input type="text" class="form-control input-message" placeholder="Send a message to everyone"
+                        id="messageInput">
+                    <button class="send-btn" id="sendMessageBtn">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.js"></script>
+
+</body>
+
+</html>
+
+<script src="./Telemedicina/scripts/config.js"></script>
+<script src="./Telemedicina/scripts/chat.js"></script>
+<script src="./Telemedicina/scripts/videoLLamada.js"></script>

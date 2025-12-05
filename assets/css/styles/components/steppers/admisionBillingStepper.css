@@ -1,0 +1,42 @@
+.admission-billing-dialog .p-dialog-header {
+  background: var(--primary-color);
+  color: white;
+}
+
+.admission-billing-dialog .p-dialog-title {
+  color: white;
+  font-weight: 600;
+}
+
+.admission-billing-dialog .p-dialog-header-close {
+  color: white !important;
+}
+
+.admission-billing-dialog .p-dialog-header-close:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.admission-billing-card .p-card-body {
+  padding: 0;
+}
+
+.admission-billing-card .p-card-content {
+  padding: 0;
+}
+
+.vertical-stepper {
+  max-height: 400px;
+}
+
+.vertical-stepper .p-stepper-panel {
+  margin-bottom: 0.5rem;
+}
+
+.vertical-stepper .p-stepper-panel .p-stepper-action {
+  cursor: default !important;
+  pointer-events: none !important;
+}
+
+.transition-all {
+  transition: all 0.3s ease-in-out;
+}

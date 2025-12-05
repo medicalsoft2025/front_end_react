@@ -1,0 +1,11 @@
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: #6c757d;
+}
+
+.empty-state .fas {
+  font-size: 4rem;
+  margin-bottom: 1.5rem;
+  opacity: 0.3;
+}

@@ -1,0 +1,96 @@
+import { Skeleton } from 'primereact/skeleton';
+import React from 'react';
+
+const NavbarSkeleton = () => {
+    return (
+        <div className="skeleton-navbar" style={{ width: '100%', overflow: 'hidden' }}>
+            <div className="desktop-skeleton hidden md:block">
+                <div className="d-flex align-items-center justify-content-center w-full" style={{ height: '64px', padding: '0 20rem' }}>
+                    <div className="d-flex align-items-center gap-6" style={{ flexWrap: 'nowrap' }}>
+                        <Skeleton width="100px" height="25px" borderRadius="6px" className="menu-item-skeleton" />
+                        <Skeleton width="100px" height="25px" borderRadius="6px" className="menu-item-skeleton" />
+                        <Skeleton width="100px" height="25px" borderRadius="6px" className="menu-item-skeleton" />
+                        <Skeleton width="100px" height="25px" borderRadius="6px" className="menu-item-skeleton" />
+                        <Skeleton width="100px" height="25px" borderRadius="6px" className="menu-item-skeleton" />
+                    </div>
+                </div>
+            </div>
+
+            <div className="mobile-skeleton block md:hidden">
+                <div className="flex align-items-center justify-content-center w-full" style={{ height: '60px', padding: '0 1rem' }}>
+                    <div className="flex align-items-center gap-3" style={{ flexWrap: 'nowrap' }}>
+                        <Skeleton width="70px" height="20px" borderRadius="4px" className="menu-item-skeleton" />
+                        <Skeleton width="70px" height="20px" borderRadius="4px" className="menu-item-skeleton" />
+                        <Skeleton width="70px" height="20px" borderRadius="4px" className="menu-item-skeleton" />
+                    </div>
+                </div>
+            </div>
+
+            <style>
+                {`
+                .skeleton-navbar {
+                    width: 100%;
+                    background: var(--surface-card);
+                    border-bottom: 1px solid var(--surface-border);
+                }
+
+                .skeleton-navbar .p-skeleton {
+                    background: linear-gradient(
+                        90deg,
+                        var(--surface-300) 0%,
+                        var(--surface-200) 50%,
+                        var(--surface-300) 100%
+                    );
+                    background-size: 400% 400%;
+                    animation: skeleton-pulse 2s ease-in-out infinite;
+                    flex-shrink: 0;
+                }
+
+                .menu-item-skeleton {
+                    animation-delay: 0.2s;
+                    flex-shrink: 0;
+                }
+
+                @keyframes skeleton-pulse {
+                    0% {
+                        background-position: -200% 0%;
+                    }
+                    100% {
+                        background-position: 200% 0%;
+                    }
+                }
+
+                /* Responsive breakpoints */
+                @media (max-width: 768px) {
+                    .desktop-skeleton {
+                        display: none !important;
+                    }
+                    
+                    .mobile-skeleton {
+                        display: flex !important;
+                    }
+                }
+
+                @media (min-width: 769px) {
+                    .desktop-skeleton {
+                        display: flex !important;
+                    }
+                    
+                    .mobile-skeleton {
+                        display: none !important;
+                    }
+                }
+
+                /* Asegurar que no haya wrap */
+                .desktop-skeleton .flex,
+                .mobile-skeleton .flex {
+                    flex-wrap: nowrap !important;
+                    white-space: nowrap;
+                }
+                `}
+            </style>
+        </div>
+    );
+};
+
+export default NavbarSkeleton;
