@@ -35,7 +35,7 @@ export const validatePatientStep = (patientData: any, toast: any): boolean => {
   }
 
   if (patientData.facturacionEntidad) {
-    const requiredBillingFields = ['entity', 'authorizationNumber'];
+    const requiredBillingFields = ['entity', 'authorizationNumber', 'authorizedAmount'];
     const missingBillingFields = requiredBillingFields.filter(field => {
       const value = patientData?.[field];
       return value === undefined || value === null || value === '';

@@ -376,6 +376,8 @@ export const AppointmentFormModal = ({
                         appointment.consultation_purpose || "Consulta médica",
                 };
 
+                console.log("googleCalendarPayload", googleCalendarPayload);
+
                 await createGoogleCalendarConfig(googleCalendarPayload);
             }
 

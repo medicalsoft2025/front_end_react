@@ -10,6 +10,7 @@ import { generarFormato } from "../../funciones/funcionesJS/generarPDF.js";
 import { ProgressBar } from "primereact/progressbar";
 import { FinishClinicalRecordForm } from "./FinishClinicalRecordForm.js";
 import { usePRToast } from "../hooks/usePRToast.js";
+import { PostConsultationGestion } from "../appointments/PostConsultationGestion.js";
 function getPurpuse(purpuse) {
   switch (purpuse) {
     case "Tratamiento":
@@ -38,6 +39,10 @@ export const FinishClinicalRecordModal = /*#__PURE__*/forwardRef((props, ref) =>
   const [progress, setProgress] = useState(0);
   const [progressMessage, setProgressMessage] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showSuccessfulSaveDialog, setShowSuccessfulSaveDialog] = useState(false);
+  const [postConsultationVisibleCards, setPostConsultationVisibleCards] = useState(["historiasClinicas"]);
+  const [patientId, setPatientId] = useState("");
+  const [specialtyName, setSpecialtyName] = useState("");
   const showModal = () => {
     setVisible(true);
   };
@@ -284,7 +289,7 @@ export const FinishClinicalRecordModal = /*#__PURE__*/forwardRef((props, ref) =>
       localStorage.removeItem(generateURLStorageKey("startTime"));
       localStorage.removeItem(generateURLStorageKey("isRunning"));
       hideModal();
-      window.location.href = `consultas-especialidad?patient_id=${mappedData.extra_data?.patientId}&especialidad=${mappedData.extra_data?.specialtyName}`;
+      setShowSuccessfulSaveDialog(true);
     } catch (error) {
       console.error(error);
       if (error.data?.errors) {
@@ -328,6 +333,8 @@ export const FinishClinicalRecordModal = /*#__PURE__*/forwardRef((props, ref) =>
       patientId,
       specialtyName
     } = finishClinicalRecordFormRef.current?.getFormState();
+    setPatientId(patientId);
+    setSpecialtyName(specialtyName);
     const requestDataAppointment = {
       assigned_user_specialty_id: currentAppointment.user_availability.user.user_specialty_id,
       appointment_date: appointment.appointment_date,
@@ -382,6 +389,9 @@ export const FinishClinicalRecordModal = /*#__PURE__*/forwardRef((props, ref) =>
         exam_order_item_id: exam.id,
         exam_order_item_type: "exam_type"
       }));
+      appendCardToPostConsultationVisibleCards("ordenesMedicas");
+    } else {
+      removePostConsultationVisibleCard("ordenesMedicas");
     }
     if (prescriptionsActive && prescriptions.length > 0) {
       result.recipe = {
@@ -399,6 +409,9 @@ export const FinishClinicalRecordModal = /*#__PURE__*/forwardRef((props, ref) =>
         })),
         type: "general"
       };
+      appendCardToPostConsultationVisibleCards("recetasMedicas");
+    } else {
+      removePostConsultationVisibleCard("recetasMedicas");
     }
     if (optometryActive && optometry) {
       result.recipe = {
@@ -407,6 +420,9 @@ export const FinishClinicalRecordModal = /*#__PURE__*/forwardRef((props, ref) =>
         optometry: optometry,
         type: "optometry"
       };
+      appendCardToPostConsultationVisibleCards("recetasMedicasOptometry");
+    } else {
+      removePostConsultationVisibleCard("recetasMedicasOptometry");
     }
     if (disabilitiesActive) {
       result.patient_disability = {
@@ -415,6 +431,9 @@ export const FinishClinicalRecordModal = /*#__PURE__*/forwardRef((props, ref) =>
         end_date: disability.end_date.toISOString().split("T")[0],
         reason: disability.reason
       };
+      appendCardToPostConsultationVisibleCards("incapacidades");
+    } else {
+      removePostConsultationVisibleCard("incapacidades");
     }
     if (remissionsActive) {
       result.remission = remission;
@@ -423,6 +442,15 @@ export const FinishClinicalRecordModal = /*#__PURE__*/forwardRef((props, ref) =>
       result.appointment = requestDataAppointment;
     }
     return result;
+  };
+  const appendCardToPostConsultationVisibleCards = cardId => {
+    setPostConsultationVisibleCards(prev => {
+      const newSet = new Set([...prev, cardId]);
+      return Array.from(newSet);
+    });
+  };
+  const removePostConsultationVisibleCard = cardId => {
+    setPostConsultationVisibleCards(prev => prev.filter(id => id !== cardId));
   };
   useImperativeHandle(ref, () => ({
     updateExternalDynamicData,
@@ -466,7 +494,7 @@ export const FinishClinicalRecordModal = /*#__PURE__*/forwardRef((props, ref) =>
     style: {
       minWidth: "100px"
     }
-  }, /*#__PURE__*/React.createElement("strong", null, progress.toFixed(2), "% - ", progressMessage)))))), /*#__PURE__*/React.createElement(FinishClinicalRecordForm, {
+  }, /*#__PURE__*/React.createElement("strong", null, progress.toFixed(2), "% -", " ", progressMessage)))))), /*#__PURE__*/React.createElement(FinishClinicalRecordForm, {
     ref: finishClinicalRecordFormRef,
     clinicalRecordId: clinicalRecordId
   }), /*#__PURE__*/React.createElement("div", {
@@ -485,5 +513,63 @@ export const FinishClinicalRecordModal = /*#__PURE__*/forwardRef((props, ref) =>
       handleFinish();
     },
     disabled: isProcessing
+  }))), /*#__PURE__*/React.createElement(Dialog, {
+    visible: showSuccessfulSaveDialog,
+    onHide: () => {
+      setShowSuccessfulSaveDialog(false);
+    },
+    header: /*#__PURE__*/React.createElement("div", {
+      className: "d-flex align-items-center gap-2"
+    }, /*#__PURE__*/React.createElement("i", {
+      className: "fas fa-check-circle text-success fs-5"
+    }), /*#__PURE__*/React.createElement("span", {
+      className: "fw-bold"
+    }, "Historia Cl\xEDnica creada exitosamente")),
+    modal: true,
+    style: {
+      width: "70vw",
+      maxWidth: "900px"
+    },
+    footer: /*#__PURE__*/React.createElement("div", {
+      className: "d-flex justify-content-end w-100"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "d-flex gap-2"
+    }, /*#__PURE__*/React.createElement(Button, {
+      onClick: () => {
+        window.location.href = `consultas-especialidad?patient_id=${patientId}&especialidad=${specialtyName}`;
+      },
+      icon: /*#__PURE__*/React.createElement("i", {
+        className: "fas fa-arrow-right me-2"
+      }),
+      label: "Continuar sin descargar"
+    })))
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "container-fluid"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "alert alert-success d-flex align-items-center mb-4"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h5", {
+    className: "alert-heading mb-1"
+  }, "\xA1Historia Cl\xEDnica Guardada!"), /*#__PURE__*/React.createElement("p", {
+    className: "mb-0"
+  }, "La historia cl\xEDnica ha sido creada exitosamente. Ahora puede descargar o imprimir los documentos generados."))), /*#__PURE__*/React.createElement("div", {
+    className: "card border-light mb-4"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "card-body bg-light rounded"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "d-flex align-items-center mb-2"
+  }, /*#__PURE__*/React.createElement("i", {
+    className: "pi pi-question-circle text-primary me-2"
+  }), /*#__PURE__*/React.createElement("h6", {
+    className: "mb-0 fw-bold"
+  }, "\xBFQu\xE9 puede hacer a continuaci\xF3n?")), /*#__PURE__*/React.createElement("ul", {
+    className: "mb-0"
+  }, /*#__PURE__*/React.createElement("li", null, "Descargue los documentos individualmente haciendo clic en el bot\xF3n de cada tarjeta"), /*#__PURE__*/React.createElement("li", null, "Revise que toda la informaci\xF3n sea correcta antes de imprimir")))), /*#__PURE__*/React.createElement("div", {
+    className: "d-flex justify-content-between align-items-center mb-3"
+  }, /*#__PURE__*/React.createElement("h5", {
+    className: "text-primary mb-0"
+  }, /*#__PURE__*/React.createElement("i", {
+    className: "pi pi-file me-2"
+  }), "Documentos Disponibles")), /*#__PURE__*/React.createElement(PostConsultationGestion, {
+    visibleCards: postConsultationVisibleCards
   }))));
 });

@@ -17,7 +17,15 @@ import AdmissionBilling from "../admission/admission-billing/AdmissionBilling.js
 import { generarFormato } from "../../funciones/funcionesJS/generarPDF.js";
 import { formatDate } from "../../services/utilidades.js";
 
-export const PostConsultationGestion = () => {
+interface PostConsultationGestionProps {
+    visibleCards?: string[];
+}
+
+export const PostConsultationGestion: React.FC<PostConsultationGestionProps> = (
+    props: PostConsultationGestionProps
+) => {
+    const { visibleCards = [] } = props;
+
     const [showAppointmentFormModal, setShowAppointmentFormModal] =
         React.useState(false);
     const [lastAppointment, setLastAppointment] = React.useState<any>(null);
@@ -99,7 +107,9 @@ export const PostConsultationGestion = () => {
             iconoButton: "arrow-right",
             tooltip: "Admision",
         },
-    ];
+    ].filter(
+        (card) => visibleCards.length <= 0 || visibleCards.includes(card.id)
+    );
 
     async function loadLastAppointment() {
         const today = new Date();

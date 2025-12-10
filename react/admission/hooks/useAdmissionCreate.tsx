@@ -9,6 +9,7 @@ export const useAdmissionCreate = () => {
     const [error, setError] = useState<string | null>(null);
 
     const createAdmission = async (formData: AdmissionBillingFormData, appointmentData?: any) => {
+
         setLoading(true);
         setError(null);
 
@@ -53,10 +54,10 @@ export const useAdmissionCreate = () => {
                     type_product: "",
                     description: product.description,
                     quantity: product.quantity,
-                    unit_price: product.price,
+                    unit_price: formData.billing.facturacionEntidad ? Number(product.copayment) : product.price,
                     tax_rate: product.tax,
                     discount: product.discount,
-                    total: product.total
+                    total: formData.billing.facturacionEntidad ? Number(product.copayment) : product.total
                 })),
                 payments: formData.payments.map((payment, index) => {
                     return ({

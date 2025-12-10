@@ -29,7 +29,7 @@ export const validatePatientStep = (patientData, toast) => {
     return false;
   }
   if (patientData.facturacionEntidad) {
-    const requiredBillingFields = ['entity', 'authorizationNumber'];
+    const requiredBillingFields = ['entity', 'authorizationNumber', 'authorizedAmount'];
     const missingBillingFields = requiredBillingFields.filter(field => {
       const value = patientData?.[field];
       return value === undefined || value === null || value === '';

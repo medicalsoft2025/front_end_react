@@ -16,6 +16,7 @@ import { exportToExcel } from "../accounting/utils/ExportToExcelOptions.js";
 import { billingService } from "../../services/api/index.js";
 import { generarFormatoContable } from "../../funciones/funcionesJS/generarPDFContable.js";
 import { useByEntityFormat } from "../documents-generation/hooks/billing/by-entity/useByEntityFormat.js";
+import { ToDenyForm } from "../billing/by-entity/toDenyForm.js";
 export const BillingEntity = () => {
   // Estado para los datos de la tabla
   const [facturas, setFacturas] = useState([]);
@@ -31,6 +32,7 @@ export const BillingEntity = () => {
   // Estado para el modal de recibo de caja
   const [showReciboModal, setShowReciboModal] = useState(false);
   const [facturaParaRecibo, setFacturaParaRecibo] = useState(null);
+  const [showToDenyModal, setShowToDenyModal] = useState(false);
 
   // Estado para el modal de nueva facturación entidad
   const [showNuevaFacturacionModal, setShowNuevaFacturacionModal] = useState(false);
@@ -342,6 +344,14 @@ export const BillingEntity = () => {
   const printInvoice = useCallback(async invoice => {
     generarFormatoContable("FacturaEntidad", invoice, "Impresion");
   }, []);
+  const toDenyInvoice = useCallback(async invoice => {
+    setShowToDenyModal(true);
+    setFacturaSeleccionada(invoice);
+  }, []);
+  const handleSuccesToDeny = () => {
+    setShowToDenyModal(false);
+    handleRefresh();
+  };
   const TableMenu = ({
     rowData
   }) => {
@@ -357,6 +367,9 @@ export const BillingEntity = () => {
     };
     const handlePrintInvoice = () => {
       printInvoice(rowData);
+    };
+    const handleToDenyInvoice = () => {
+      toDenyInvoice(rowData);
     };
     const menuItems = [{
       label: "Generar Recibo",
@@ -382,6 +395,12 @@ export const BillingEntity = () => {
         className: "fas fa-print me-2"
       }),
       command: handlePrintInvoice
+    }, {
+      label: "Glosar",
+      icon: /*#__PURE__*/React.createElement("i", {
+        className: "fas fa-money-bill-transfer me-2"
+      }),
+      command: handleToDenyInvoice
     }];
     return /*#__PURE__*/React.createElement("div", {
       style: {
@@ -439,48 +458,48 @@ export const BillingEntity = () => {
     actions: factura
   }));
   const columns = [{
-    field: 'biller',
-    header: 'Facturador',
+    field: "biller",
+    header: "Facturador",
     sortable: true
   }, {
-    field: 'invoice_code',
-    header: 'N° Factura',
+    field: "invoice_code",
+    header: "N° Factura",
     sortable: true
   }, {
-    field: 'entity',
-    header: 'Entidad',
+    field: "entity",
+    header: "Entidad",
     sortable: true
   }, {
-    field: 'total_amount',
-    header: 'Monto Total',
+    field: "total_amount",
+    header: "Monto Total",
     sortable: true,
     body: rowData => formatCurrency(rowData.total_amount)
   }, {
-    field: 'paid_amount',
-    header: 'Monto Pagado',
+    field: "paid_amount",
+    header: "Monto Pagado",
     sortable: true,
     body: rowData => formatCurrency(rowData.paid_amount)
   }, {
-    field: 'elaboration_date',
-    header: 'Fecha Elaboración',
+    field: "elaboration_date",
+    header: "Fecha Elaboración",
     sortable: true,
     body: rowData => formatearFecha(rowData.elaboration_date)
   }, {
-    field: 'due_date',
-    header: 'Fecha Vencimiento',
+    field: "due_date",
+    header: "Fecha Vencimiento",
     sortable: true,
     body: rowData => formatearFecha(rowData.due_date)
   }, {
-    field: 'status',
-    header: 'Estado',
+    field: "status",
+    header: "Estado",
     sortable: true,
     body: rowData => /*#__PURE__*/React.createElement(Tag, {
       value: getEstadoLabel(rowData.status),
       severity: getEstadoSeverity(rowData.status)
     })
   }, {
-    field: 'actions',
-    header: 'Acciones',
+    field: "actions",
+    header: "Acciones",
     body: rowData => actionBodyTemplate(rowData.actions),
     exportable: false,
     width: "120px"
@@ -597,14 +616,25 @@ export const BillingEntity = () => {
     header: "Nueva Facturaci\xF3n Entidad",
     visible: showNuevaFacturacionModal,
     style: {
-      width: '90vw',
-      maxWidth: '1200px'
+      width: "90vw",
+      maxWidth: "1200px"
     },
     onHide: cerrarModalNuevaFacturacion,
     className: "p-fluid"
   }, /*#__PURE__*/React.createElement(BillingByEntity, {
     onSuccess: handleNuevaFacturacionSuccess,
     onCancel: cerrarModalNuevaFacturacion
+  })), /*#__PURE__*/React.createElement(Dialog, {
+    header: "Glosar Factura",
+    visible: showToDenyModal,
+    style: {
+      width: "90vw"
+    },
+    onHide: handleSuccesToDeny,
+    className: "p-fluid"
+  }, /*#__PURE__*/React.createElement(ToDenyForm, {
+    dataToInvoice: facturaSeleccionada,
+    onSuccess: handleSuccesToDeny
   })), /*#__PURE__*/React.createElement(NewReceiptBoxModal, {
     visible: showReciboModal,
     onHide: cerrarModalRecibo,

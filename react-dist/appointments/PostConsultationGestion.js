@@ -8,7 +8,10 @@ import { Button } from "primereact/button";
 import AdmissionBilling from "../admission/admission-billing/AdmissionBilling.js";
 import { generarFormato } from "../../funciones/funcionesJS/generarPDF.js";
 import { formatDate } from "../../services/utilidades.js";
-export const PostConsultationGestion = () => {
+export const PostConsultationGestion = props => {
+  const {
+    visibleCards = []
+  } = props;
   const [showAppointmentFormModal, setShowAppointmentFormModal] = React.useState(false);
   const [lastAppointment, setLastAppointment] = React.useState(null);
   const [showBillingDialog, setShowBillingDialog] = useState(false);
@@ -77,7 +80,7 @@ export const PostConsultationGestion = () => {
     texto: "Admisionar paciente",
     iconoButton: "arrow-right",
     tooltip: "Admision"
-  }];
+  }].filter(card => visibleCards.length <= 0 || visibleCards.includes(card.id));
   async function loadLastAppointment() {
     const today = new Date();
     const formattedDate = today.toISOString().split("T")[0];
@@ -169,7 +172,9 @@ export const PostConsultationGestion = () => {
   }
   async function fetchLastRecipeItemsByPatientId(id) {
     const recipesItems = await prescriptionService.getLastByPatientId(id, null);
-    generarFormato("Receta", recipesItems.data, "Impresion");
+    //@ts-ignore
+    await crearDocumento(recipesItems.data.id, "Impresion", "Receta", "Completa", "Receta");
+    // console.error(SwalManager.error({ text: "Este usuario no tiene recetas" }));
   }
   async function handlePreviewResults(patientId) {
     const examOrderResult = await examOrderService.getLastByPatient(patientId);
@@ -185,7 +190,8 @@ export const PostConsultationGestion = () => {
     const recipesItems = await prescriptionService.getLastByPatientId(patientId, "optometry");
     const invoiceData = await getRecipeInvoiceStatus(recipesItems.data.id);
     if (invoiceData.has_invoice) {
-      generarFormato("RecetaOptometria", recipesItems.data, "Impresion");
+      //@ts-ignore
+      crearDocumento(recipesItems.data.id, "Impresion", "RecetaOptometria", "Completa", "Receta optometría");
     } else {
       setShowBillingModal({
         show: true,

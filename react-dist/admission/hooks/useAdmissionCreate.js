@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { getUserLogged } from "../../../services/utilidades.js";
 import { calculateTotal } from "../admission-billing/utils/helpers.js";
-import { admissionService, thirdPartyService } from "../../../services/api/index.js";
+import { admissionService } from "../../../services/api/index.js";
 export const useAdmissionCreate = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -14,10 +14,6 @@ export const useAdmissionCreate = () => {
       const dueDate = new Date();
       dueDate.setDate(dueDate.getDate() + 30);
       const dueDateString = dueDate.toISOString().split('T')[0];
-      const thirdParty = await thirdPartyService.getByExternalIdAndType({
-        externalId: formData.patient.id,
-        externalType: "client"
-      });
       const admissionData = {
         external_id: `${userLogged.external_id}`,
         public_invoice: formData.billing.facturacionConsumidor,
@@ -40,7 +36,7 @@ export const useAdmissionCreate = () => {
           due_date: dueDateString,
           paid_amount: calculateTotal(formData.products, formData.billing.facturacionEntidad),
           user_id: userLogged.id,
-          third_party_id: thirdParty?.id,
+          third_party_id: 1,
           sub_type: formData.billing.facturacionEntidad ? "entity" : "public"
         },
         invoice_detail: formData.products.map(product => ({
@@ -48,10 +44,10 @@ export const useAdmissionCreate = () => {
           type_product: "",
           description: product.description,
           quantity: product.quantity,
-          unit_price: product.price,
+          unit_price: formData.billing.facturacionEntidad ? Number(product.copayment) : product.price,
           tax_rate: product.tax,
           discount: product.discount,
-          total: product.total
+          total: formData.billing.facturacionEntidad ? Number(product.copayment) : product.total
         })),
         payments: formData.payments.map((payment, index) => {
           return {

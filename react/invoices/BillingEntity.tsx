@@ -9,7 +9,10 @@ import { Button } from "primereact/button";
 import { Calendar } from "primereact/calendar";
 import { ProgressSpinner } from "primereact/progressspinner";
 import { Tag } from "primereact/tag";
-import { CustomPRTable, CustomPRTableColumnProps } from "../components/CustomPRTable";
+import {
+  CustomPRTable,
+  CustomPRTableColumnProps,
+} from "../components/CustomPRTable";
 import { NewReceiptBoxModal } from "../accounting/paymentReceipt/modals/NewReceiptBoxModal";
 import { BillingByEntity } from "../billing/by-entity/modal";
 import {
@@ -20,6 +23,7 @@ import { billingService } from "../../services/api/index.js";
 import { InvoiceEntityDto } from "../models/models.js";
 import { generarFormatoContable } from "../../funciones/funcionesJS/generarPDFContable";
 import { useByEntityFormat } from "../documents-generation/hooks/billing/by-entity/useByEntityFormat.js";
+import { ToDenyForm } from "../billing/by-entity/toDenyForm.js";
 
 interface Filtros {
   facturador: string;
@@ -36,7 +40,7 @@ interface OpcionDropdown {
   value: string;
 }
 
-export const BillingEntity: React.FC = () => {
+export const BillingEntity = () => {
   // Estado para los datos de la tabla
   const [facturas, setFacturas] = useState<InvoiceEntityDto[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
@@ -44,17 +48,21 @@ export const BillingEntity: React.FC = () => {
   const [totalRecords, setTotalRecords] = useState<number>(0);
 
   // Estados para el modal de pago
-  const [facturaSeleccionada, setFacturaSeleccionada] = useState<InvoiceEntityDto | null>(null);
+  const [facturaSeleccionada, setFacturaSeleccionada] =
+    useState<InvoiceEntityDto | null>(null);
   const [montoPago, setMontoPago] = useState<number>(0);
 
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
   // Estado para el modal de recibo de caja
   const [showReciboModal, setShowReciboModal] = useState<boolean>(false);
-  const [facturaParaRecibo, setFacturaParaRecibo] = useState<InvoiceEntityDto | null>(null);
+  const [facturaParaRecibo, setFacturaParaRecibo] =
+    useState<InvoiceEntityDto | null>(null);
+  const [showToDenyModal, setShowToDenyModal] = useState<boolean>(false);
 
   // Estado para el modal de nueva facturación entidad
-  const [showNuevaFacturacionModal, setShowNuevaFacturacionModal] = useState<boolean>(false);
+  const [showNuevaFacturacionModal, setShowNuevaFacturacionModal] =
+    useState<boolean>(false);
 
   // Pagination state
   const [first, setFirst] = useState(0);
@@ -122,7 +130,11 @@ export const BillingEntity: React.FC = () => {
 
       return {
         id: item.main.id,
-        biller: `${item.main.user?.first_name ?? ""} ${item.main.user?.middle_name ?? ""} ${item.main.user?.last_name ?? ""} ${item.main.user?.second_last_name ?? ""}`,
+        biller: `${item.main.user?.first_name ?? ""} ${
+          item.main.user?.middle_name ?? ""
+        } ${item.main.user?.last_name ?? ""} ${
+          item.main.user?.second_last_name ?? ""
+        }`,
         invoice_code: item.main.invoice_code,
         paid_amount: totalAmountFormatted - remainingAmountFormatted,
         total_amount: totalAmountFormatted,
@@ -136,7 +148,9 @@ export const BillingEntity: React.FC = () => {
         subtotal: subtotalFormatted,
         discount: discountFormatted,
         invoice_linked: item.linked.map((linked: any) => {
-          const price = Number(linked.admission_data.entity_authorized_amount || 0);
+          const price = Number(
+            linked.admission_data.entity_authorized_amount || 0
+          );
           const amount = linked.linked_invoice.details.reduce(
             (sum: number, procedure: any) =>
               sum + Number(procedure.product.copayment || 0),
@@ -146,16 +160,20 @@ export const BillingEntity: React.FC = () => {
 
           return {
             id: linked.linked_invoice.id,
-            patient_full_name: `${linked.admission_data.patient?.first_name ?? ""
-              } ${linked.admission_data.patient?.middle_name ?? ""} ${linked.admission_data.patient?.last_name ?? ""
-              } ${linked.admission_data.patient?.second_last_name ?? ""}`,
+            patient_full_name: `${
+              linked.admission_data.patient?.first_name ?? ""
+            } ${linked.admission_data.patient?.middle_name ?? ""} ${
+              linked.admission_data.patient?.last_name ?? ""
+            } ${linked.admission_data.patient?.second_last_name ?? ""}`,
             invoice_code: linked.linked_invoice.invoice_code,
             due_date: linked.linked_invoice.due_date,
             status: linked.linked_invoice.status,
             subtotal: price + amount,
             discount: amount,
             total_amount: total,
-            remaining_amount: Number(linked.linked_invoice.remaining_amount || 0).toFixed(2),
+            remaining_amount: Number(
+              linked.linked_invoice.remaining_amount || 0
+            ).toFixed(2),
             products: linked.linked_invoice.details
               .map((detail: any) => detail.product.name)
               .join(","),
@@ -193,7 +211,9 @@ export const BillingEntity: React.FC = () => {
       // Aplicar filtros
       if (filtros.facturador) {
         filteredData = filteredData.filter((factura) =>
-          factura.biller.toLowerCase().includes(filtros.facturador.toLowerCase())
+          factura.biller
+            .toLowerCase()
+            .includes(filtros.facturador.toLowerCase())
         );
       }
 
@@ -211,7 +231,11 @@ export const BillingEntity: React.FC = () => {
         );
       }
 
-      if (filtros.fechaRango && filtros.fechaRango[0] && filtros.fechaRango[1]) {
+      if (
+        filtros.fechaRango &&
+        filtros.fechaRango[0] &&
+        filtros.fechaRango[1]
+      ) {
         const fechaInicio = new Date(filtros.fechaRango[0]);
         const fechaFin = new Date(filtros.fechaRango[1]);
         fechaFin.setHours(23, 59, 59, 999);
@@ -421,7 +445,11 @@ export const BillingEntity: React.FC = () => {
       fileName: `Factura_${invoice.invoice_code}`,
       excludeColumns: ["id"],
     });
-    showToast("success", "Éxito", `Excel descargado para ${invoice.invoice_code}`);
+    showToast(
+      "success",
+      "Éxito",
+      `Excel descargado para ${invoice.invoice_code}`
+    );
   };
 
   const handleDescargarPDF = useCallback(
@@ -431,12 +459,19 @@ export const BillingEntity: React.FC = () => {
     [generateFormatByEntity]
   );
 
-  const printInvoice = useCallback(
-    async (invoice: InvoiceEntityDto) => {
-      generarFormatoContable("FacturaEntidad", invoice, "Impresion");
-    },
-    []
-  );
+  const printInvoice = useCallback(async (invoice: InvoiceEntityDto) => {
+    generarFormatoContable("FacturaEntidad", invoice, "Impresion");
+  }, []);
+
+  const toDenyInvoice = useCallback(async (invoice: InvoiceEntityDto) => {
+    setShowToDenyModal(true);
+    setFacturaSeleccionada(invoice);
+  }, []);
+
+  const handleSuccesToDeny = () => {
+    setShowToDenyModal(false);
+    handleRefresh();
+  };
 
   const TableMenu: React.FC<{
     rowData: InvoiceEntityDto;
@@ -459,6 +494,10 @@ export const BillingEntity: React.FC = () => {
       printInvoice(rowData);
     };
 
+    const handleToDenyInvoice = () => {
+      toDenyInvoice(rowData);
+    };
+
     const menuItems = [
       {
         label: "Generar Recibo",
@@ -479,7 +518,12 @@ export const BillingEntity: React.FC = () => {
         label: "Imprimir",
         icon: <i className="fas fa-print me-2"></i>,
         command: handlePrintInvoice,
-      }
+      },
+      {
+        label: "Glosar",
+        icon: <i className="fas fa-money-bill-transfer me-2"></i>,
+        command: handleToDenyInvoice,
+      },
     ];
 
     return (
@@ -516,12 +560,16 @@ export const BillingEntity: React.FC = () => {
     );
   };
 
-  const showToast = (severity: "success" | "error" | "info" | "warn", summary: string, detail: string) => {
+  const showToast = (
+    severity: "success" | "error" | "info" | "warn",
+    summary: string,
+    detail: string
+  ) => {
     toast.current?.show({ severity, summary, detail, life: 3000 });
   };
 
   // Mapear los datos para la tabla
-  const tableItems = facturas.map(factura => ({
+  const tableItems = facturas.map((factura) => ({
     id: factura.id,
     biller: factura.biller,
     invoice_code: factura.invoice_code,
@@ -531,67 +579,67 @@ export const BillingEntity: React.FC = () => {
     elaboration_date: factura.elaboration_date,
     due_date: factura.due_date,
     status: factura.status,
-    actions: factura
+    actions: factura,
   }));
 
   const columns: CustomPRTableColumnProps[] = [
     {
-      field: 'biller',
-      header: 'Facturador',
-      sortable: true
-    },
-    {
-      field: 'invoice_code',
-      header: 'N° Factura',
-      sortable: true
-    },
-    {
-      field: 'entity',
-      header: 'Entidad',
-      sortable: true
-    },
-    {
-      field: 'total_amount',
-      header: 'Monto Total',
+      field: "biller",
+      header: "Facturador",
       sortable: true,
-      body: (rowData: any) => formatCurrency(rowData.total_amount)
     },
     {
-      field: 'paid_amount',
-      header: 'Monto Pagado',
+      field: "invoice_code",
+      header: "N° Factura",
       sortable: true,
-      body: (rowData: any) => formatCurrency(rowData.paid_amount)
     },
     {
-      field: 'elaboration_date',
-      header: 'Fecha Elaboración',
+      field: "entity",
+      header: "Entidad",
       sortable: true,
-      body: (rowData: any) => formatearFecha(rowData.elaboration_date)
     },
     {
-      field: 'due_date',
-      header: 'Fecha Vencimiento',
+      field: "total_amount",
+      header: "Monto Total",
       sortable: true,
-      body: (rowData: any) => formatearFecha(rowData.due_date)
+      body: (rowData: any) => formatCurrency(rowData.total_amount),
     },
     {
-      field: 'status',
-      header: 'Estado',
+      field: "paid_amount",
+      header: "Monto Pagado",
+      sortable: true,
+      body: (rowData: any) => formatCurrency(rowData.paid_amount),
+    },
+    {
+      field: "elaboration_date",
+      header: "Fecha Elaboración",
+      sortable: true,
+      body: (rowData: any) => formatearFecha(rowData.elaboration_date),
+    },
+    {
+      field: "due_date",
+      header: "Fecha Vencimiento",
+      sortable: true,
+      body: (rowData: any) => formatearFecha(rowData.due_date),
+    },
+    {
+      field: "status",
+      header: "Estado",
       sortable: true,
       body: (rowData: any) => (
         <Tag
           value={getEstadoLabel(rowData.status)}
           severity={getEstadoSeverity(rowData.status)}
         />
-      )
+      ),
     },
     {
-      field: 'actions',
-      header: 'Acciones',
+      field: "actions",
+      header: "Acciones",
       body: (rowData: any) => actionBodyTemplate(rowData.actions),
       exportable: false,
-      width: "120px"
-    }
+      width: "120px",
+    },
   ];
 
   const handleSearchChange = (searchValue: string) => {
@@ -620,7 +668,10 @@ export const BillingEntity: React.FC = () => {
         </div>
       ) : (
         <div className="w-100">
-          <div className="h-100 w-100 d-flex flex-column" style={{ marginTop: "-30px" }}>
+          <div
+            className="h-100 w-100 d-flex flex-column"
+            style={{ marginTop: "-30px" }}
+          >
             <div className="text-end pt-3 mb-2">
               <Button
                 className="p-button-primary"
@@ -638,7 +689,9 @@ export const BillingEntity: React.FC = () => {
                     <label className="form-label">Facturador</label>
                     <InputText
                       value={filtros.facturador}
-                      onChange={(e) => handleFilterChange("facturador", e.target.value)}
+                      onChange={(e) =>
+                        handleFilterChange("facturador", e.target.value)
+                      }
                       placeholder="Nombre del facturador"
                       className="w-100"
                     />
@@ -648,7 +701,9 @@ export const BillingEntity: React.FC = () => {
                     <label className="form-label">Número Factura</label>
                     <InputText
                       value={filtros.numeroFactura}
-                      onChange={(e) => handleFilterChange("numeroFactura", e.target.value)}
+                      onChange={(e) =>
+                        handleFilterChange("numeroFactura", e.target.value)
+                      }
                       placeholder="B0100010001"
                       className="w-100"
                     />
@@ -724,13 +779,28 @@ export const BillingEntity: React.FC = () => {
       <Dialog
         header="Nueva Facturación Entidad"
         visible={showNuevaFacturacionModal}
-        style={{ width: '90vw', maxWidth: '1200px' }}
+        style={{ width: "90vw", maxWidth: "1200px" }}
         onHide={cerrarModalNuevaFacturacion}
         className="p-fluid"
       >
         <BillingByEntity
           onSuccess={handleNuevaFacturacionSuccess}
           onCancel={cerrarModalNuevaFacturacion}
+        />
+      </Dialog>
+
+      {/*Modal para glosar factura*/}
+
+      <Dialog
+        header="Glosar Factura"
+        visible={showToDenyModal}
+        style={{ width: "90vw" }}
+        onHide={handleSuccesToDeny}
+        className="p-fluid"
+      >
+        <ToDenyForm
+          dataToInvoice={facturaSeleccionada}
+          onSuccess={handleSuccesToDeny}
         />
       </Dialog>
 
@@ -743,7 +813,9 @@ export const BillingEntity: React.FC = () => {
           cliente: facturaParaRecibo?.entity?.id?.toString() || "",
           idFactura: facturaParaRecibo?.id || 0,
           numeroFactura: facturaParaRecibo?.invoice_code || "",
-          fechaElaboracion: new Date(facturaParaRecibo?.elaboration_date || new Date()),
+          fechaElaboracion: new Date(
+            facturaParaRecibo?.elaboration_date || new Date()
+          ),
           valorPagado: facturaParaRecibo?.total_amount || 0,
           invoiceType: "entity",
           third_party_id: facturaParaRecibo?.entity?.id || 0,

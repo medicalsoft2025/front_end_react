@@ -283,6 +283,7 @@ export const AppointmentFormModal = ({
           hora_final: calcularHoraFinal(appointment.appointment_time, appointment.assigned_user_availability?.appointment_duration),
           motivo: appointment.consultation_purpose || "Consulta médica"
         };
+        console.log("googleCalendarPayload", googleCalendarPayload);
         await createGoogleCalendarConfig(googleCalendarPayload);
       }
       showSuccessToast();
