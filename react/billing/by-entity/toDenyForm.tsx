@@ -11,28 +11,34 @@ import { ColumnGroup } from "primereact/columngroup";
 import { Row } from "primereact/row";
 import { Button } from "primereact/button";
 import { InputNumber } from "primereact/inputnumber";
+import { InputText } from "primereact/inputtext";
+import { useBillingByType } from "../../billing/hooks/useBillingByType";
 
 interface ToDenyFormProps {
   dataToInvoice: any;
-  onSuccess?: () => void;
+  onSuccess: (data: any) => void;
 }
 
 export const ToDenyForm: React.FC<ToDenyFormProps> = ({
   dataToInvoice,
   onSuccess,
 }) => {
-  console.log("dataToInvoice: ", dataToInvoice);
-  const { control, handleSubmit, watch, setValue } = useForm<any>({
+  const { control, handleSubmit } = useForm<any>({
     defaultValues: {
       invoices: [],
       reason: "",
+      tax_receipt: "",
+      invoice_number: "",
     },
   });
   const [invoices, setInvoices] = useState<any[]>([]);
-  const [selectedInvoices, setSelectedInvoices] = useState<any[]>([]); // Estado para las facturas seleccionadas
+  const [selectedInvoices, setSelectedInvoices] = useState<any[]>([]);
+  const { fetchBillingByType } = useBillingByType();
+  const [billing, setBilling] = useState<any>(null);
 
   useEffect(() => {
     loadInvoices();
+    loadBillingType();
   }, []);
 
   async function loadInvoices() {
@@ -45,11 +51,21 @@ export const ToDenyForm: React.FC<ToDenyFormProps> = ({
     const invoices = await invoiceService.filterInvoice(
       cleanJsonObject(filters)
     );
-    setInvoices(invoices.data);
+    const invoicesMapped = invoices.data.map((invoice: any) => {
+      return {
+        ...invoice,
+        value_to_deny: 0,
+      };
+    });
+    setInvoices(invoicesMapped);
+  }
+
+  async function loadBillingType() {
+    const billing = await fetchBillingByType("debit_note");
+    setBilling(billing.data);
   }
 
   function handleInvoicesToDeny(selectedItems: any[]) {
-    console.log("selected invoices: ", selectedItems);
     setSelectedInvoices(selectedItems);
   }
 
@@ -100,10 +116,7 @@ export const ToDenyForm: React.FC<ToDenyFormProps> = ({
         <Column
           footer={`Total glosado: $${selectedInvoices
             .reduce((sum, invoice) => {
-              return (
-                sum +
-                (Number(invoice?.admission?.entity_authorized_amount) || 0)
-              );
+              return sum + (Number(invoice?.value_to_deny) || 0);
             }, 0)
             .toFixed(2)}`}
           colSpan={4}
@@ -126,19 +139,12 @@ export const ToDenyForm: React.FC<ToDenyFormProps> = ({
   const onCellEditComplete = (e: any) => {
     let { rowData, newValue, field, originalEvent: event } = e;
 
-    console.log("rowData: ", rowData);
-    console.log("field: ", field);
-    console.log("newValue: ", newValue);
-
-    if (field === "admission") {
-      console.log("rowData: ", rowData);
-      console.log("field: ", field);
-      console.log("newValue: ", newValue);
+    if (field === "glossed_amount") {
       if (isPositiveNumber(newValue)) {
-        if (!rowData.admission) {
-          rowData.admission = {};
+        if (!rowData) {
+          rowData = {};
         }
-        rowData.admission.entity_authorized_amount = Number(newValue);
+        rowData.value_to_deny = Number(newValue).toFixed(2);
 
         const updatedInvoices = [...selectedInvoices];
         const index = updatedInvoices.findIndex(
@@ -164,6 +170,7 @@ export const ToDenyForm: React.FC<ToDenyFormProps> = ({
         locale="en-US"
         onKeyDown={(e: any) => e.stopPropagation()}
         className="w-100"
+        max={Number(options.rowData.admission.entity_authorized_amount)}
       />
     );
   };
@@ -173,17 +180,45 @@ export const ToDenyForm: React.FC<ToDenyFormProps> = ({
     return `$${Number(amount).toFixed(2)}`;
   };
 
-  const onSubmit = (data: any) => {
+  const onSubmit = async (data: any) => {
+    console.log("data:", data);
+    const amountToDeny: BigInteger = selectedInvoices
+      .reduce((sum, invoice) => {
+        return Number(sum) + Number(invoice?.value_to_deny);
+      }, 0)
+      .toFixed(2);
     const submitData = {
       reason: data.reason,
-      toDenyInvoices: selectedInvoices,
+      to_deny_invoices: selectedInvoices.map((item: any) => {
+        return {
+          id: item.id,
+          value_to_deny: item.value_to_deny,
+          entity_invoice_id: item.entity_invoice_id,
+          paid_amount:
+            item.admission.entity_authorized_amount - item.value_to_deny,
+          admission: {
+            entity_authorized_amount: Number(
+              item.admission.entity_authorized_amount
+            ).toFixed(2),
+            id: item.admission.id,
+          },
+        };
+      }),
+      credit_note: {
+        invoice_id: dataToInvoice.id,
+        amount: Number(amountToDeny),
+        reason: data.reason,
+        fiscal_receipt: data.tax_receipt,
+        invoice_number: data.invoice_number,
+        billing: billing,
+      },
     };
 
     console.log("Datos a enviar:", submitData);
-
-    // if (onSuccess) {
-    //   onSuccess();
-    // }
+    const response = await invoiceService.createGlossToInvoiceByEntity(
+      submitData
+    );
+    onSuccess(response);
   };
 
   return (
@@ -237,6 +272,31 @@ export const ToDenyForm: React.FC<ToDenyFormProps> = ({
               />
             </div>
           </div>
+          <div className="col-6">
+            <div className="form-group">
+              <label className="form-label">Comprobante fiscal *</label>
+              <Controller
+                name="tax_receipt"
+                control={control}
+                render={({ field }) => (
+                  <InputText {...field} className="w-100 form-control" />
+                )}
+              />
+            </div>
+          </div>
+
+          <div className="col-6">
+            <div className="form-group">
+              <label className="form-label">Número de la factura *</label>
+              <Controller
+                name="invoice_number"
+                control={control}
+                render={({ field }) => (
+                  <InputText {...field} className="w-100 form-control" />
+                )}
+              />
+            </div>
+          </div>
         </div>
 
         {selectedInvoices.length > 0 && (
@@ -273,6 +333,15 @@ export const ToDenyForm: React.FC<ToDenyFormProps> = ({
                     header="Monto autorizado"
                     sortable
                     body={amountBodyTemplate}
+                    style={{ width: "25%" }}
+                  ></Column>
+                  <Column
+                    field="glossed_amount"
+                    header="Monto a glosar"
+                    sortable
+                    body={(rowData) => {
+                      return rowData.value_to_deny;
+                    }}
                     editor={(options) => amountEditor(options)}
                     onCellEditComplete={onCellEditComplete}
                     style={{ width: "25%" }}

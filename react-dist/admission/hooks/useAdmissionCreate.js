@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { getUserLogged } from "../../../services/utilidades.js";
 import { calculateTotal } from "../admission-billing/utils/helpers.js";
-import { admissionService } from "../../../services/api/index.js";
+import { admissionService, thirdPartyService } from "../../../services/api/index.js";
 export const useAdmissionCreate = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -10,18 +10,22 @@ export const useAdmissionCreate = () => {
     setError(null);
     try {
       const userLogged = getUserLogged();
-      const currentDate = new Date().toISOString().split('T')[0];
+      const currentDate = new Date().toISOString().split("T")[0];
       const dueDate = new Date();
       dueDate.setDate(dueDate.getDate() + 30);
-      const dueDateString = dueDate.toISOString().split('T')[0];
+      const dueDateString = dueDate.toISOString().split("T")[0];
+      const thirdParty = await thirdPartyService.getByExternalIdAndType({
+        externalId: formData.patient.id,
+        externalType: "client"
+      });
       const admissionData = {
         external_id: `${userLogged.external_id}`,
         public_invoice: formData.billing.facturacionConsumidor,
         admission: {
           entity_id: formData.patient.entity_id,
-          entity_authorized_amount: formData.billing.authorizedAmount.replace('.', '') || 0,
+          entity_authorized_amount: formData.billing.authorizedAmount.replace(".", "") || 0,
           authorization_number: formData.billing.facturacionEntidad ? formData.billing.authorizationNumber : "",
-          authorization_date: formData.billing.facturacionEntidad && formData.billing.authorizationDate ? formData.billing.authorizationDate.toISOString().split('T')[0] : "",
+          authorization_date: formData.billing.facturacionEntidad && formData.billing.authorizationDate ? formData.billing.authorizationDate.toISOString().split("T")[0] : "",
           appointment_id: appointmentData?.id,
           koneksi_claim_id: null
         },
@@ -36,7 +40,7 @@ export const useAdmissionCreate = () => {
           due_date: dueDateString,
           paid_amount: calculateTotal(formData.products, formData.billing.facturacionEntidad),
           user_id: userLogged.id,
-          third_party_id: 1,
+          third_party_id: thirdParty?.id,
           sub_type: formData.billing.facturacionEntidad ? "entity" : "public"
         },
         invoice_detail: formData.products.map(product => ({

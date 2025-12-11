@@ -85,4 +85,8 @@ export class InvoiceService extends BaseApiService {
         console.log(payload);
         return await this.httpClient.post(`api/v1/admin/buy-invoices/apply-note`, payload);
     }
+
+    async createGlossToInvoiceByEntity(data) {
+        return await this.httpClient.post(`api/v1/admin/notes/credit/by-entity `, data);
+    }
 }

@@ -1,36 +1,34 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { InputText } from 'primereact/inputtext';
-import { Dropdown } from 'primereact/dropdown';
-import { Paginator } from 'primereact/paginator';
-import { Badge } from 'primereact/badge';
-import { Button } from 'primereact/button';
-import { TabView, TabPanel } from 'primereact/tabview';
-import { Accordion, AccordionTab } from 'primereact/accordion';
-import { Dialog } from 'primereact/dialog';
-import { appointmentService, examOrderService, examRecipeResultService, examRecipeService, infoCompanyService, patientService, templateService, ticketService } from '../../services/api';
-import { getPatientNextAppointment } from '../../services/patientHelpers';
-import { reestructurarPacientes } from '../../Pacientes/js/reestructurarPacientes';
-import { formatWhatsAppMessage, getIndicativeByCountry, getUserLogged } from '../../services/utilidades';
-import { createMassMessaging } from '../../funciones/funcionesJS/massMessage';
-import AdmissionBilling from '../admission/admission-billing/AdmissionBilling';
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import { InputText } from "primereact/inputtext";
+import { Paginator } from "primereact/paginator";
+import { Badge } from "primereact/badge";
+import { Button } from "primereact/button";
+import { TabView, TabPanel } from "primereact/tabview";
+import { Accordion, AccordionTab } from "primereact/accordion";
+import {
+    examOrderService,
+    examRecipeResultService,
+    examRecipeService,
+    patientService,
+} from "../../services/api";
+import { getUserLogged } from "../../services/utilidades";
+import AdmissionBilling from "../admission/admission-billing/AdmissionBilling";
 
 import "https://js.pusher.com/8.2.0/pusher.min.js";
-import { useAppointmentStates } from '../appointments/hooks/useAppointmentStates';
-import { SwalManager } from '../../services/alertManagerImported';
-import UserManager from '../../services/userManager';
+import { useAppointmentStates } from "../appointments/hooks/useAppointmentStates";
+import { SwalManager } from "../../services/alertManagerImported";
+import UserManager from "../../services/userManager";
+import { useCallPatient } from "./hooks/useCallPatient";
 
 export const PatientConsultationList = () => {
     const [patients, setPatients] = useState<any[]>([]);
     const [filteredPatients, setFilteredPatients] = useState<any[]>([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPatients, setTotalPatients] = useState(0);
-    const [searchText, setSearchText] = useState('');
-    const [statusFilter, setStatusFilter] = useState('');
+    const [searchText, setSearchText] = useState("");
+    const [statusFilter, setStatusFilter] = useState("");
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState(0);
-
-    const [messaging, setMessaging] = useState<any | null>(null);
-    const [template, setTemplate] = useState<any | null>(null);
 
     const [selectedAppointmentId, setSelectedAppointmentId] = useState<
         string | null
@@ -41,7 +39,8 @@ export const PatientConsultationList = () => {
 
     // Estados para el modal de facturación
     const [showBillingDialog, setShowBillingDialog] = useState(false);
-    const [selectedBillingAppointment, setSelectedBillingAppointment] = useState<any>(null);
+    const [selectedBillingAppointment, setSelectedBillingAppointment] =
+        useState<any>(null);
 
     const [pdfFile, setPdfFile] = useState<File | null>(null);
     const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null);
@@ -49,16 +48,17 @@ export const PatientConsultationList = () => {
 
     const itemsPerPage = 8;
     const statusOptions = [
-        { label: 'Todos', value: 'all' },
-        { label: 'Pendiente', value: 'pending' },
-        { label: 'En espera', value: 'pending_consultation' },
-        { label: 'Llamado', value: 'called' },
-        { label: 'En proceso', value: 'in_consultation' },
-        { label: 'Finalizada', value: 'consultation_completed' },
-        { label: 'Cancelada', value: 'cancelled' }
+        { label: "Todos", value: "all" },
+        { label: "Pendiente", value: "pending" },
+        { label: "En espera", value: "pending_consultation" },
+        { label: "Llamado", value: "called" },
+        { label: "En proceso", value: "in_consultation" },
+        { label: "Finalizada", value: "consultation_completed" },
+        { label: "Cancelada", value: "cancelled" },
     ];
 
     const { appointmentStates } = useAppointmentStates();
+    const { callPatient } = useCallPatient();
 
     const appointmentStatesRef = useRef(appointmentStates);
 
@@ -69,10 +69,11 @@ export const PatientConsultationList = () => {
     const fetchPatients = useCallback(async (page = 1) => {
         setLoading(true);
         try {
-            const response = await patientService.getWithAppointmentsByUserAndFilter({
-                per_page: itemsPerPage,
-                page: page
-            });
+            const response =
+                await patientService.getWithAppointmentsByUserAndFilter({
+                    per_page: itemsPerPage,
+                    page: page,
+                });
 
             const patientsData = response.original.data.data;
             const processedPatients = procesarPacientes(patientsData);
@@ -82,57 +83,78 @@ export const PatientConsultationList = () => {
             setTotalPatients(response.original.data.total);
             setCurrentPage(page);
         } catch (error) {
-            console.error('Error fetching patients:', error);
+            console.error("Error fetching patients:", error);
         } finally {
             setLoading(false);
         }
     }, []);
 
     const procesarPacientes = (pacientes) => {
-        const hoy = new Date().toISOString().split('T')[0];
+        const hoy = new Date().toISOString().split("T")[0];
 
-        const citasDeHoy = pacientes.flatMap(paciente => {
+        const citasDeHoy = pacientes.flatMap((paciente) => {
             return paciente.appointments
-                .filter(cita => cita.appointment_date === hoy)
-                .map(cita => {
+                .filter((cita) => cita.appointment_date === hoy)
+                .map((cita) => {
                     const estado = cita.appointment_state.name;
-                    const esFinalizadaOCancelada = estado === 'consultation_completed' || estado === 'cancelled';
+                    const esFinalizadaOCancelada =
+                        estado === "consultation_completed" ||
+                        estado === "cancelled";
 
                     return {
                         paciente: paciente,
                         cita: cita,
                         estado: estado,
                         _esFinalizadaOCancelada: esFinalizadaOCancelada,
-                        _fechaHoraCita: new Date(`${cita.appointment_date}T${cita.appointment_time}`),
-                        fullName: `${paciente.first_name || ''} ${paciente.middle_name || ''} ${paciente.last_name || ''} ${paciente.second_last_name || ''}`
+                        _fechaHoraCita: new Date(
+                            `${cita.appointment_date}T${cita.appointment_time}`
+                        ),
+                        fullName: `${paciente.first_name || ""} ${
+                            paciente.middle_name || ""
+                        } ${paciente.last_name || ""} ${
+                            paciente.second_last_name || ""
+                        }`,
                     };
                 });
         });
 
         return citasDeHoy.sort((a, b) => {
-            if (a._esFinalizadaOCancelada && !b._esFinalizadaOCancelada) return 1;
-            if (!a._esFinalizadaOCancelada && b._esFinalizadaOCancelada) return -1;
+            if (a._esFinalizadaOCancelada && !b._esFinalizadaOCancelada)
+                return 1;
+            if (!a._esFinalizadaOCancelada && b._esFinalizadaOCancelada)
+                return -1;
             return a._fechaHoraCita - b._fechaHoraCita;
         });
     };
 
     const filterPatients = useCallback(() => {
-        const filtered = patients.filter(citaData => {
+        const filtered = patients.filter((citaData) => {
             let isMatch = true;
             const paciente = citaData.paciente;
 
             if (searchText) {
                 const searchLower = searchText.toLowerCase();
-                const nombreCompleto = `${paciente.first_name || ''} ${paciente.middle_name || ''} ${paciente.last_name || ''} ${paciente.second_last_name || ''}`.toLowerCase();
-                const documento = paciente.document_number || '';
+                const nombreCompleto = `${paciente.first_name || ""} ${
+                    paciente.middle_name || ""
+                } ${paciente.last_name || ""} ${
+                    paciente.second_last_name || ""
+                }`.toLowerCase();
+                const documento = paciente.document_number || "";
 
                 // Buscar tanto en el nombre completo como en el documento
-                if (!nombreCompleto.includes(searchLower) && !documento.includes(searchText)) {
+                if (
+                    !nombreCompleto.includes(searchLower) &&
+                    !documento.includes(searchText)
+                ) {
                     isMatch = false;
                 }
             }
 
-            if (statusFilter && citaData.estado !== statusFilter && statusFilter !== 'all') {
+            if (
+                statusFilter &&
+                citaData.estado !== statusFilter &&
+                statusFilter !== "all"
+            ) {
                 isMatch = false;
             }
 
@@ -152,51 +174,24 @@ export const PatientConsultationList = () => {
 
     useEffect(() => {
         // @ts-ignore
-        const pusher = new Pusher('5e57937071269859a439', {
-            cluster: 'us2'
+        const pusher = new Pusher("5e57937071269859a439", {
+            cluster: "us2",
         });
 
-        const hostname = window.location.hostname.split('.')[0];
-        const channel = pusher.subscribe('waiting-room.' + hostname);
+        const hostname = window.location.hostname.split(".")[0];
+        const channel = pusher.subscribe("waiting-room." + hostname);
 
-        channel.bind('appointment.created', (data: any) => {
+        channel.bind("appointment.created", (data: any) => {
             handleAppointmentCreated(data);
         });
 
-        channel.bind('appointment.state.updated', (data: any) => {
+        channel.bind("appointment.state.updated", (data: any) => {
             handleAppointmentStateUpdated(data);
         });
 
-        channel.bind('appointment.inactivated', (data: any) => {
+        channel.bind("appointment.inactivated", (data: any) => {
             handleAppointmentInactivated(data);
         });
-
-        const asyncScope = async () => {
-            const tenant = window.location.hostname.split(".")[0];
-            const data = {
-                tenantId: tenant,
-                belongsTo: "turnos-llamadoPaciente",
-                type: "whatsapp",
-            };
-            const companies = await infoCompanyService.getCompany();
-            const communications = await infoCompanyService.getInfoCommunication(companies.data[0].id);
-            let template;
-            try {
-                template = await templateService.getTemplate(data);
-            } catch (error) {
-                console.error('Error al obtener template:', error);
-            }
-            const infoInstance = {
-                api_key: communications.api_key,
-                instance: communications.instance
-            }
-
-            const messaging = createMassMessaging(infoInstance);
-            setMessaging(messaging);
-            setTemplate(template);
-        }
-
-        asyncScope();
 
         return () => {
             channel.unbind_all();
@@ -206,12 +201,14 @@ export const PatientConsultationList = () => {
     }, []);
 
     const handleAppointmentCreated = (data: any) => {
-        setPatients(prevPatients => {
-            const pacienteExistenteIndex = prevPatients.findIndex(p => p.paciente.id === data.appointment.patient_id);
+        setPatients((prevPatients) => {
+            const pacienteExistenteIndex = prevPatients.findIndex(
+                (p) => p.paciente.id === data.appointment.patient_id
+            );
 
             if (pacienteExistenteIndex !== -1) {
                 const pacienteExistente = prevPatients[pacienteExistenteIndex];
-                const hoy = new Date().toISOString().split('T')[0];
+                const hoy = new Date().toISOString().split("T")[0];
 
                 if (data.appointment.appointment_date === hoy) {
                     const nuevaCita = {
@@ -219,8 +216,10 @@ export const PatientConsultationList = () => {
                         cita: data.appointment,
                         estado: data.appointment.appointment_state.name,
                         _esFinalizadaOCancelada: false,
-                        _fechaHoraCita: new Date(`${data.appointment.appointment_date}T${data.appointment.appointment_time}`),
-                        fullName: pacienteExistente.fullName
+                        _fechaHoraCita: new Date(
+                            `${data.appointment.appointment_date}T${data.appointment.appointment_time}`
+                        ),
+                        fullName: pacienteExistente.fullName,
                     };
 
                     const updatedPatients = [...prevPatients];
@@ -234,18 +233,22 @@ export const PatientConsultationList = () => {
     };
 
     const handleAppointmentStateUpdated = (data: any) => {
-        setPatients(prevPatients => {
-            return prevPatients.map(citaData => {
+        setPatients((prevPatients) => {
+            return prevPatients.map((citaData) => {
                 if (citaData.cita.id === data.appointmentId) {
-                    const nuevoEstado = appointmentStatesRef.current.find(state => state.id === data.newState);
+                    const nuevoEstado = appointmentStatesRef.current.find(
+                        (state) => state.id === data.newState
+                    );
                     return {
                         ...citaData,
                         cita: {
                             ...citaData.cita,
-                            appointment_state: nuevoEstado
+                            appointment_state: nuevoEstado,
                         },
                         estado: nuevoEstado.name,
-                        _esFinalizadaOCancelada: nuevoEstado.name === 'consultation_completed' || nuevoEstado.name === 'cancelled'
+                        _esFinalizadaOCancelada:
+                            nuevoEstado.name === "consultation_completed" ||
+                            nuevoEstado.name === "cancelled",
                     };
                 }
                 return citaData;
@@ -254,18 +257,20 @@ export const PatientConsultationList = () => {
     };
 
     const handleAppointmentInactivated = (data: any) => {
-        setPatients(prevPatients => {
-            return prevPatients.map(citaData => {
+        setPatients((prevPatients) => {
+            return prevPatients.map((citaData) => {
                 if (citaData.cita.id === data.appointmentId) {
-                    const estadoCancelado = appointmentStatesRef.current.find(state => state.name === 'cancelled');
+                    const estadoCancelado = appointmentStatesRef.current.find(
+                        (state) => state.name === "cancelled"
+                    );
                     return {
                         ...citaData,
                         cita: {
                             ...citaData.cita,
-                            appointment_state: estadoCancelado
+                            appointment_state: estadoCancelado,
                         },
-                        estado: 'cancelled',
-                        _esFinalizadaOCancelada: true
+                        estado: "cancelled",
+                        _esFinalizadaOCancelada: true,
                     };
                 }
                 return citaData;
@@ -279,7 +284,11 @@ export const PatientConsultationList = () => {
         let age = currentDate.getFullYear() - birthDate.getFullYear();
         const monthDifference = currentDate.getMonth() - birthDate.getMonth();
 
-        if (monthDifference < 0 || (monthDifference === 0 && currentDate.getDate() < birthDate.getDate())) {
+        if (
+            monthDifference < 0 ||
+            (monthDifference === 0 &&
+                currentDate.getDate() < birthDate.getDate())
+        ) {
             age--;
         }
 
@@ -291,72 +300,18 @@ export const PatientConsultationList = () => {
         fetchPatients(newPage);
     };
 
-    function sendMessageWhatsapp(data, currentAppointment) {
-        const replacements = {
-            NOMBRE_PACIENTE: `${data?.patient?.first_name ?? ""} ${data?.patient?.middle_name ?? ""
-                } ${data?.patient?.last_name ?? ""} ${data?.patient?.second_last_name ?? ""
-                }`,
-            TICKET: `${data?.ticket_number ?? ""}`,
-            MODULO: `${data?.module?.name ?? ""}`,
-            ESPECIALISTA: `${currentAppointment?.user_availability?.user?.specialty?.name ?? ""}`,
-            CONSULTORIO: `${data?.branch?.address ?? ""}`,
-        };
-
-        const templateFormatted = formatWhatsAppMessage(
-            template?.data?.template,
-            replacements
-        );
-
-        const dataMessage = {
-            channel: "whatsapp",
-            message_type: "text",
-            recipients: [
-                getIndicativeByCountry(data?.patient.country_id) +
-                data?.patient.whatsapp,
-            ],
-            message: templateFormatted,
-            webhook_url: "https://example.com/webhook",
-        };
-        messaging?.sendMessage(dataMessage).then(() => { });
-    }
-
-    const llamarPaciente = async (patientId, appointmentId) => {
+    const llamarPaciente = async (patientId) => {
         //@ts-ignore
         Swal.fire({
-            title: '¿Estás seguro de llamar al paciente al consultorio?',
-            icon: 'warning',
+            title: "¿Estás seguro de llamar al paciente al consultorio?",
+            icon: "warning",
             showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Sí, llamar'
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Sí, llamar",
         }).then(async (result) => {
             if (result.isConfirmed) {
-                const patient = await patientService.get(patientId);
-                const currentAppointment = await appointmentService.get(appointmentId);
-
-                if (currentAppointment) {
-                    await appointmentService.changeStatus(currentAppointment.id, 'called');
-                    await ticketService.lastByPatient(patientId).then((response) => {
-
-                        if (response?.patient?.whatsapp_notifications) {
-                            sendMessageWhatsapp(response, currentAppointment);
-                        }
-                        //@ts-ignore
-                        Swal.fire(
-                            '¡Paciente llamado!',
-                            'Se ha llamado al paciente para que se acerque al consultorio.',
-                            'success'
-                        )
-
-                    });
-                } else {
-                    //@ts-ignore
-                    Swal.fire(
-                        'Error',
-                        'El paciente no está en espera de consulta.',
-                        'error'
-                    )
-                }
+                callPatient(patientId);
             }
         });
     };
@@ -395,7 +350,9 @@ export const PatientConsultationList = () => {
                     selectedAppointment?.exam_recipe_id,
                     "uploaded"
                 );
-                SwalManager.success({ text: "Resultados guardados exitosamente" });
+                SwalManager.success({
+                    text: "Resultados guardados exitosamente",
+                });
             } else {
                 console.error("No se obtuvo un resultado válido.");
             }
@@ -426,7 +383,11 @@ export const PatientConsultationList = () => {
         const appointmentData = {
             id: citaData.cita.id,
             patientId: citaData.paciente.id,
-            patientName: `${citaData.paciente.first_name || ''} ${citaData.paciente.middle_name || ''} ${citaData.paciente.last_name || ''} ${citaData.paciente.second_last_name || ''}`,
+            patientName: `${citaData.paciente.first_name || ""} ${
+                citaData.paciente.middle_name || ""
+            } ${citaData.paciente.last_name || ""} ${
+                citaData.paciente.second_last_name || ""
+            }`,
             patient: citaData.paciente,
             appointment_date: citaData.cita.appointment_date,
             appointment_time: citaData.cita.appointment_time,
@@ -457,13 +418,13 @@ export const PatientConsultationList = () => {
     // Función para traducir estados al español
     const traducirEstado = (estado) => {
         const traducciones = {
-            'pending': 'Pendiente',
-            'pending_consultation': 'En espera',
-            'called': 'Llamado',
-            'in_consultation': 'En proceso',
-            'consultation_completed': 'Finalizada',
-            'cancelled': 'Cancelada',
-            'Sin estado': 'Sin estado'
+            pending: "Pendiente",
+            pending_consultation: "En espera",
+            called: "Llamado",
+            in_consultation: "En proceso",
+            consultation_completed: "Finalizada",
+            cancelled: "Cancelada",
+            "Sin estado": "Sin estado",
         };
         return traducciones[estado] || estado;
     };
@@ -471,32 +432,40 @@ export const PatientConsultationList = () => {
     // Función auxiliar para obtener el color según el estado
     const obtenerColorEstado = (estado) => {
         const colores = {
-            'pending': 'warning',
-            'pending_consultation': 'info',
-            'called': 'primary',
-            'in_consultation': 'success',
-            'consultation_completed': 'secondary',
-            'cancelled': 'danger'
+            pending: "warning",
+            pending_consultation: "info",
+            called: "primary",
+            in_consultation: "success",
+            consultation_completed: "secondary",
+            cancelled: "danger",
         };
-        return colores[estado] || 'secondary';
+        return colores[estado] || "secondary";
     };
 
     // Filtrar pacientes por estado para los tabs
     const getPatientsByStatus = (status) => {
-        if (status === 'all') {
+        if (status === "all") {
             return filteredPatients;
         }
-        return filteredPatients.filter(citaData => citaData.estado === status);
+        return filteredPatients.filter(
+            (citaData) => citaData.estado === status
+        );
     };
 
     // Renderizar tarjetas de pacientes
     const renderPatientCards = (patientsToRender) => {
         if (loading) {
-            return <div className="text-center py-5">Cargando pacientes...</div>;
+            return (
+                <div className="text-center py-5">Cargando pacientes...</div>
+            );
         }
 
         if (patientsToRender.length === 0) {
-            return <div className="text-center py-5">No se encontraron pacientes</div>;
+            return (
+                <div className="text-center py-5">
+                    No se encontraron pacientes
+                </div>
+            );
         }
 
         return (
@@ -504,12 +473,18 @@ export const PatientConsultationList = () => {
                 {patientsToRender.map((citaData, index) => {
                     const paciente = citaData.paciente;
                     const cita = citaData.cita;
-                    const estadoActual = cita.appointment_state?.name || citaData.estado || 'Sin estado';
+                    const estadoActual =
+                        cita.appointment_state?.name ||
+                        citaData.estado ||
+                        "Sin estado";
                     const estadoTraducido = traducirEstado(estadoActual);
                     const estadoColor = obtenerColorEstado(estadoActual);
 
                     return (
-                        <div key={`${paciente.id}-${cita.id}-${index}`} className="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-3 mb-3">
+                        <div
+                            key={`${paciente.id}-${cita.id}-${index}`}
+                            className="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-3 mb-3"
+                        >
                             <div className="card card-paciente h-100">
                                 <div className="card-body d-flex flex-column p-3">
                                     <div className="text-center mb-2">
@@ -525,9 +500,16 @@ export const PatientConsultationList = () => {
                                             <div className="grid-item">
                                                 <div className="d-flex align-items-center mb-1">
                                                     <i className="fa-solid fa-id-card me-1 text-body-tertiary fs-8"></i>
-                                                    <span className="fw-bold">Documento</span>
+                                                    <span className="fw-bold">
+                                                        Documento
+                                                    </span>
                                                 </div>
-                                                <div className="text-body-emphasis text-truncate" title={paciente.document_number}>
+                                                <div
+                                                    className="text-body-emphasis text-truncate"
+                                                    title={
+                                                        paciente.document_number
+                                                    }
+                                                >
                                                     {paciente.document_number}
                                                 </div>
                                             </div>
@@ -535,30 +517,41 @@ export const PatientConsultationList = () => {
                                             <div className="grid-item">
                                                 <div className="d-flex align-items-center mb-1">
                                                     <i className="fa-solid fa-cake-candles me-1 text-body-tertiary fs-8"></i>
-                                                    <span className="fw-bold">Edad</span>
+                                                    <span className="fw-bold">
+                                                        Edad
+                                                    </span>
                                                 </div>
                                                 <div className="text-body-emphasis">
-                                                    {calculateAge(paciente.date_of_birth)} Años
+                                                    {calculateAge(
+                                                        paciente.date_of_birth
+                                                    )}{" "}
+                                                    Años
                                                 </div>
                                             </div>
 
                                             <div className="grid-item">
                                                 <div className="d-flex align-items-center mb-1">
                                                     <i className="far fa-calendar-check me-1 text-body-tertiary fs-8"></i>
-                                                    <span className="fw-bold">Fecha</span>
+                                                    <span className="fw-bold">
+                                                        Fecha
+                                                    </span>
                                                 </div>
                                                 <div className="text-body-emphasis">
-                                                    {cita.appointment_date || "N/A"}
+                                                    {cita.appointment_date ||
+                                                        "N/A"}
                                                 </div>
                                             </div>
 
                                             <div className="grid-item">
                                                 <div className="d-flex align-items-center mb-1">
                                                     <i className="far fa-clock me-1 text-body-tertiary fs-8"></i>
-                                                    <span className="fw-bold">Hora</span>
+                                                    <span className="fw-bold">
+                                                        Hora
+                                                    </span>
                                                 </div>
                                                 <div className="text-body-emphasis">
-                                                    {cita.appointment_time || "N/A"}
+                                                    {cita.appointment_time ||
+                                                        "N/A"}
                                                 </div>
                                             </div>
                                         </div>
@@ -567,13 +560,31 @@ export const PatientConsultationList = () => {
                                         <div className="mt-2 pt-2 border-top">
                                             <div className="d-flex align-items-center mb-1">
                                                 <i className="fa-solid fa-user me-1 text-body-tertiary fs-8"></i>
-                                                <span className="fw-bold">Nombre</span>
+                                                <span className="fw-bold">
+                                                    Nombre
+                                                </span>
                                             </div>
-                                            <div className="text-body-emphasis text-truncate" title={`${paciente.first_name || ''} ${paciente.middle_name || ''} ${paciente.last_name || ''} ${paciente.second_last_name || ''}`}>
-                                                {paciente.first_name || ''}
-                                                {paciente.middle_name ? ` ${paciente.middle_name}` : ''}
-                                                {paciente.last_name ? ` ${paciente.last_name}` : ''}
-                                                {paciente.second_last_name ? ` ${paciente.second_last_name}` : ''}
+                                            <div
+                                                className="text-body-emphasis text-truncate"
+                                                title={`${
+                                                    paciente.first_name || ""
+                                                } ${
+                                                    paciente.middle_name || ""
+                                                } ${paciente.last_name || ""} ${
+                                                    paciente.second_last_name ||
+                                                    ""
+                                                }`}
+                                            >
+                                                {paciente.first_name || ""}
+                                                {paciente.middle_name
+                                                    ? ` ${paciente.middle_name}`
+                                                    : ""}
+                                                {paciente.last_name
+                                                    ? ` ${paciente.last_name}`
+                                                    : ""}
+                                                {paciente.second_last_name
+                                                    ? ` ${paciente.second_last_name}`
+                                                    : ""}
                                             </div>
                                         </div>
                                     </div>
@@ -582,7 +593,9 @@ export const PatientConsultationList = () => {
                                         <Button
                                             label="Ver Paciente"
                                             className="btn-sm btn btn-primary"
-                                            onClick={() => window.location.href = `verPaciente?id=${paciente.id}`}
+                                            onClick={() =>
+                                                (window.location.href = `verPaciente?id=${paciente.id}`)
+                                            }
                                         />
 
                                         {/* Botón Facturar Admisión - Solo para estado Pendiente */}
@@ -590,34 +603,51 @@ export const PatientConsultationList = () => {
                                             <Button
                                                 label="Facturar Admisión"
                                                 className="btn-sm btn btn-success"
-                                                onClick={() => handleFacturarAdmision(citaData)}
+                                                onClick={() =>
+                                                    handleFacturarAdmision(
+                                                        citaData
+                                                    )
+                                                }
                                             />
                                         )}
 
-                                        {(estadoActual === "pending_consultation" || estadoActual === "called") && (
+                                        {(estadoActual ===
+                                            "pending_consultation" ||
+                                            estadoActual === "called") && (
                                             <Button
                                                 label="Llamar paciente"
                                                 className="btn-sm btn btn-primary"
-                                                onClick={() => llamarPaciente(paciente.id, cita.id)}
+                                                onClick={() =>
+                                                    llamarPaciente(paciente.id)
+                                                }
                                             />
                                         )}
 
-                                        {(estadoActual === "pending_consultation" ||
+                                        {(estadoActual ===
+                                            "pending_consultation" ||
                                             estadoActual === "called" ||
-                                            estadoActual === "in_consultation") &&
-                                            cita.attention_type === "CONSULTATION" &&
-                                            (
+                                            estadoActual ===
+                                                "in_consultation") &&
+                                            cita.attention_type ===
+                                                "CONSULTATION" && (
                                                 <Button
                                                     label="Realizar Consulta"
                                                     className="btn-sm btn btn-primary"
-                                                    onClick={() => handleMakeClinicalRecord(paciente.id, cita.id)}
+                                                    onClick={() =>
+                                                        handleMakeClinicalRecord(
+                                                            paciente.id,
+                                                            cita.id
+                                                        )
+                                                    }
                                                 />
                                             )}
-                                        {(estadoActual === "pending_consultation" ||
+                                        {(estadoActual ===
+                                            "pending_consultation" ||
                                             estadoActual === "called" ||
-                                            estadoActual === "in_consultation") &&
-                                            cita.attention_type === "PROCEDURE" &&
-                                            (
+                                            estadoActual ===
+                                                "in_consultation") &&
+                                            cita.attention_type ===
+                                                "PROCEDURE" && (
                                                 <>
                                                     <Button
                                                         label="Realizar Examen"
@@ -634,15 +664,23 @@ export const PatientConsultationList = () => {
                                                         label="Subir Examen"
                                                         className="btn-sm btn btn-primary"
                                                         onClick={() => {
-                                                            setSelectedAppointment(cita);
-                                                            setSelectedAppointmentId(cita.id);
-                                                            setSelectedExamOrder(cita.exam_orders[0]);
-                                                            setShowPdfModal(true);
+                                                            setSelectedAppointment(
+                                                                cita
+                                                            );
+                                                            setSelectedAppointmentId(
+                                                                cita.id
+                                                            );
+                                                            setSelectedExamOrder(
+                                                                cita
+                                                                    .exam_orders[0]
+                                                            );
+                                                            setShowPdfModal(
+                                                                true
+                                                            );
                                                         }}
                                                     />
                                                 </>
                                             )}
-
                                     </div>
                                 </div>
                             </div>
@@ -655,159 +693,195 @@ export const PatientConsultationList = () => {
 
     // Definir los tabs con nuevo orden: En Espera primero, Todos al final
     const tabItems = [
-        { label: 'En Espera', value: 'pending_consultation', count: getPatientsByStatus('pending_consultation').length },
-        { label: 'Pendientes', value: 'pending', count: getPatientsByStatus('pending').length },
-        { label: 'Llamados', value: 'called', count: getPatientsByStatus('called').length },
-        { label: 'En Proceso', value: 'in_consultation', count: getPatientsByStatus('in_consultation').length },
-        { label: 'Finalizadas', value: 'consultation_completed', count: getPatientsByStatus('consultation_completed').length },
-        { label: 'Canceladas', value: 'cancelled', count: getPatientsByStatus('cancelled').length },
-        { label: 'Todos', value: 'all', count: filteredPatients.length }
+        {
+            label: "En Espera",
+            value: "pending_consultation",
+            count: getPatientsByStatus("pending_consultation").length,
+        },
+        {
+            label: "Pendientes",
+            value: "pending",
+            count: getPatientsByStatus("pending").length,
+        },
+        {
+            label: "Llamados",
+            value: "called",
+            count: getPatientsByStatus("called").length,
+        },
+        {
+            label: "En Proceso",
+            value: "in_consultation",
+            count: getPatientsByStatus("in_consultation").length,
+        },
+        {
+            label: "Finalizadas",
+            value: "consultation_completed",
+            count: getPatientsByStatus("consultation_completed").length,
+        },
+        {
+            label: "Canceladas",
+            value: "cancelled",
+            count: getPatientsByStatus("cancelled").length,
+        },
+        { label: "Todos", value: "all", count: filteredPatients.length },
     ];
 
     // Función para limpiar filtros
     const limpiarFiltros = () => {
-        setSearchText('');
+        setSearchText("");
         setFilteredPatients(patients);
     };
 
-    return (<>
-
-        <div className="card mb-4">
-            <div className="card-body">
-                <Accordion>
-                    <AccordionTab header="Filtros">
-                        <div className="row">
-                            <div className="col-md-6">
-                                <label className="form-label">
-                                    Buscar Paciente
-                                </label>
-                                <InputText
-                                    value={searchText}
-                                    onChange={(e) => setSearchText(e.target.value)}
-                                    placeholder="Buscar por nombre o documento"
-                                    className="w-100"
-                                />
+    return (
+        <>
+            <div className="card mb-4">
+                <div className="card-body">
+                    <Accordion>
+                        <AccordionTab header="Filtros">
+                            <div className="row">
+                                <div className="col-md-6">
+                                    <label className="form-label">
+                                        Buscar Paciente
+                                    </label>
+                                    <InputText
+                                        value={searchText}
+                                        onChange={(e) =>
+                                            setSearchText(e.target.value)
+                                        }
+                                        placeholder="Buscar por nombre o documento"
+                                        className="w-100"
+                                    />
+                                </div>
                             </div>
-                        </div>
-                    </AccordionTab>
-                </Accordion>
+                        </AccordionTab>
+                    </Accordion>
+                </div>
+                <TabView
+                    activeIndex={activeTab}
+                    onTabChange={(e) => setActiveTab(e.index)}
+                    className="custom-tabview"
+                >
+                    {tabItems.map((tab, index) => (
+                        <TabPanel
+                            key={tab.value}
+                            header={
+                                <div className="d-flex align-items-center gap-2">
+                                    <span>{tab.label}</span>
+                                    <Badge
+                                        value={tab.count}
+                                        className={`badge-count badge-${obtenerColorEstado(
+                                            tab.value
+                                        )}`}
+                                    />
+                                </div>
+                            }
+                        >
+                            {renderPatientCards(getPatientsByStatus(tab.value))}
+                        </TabPanel>
+                    ))}
+                </TabView>
             </div>
-            <TabView
-                activeIndex={activeTab}
-                onTabChange={(e) => setActiveTab(e.index)}
-                className="custom-tabview"
-            >
-                {tabItems.map((tab, index) => (
-                    <TabPanel
-                        key={tab.value}
-                        header={
-                            <div className="d-flex align-items-center gap-2">
-                                <span>{tab.label}</span>
-                                <Badge
-                                    value={tab.count}
-                                    className={`badge-count badge-${obtenerColorEstado(tab.value)}`}
-                                />
-                            </div>
-                        }
-                    >
-                        {renderPatientCards(getPatientsByStatus(tab.value))}
-                    </TabPanel>
-                ))}
-            </TabView>
-        </div>
 
-        {/* Modal de Facturación de Admisión */}
-        <AdmissionBilling
-            visible={showBillingDialog}
-            onHide={handleBillingHide}
-            onSuccess={handleBillingSuccess}
-            appointmentData={selectedBillingAppointment}
-        />
-
-        <div className="d-flex justify-content-center mt-4">
-            <Paginator
-                first={(currentPage - 1) * itemsPerPage}
-                rows={itemsPerPage}
-                totalRecords={totalPatients}
-                onPageChange={onPageChange}
-                template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport"
+            {/* Modal de Facturación de Admisión */}
+            <AdmissionBilling
+                visible={showBillingDialog}
+                onHide={handleBillingHide}
+                onSuccess={handleBillingSuccess}
+                appointmentData={selectedBillingAppointment}
             />
-        </div>
 
-        {showPdfModal && (
-            <div
-                className="modal fade show"
-                style={{ display: "block", backgroundColor: "rgba(0, 0, 0, 0.5)" }}
-            >
-                <div className="modal-dialog modal-dialog-centered modal-lg">
-                    <div className="modal-content">
-                        <div className="modal-header">
-                            <h5 className="modal-title">Previsualización de PDF</h5>
-                            <button
-                                type="button"
-                                className="btn-close"
-                                onClick={() => {
-                                    setPdfFile(null);
-                                    setPdfPreviewUrl(null);
-                                    setShowPdfModal(false);
-                                }}
-                            ></button>
-                        </div>
-                        <div className="modal-body">
-                            {pdfPreviewUrl ? (
-                                <embed
-                                    src={pdfPreviewUrl}
-                                    width="100%"
-                                    height="500px"
-                                    type="application/pdf"
+            <div className="d-flex justify-content-center mt-4">
+                <Paginator
+                    first={(currentPage - 1) * itemsPerPage}
+                    rows={itemsPerPage}
+                    totalRecords={totalPatients}
+                    onPageChange={onPageChange}
+                    template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport"
+                />
+            </div>
+
+            {showPdfModal && (
+                <div
+                    className="modal fade show"
+                    style={{
+                        display: "block",
+                        backgroundColor: "rgba(0, 0, 0, 0.5)",
+                    }}
+                >
+                    <div className="modal-dialog modal-dialog-centered modal-lg">
+                        <div className="modal-content">
+                            <div className="modal-header">
+                                <h5 className="modal-title">
+                                    Previsualización de PDF
+                                </h5>
+                                <button
+                                    type="button"
+                                    className="btn-close"
+                                    onClick={() => {
+                                        setPdfFile(null);
+                                        setPdfPreviewUrl(null);
+                                        setShowPdfModal(false);
+                                    }}
+                                ></button>
+                            </div>
+                            <div className="modal-body">
+                                {pdfPreviewUrl ? (
+                                    <embed
+                                        src={pdfPreviewUrl}
+                                        width="100%"
+                                        height="500px"
+                                        type="application/pdf"
+                                    />
+                                ) : (
+                                    <p>Por favor, seleccione un archivo PDF.</p>
+                                )}
+                            </div>
+                            <div className="modal-footer">
+                                <input
+                                    type="file"
+                                    accept=".pdf"
+                                    id="inputPdf"
+                                    onChange={(e) => {
+                                        const file =
+                                            e.target.files?.[0] || null;
+                                        if (file) {
+                                            setPdfFile(file);
+                                            setPdfPreviewUrl(
+                                                URL.createObjectURL(file)
+                                            );
+                                        }
+                                    }}
                                 />
-                            ) : (
-                                <p>Por favor, seleccione un archivo PDF.</p>
-                            )}
-                        </div>
-                        <div className="modal-footer">
-                            <input
-                                type="file"
-                                accept=".pdf"
-                                id="inputPdf"
-                                onChange={(e) => {
-                                    const file = e.target.files?.[0] || null;
-                                    if (file) {
-                                        setPdfFile(file);
-                                        setPdfPreviewUrl(URL.createObjectURL(file));
-                                    }
-                                }}
-                            />
-                            <button
-                                type="button"
-                                className="btn btn-secondary"
-                                onClick={() => {
-                                    setShowPdfModal(false);
-                                    setPdfFile(null);
-                                    setPdfPreviewUrl(null);
-                                }}
-                            >
-                                Cancelar
-                            </button>
-                            <button
-                                type="button"
-                                className="btn btn-primary"
-                                onClick={() => {
-                                    handlePDFSubmit();
-                                    setShowPdfModal(false);
-                                    setPdfFile(null);
-                                    setPdfPreviewUrl(null);
-                                }}
-                            >
-                                Confirmar
-                            </button>
+                                <button
+                                    type="button"
+                                    className="btn btn-secondary"
+                                    onClick={() => {
+                                        setShowPdfModal(false);
+                                        setPdfFile(null);
+                                        setPdfPreviewUrl(null);
+                                    }}
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    type="button"
+                                    className="btn btn-primary"
+                                    onClick={() => {
+                                        handlePDFSubmit();
+                                        setShowPdfModal(false);
+                                        setPdfFile(null);
+                                        setPdfPreviewUrl(null);
+                                    }}
+                                >
+                                    Confirmar
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        )}
+            )}
 
-        <style>{`
+            <style>{`
             .card-paciente {
                 display: flex;
                 flex-direction: column;
@@ -960,5 +1034,6 @@ export const PatientConsultationList = () => {
                 }
             }
         `}</style>
-    </>);
+        </>
+    );
 };

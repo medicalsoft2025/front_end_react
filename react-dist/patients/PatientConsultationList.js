@@ -1,29 +1,27 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { InputText } from 'primereact/inputtext';
-import { Paginator } from 'primereact/paginator';
-import { Badge } from 'primereact/badge';
-import { Button } from 'primereact/button';
-import { TabView, TabPanel } from 'primereact/tabview';
-import { Accordion, AccordionTab } from 'primereact/accordion';
-import { appointmentService, examOrderService, examRecipeResultService, examRecipeService, infoCompanyService, patientService, templateService, ticketService } from "../../services/api/index.js";
-import { formatWhatsAppMessage, getIndicativeByCountry, getUserLogged } from "../../services/utilidades.js";
-import { createMassMessaging } from "../../funciones/funcionesJS/massMessage.js";
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import { InputText } from "primereact/inputtext";
+import { Paginator } from "primereact/paginator";
+import { Badge } from "primereact/badge";
+import { Button } from "primereact/button";
+import { TabView, TabPanel } from "primereact/tabview";
+import { Accordion, AccordionTab } from "primereact/accordion";
+import { examOrderService, examRecipeResultService, examRecipeService, patientService } from "../../services/api/index.js";
+import { getUserLogged } from "../../services/utilidades.js";
 import AdmissionBilling from "../admission/admission-billing/AdmissionBilling.js";
 import "https://js.pusher.com/8.2.0/pusher.min.js";
 import { useAppointmentStates } from "../appointments/hooks/useAppointmentStates.js";
 import { SwalManager } from "../../services/alertManagerImported.js";
 import UserManager from "../../services/userManager.js";
+import { useCallPatient } from "./hooks/useCallPatient.js";
 export const PatientConsultationList = () => {
   const [patients, setPatients] = useState([]);
   const [filteredPatients, setFilteredPatients] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPatients, setTotalPatients] = useState(0);
-  const [searchText, setSearchText] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
+  const [searchText, setSearchText] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState(0);
-  const [messaging, setMessaging] = useState(null);
-  const [template, setTemplate] = useState(null);
   const [selectedAppointmentId, setSelectedAppointmentId] = useState(null);
   const [selectedExamOrder, setSelectedExamOrder] = useState(null);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
@@ -37,30 +35,33 @@ export const PatientConsultationList = () => {
   const userLogged = getUserLogged();
   const itemsPerPage = 8;
   const statusOptions = [{
-    label: 'Todos',
-    value: 'all'
+    label: "Todos",
+    value: "all"
   }, {
-    label: 'Pendiente',
-    value: 'pending'
+    label: "Pendiente",
+    value: "pending"
   }, {
-    label: 'En espera',
-    value: 'pending_consultation'
+    label: "En espera",
+    value: "pending_consultation"
   }, {
-    label: 'Llamado',
-    value: 'called'
+    label: "Llamado",
+    value: "called"
   }, {
-    label: 'En proceso',
-    value: 'in_consultation'
+    label: "En proceso",
+    value: "in_consultation"
   }, {
-    label: 'Finalizada',
-    value: 'consultation_completed'
+    label: "Finalizada",
+    value: "consultation_completed"
   }, {
-    label: 'Cancelada',
-    value: 'cancelled'
+    label: "Cancelada",
+    value: "cancelled"
   }];
   const {
     appointmentStates
   } = useAppointmentStates();
+  const {
+    callPatient
+  } = useCallPatient();
   const appointmentStatesRef = useRef(appointmentStates);
   useEffect(() => {
     appointmentStatesRef.current = appointmentStates;
@@ -79,24 +80,24 @@ export const PatientConsultationList = () => {
       setTotalPatients(response.original.data.total);
       setCurrentPage(page);
     } catch (error) {
-      console.error('Error fetching patients:', error);
+      console.error("Error fetching patients:", error);
     } finally {
       setLoading(false);
     }
   }, []);
   const procesarPacientes = pacientes => {
-    const hoy = new Date().toISOString().split('T')[0];
+    const hoy = new Date().toISOString().split("T")[0];
     const citasDeHoy = pacientes.flatMap(paciente => {
       return paciente.appointments.filter(cita => cita.appointment_date === hoy).map(cita => {
         const estado = cita.appointment_state.name;
-        const esFinalizadaOCancelada = estado === 'consultation_completed' || estado === 'cancelled';
+        const esFinalizadaOCancelada = estado === "consultation_completed" || estado === "cancelled";
         return {
           paciente: paciente,
           cita: cita,
           estado: estado,
           _esFinalizadaOCancelada: esFinalizadaOCancelada,
           _fechaHoraCita: new Date(`${cita.appointment_date}T${cita.appointment_time}`),
-          fullName: `${paciente.first_name || ''} ${paciente.middle_name || ''} ${paciente.last_name || ''} ${paciente.second_last_name || ''}`
+          fullName: `${paciente.first_name || ""} ${paciente.middle_name || ""} ${paciente.last_name || ""} ${paciente.second_last_name || ""}`
         };
       });
     });
@@ -112,15 +113,15 @@ export const PatientConsultationList = () => {
       const paciente = citaData.paciente;
       if (searchText) {
         const searchLower = searchText.toLowerCase();
-        const nombreCompleto = `${paciente.first_name || ''} ${paciente.middle_name || ''} ${paciente.last_name || ''} ${paciente.second_last_name || ''}`.toLowerCase();
-        const documento = paciente.document_number || '';
+        const nombreCompleto = `${paciente.first_name || ""} ${paciente.middle_name || ""} ${paciente.last_name || ""} ${paciente.second_last_name || ""}`.toLowerCase();
+        const documento = paciente.document_number || "";
 
         // Buscar tanto en el nombre completo como en el documento
         if (!nombreCompleto.includes(searchLower) && !documento.includes(searchText)) {
           isMatch = false;
         }
       }
-      if (statusFilter && citaData.estado !== statusFilter && statusFilter !== 'all') {
+      if (statusFilter && citaData.estado !== statusFilter && statusFilter !== "all") {
         isMatch = false;
       }
       return isMatch;
@@ -135,44 +136,20 @@ export const PatientConsultationList = () => {
   }, [fetchPatients]);
   useEffect(() => {
     // @ts-ignore
-    const pusher = new Pusher('5e57937071269859a439', {
-      cluster: 'us2'
+    const pusher = new Pusher("5e57937071269859a439", {
+      cluster: "us2"
     });
-    const hostname = window.location.hostname.split('.')[0];
-    const channel = pusher.subscribe('waiting-room.' + hostname);
-    channel.bind('appointment.created', data => {
+    const hostname = window.location.hostname.split(".")[0];
+    const channel = pusher.subscribe("waiting-room." + hostname);
+    channel.bind("appointment.created", data => {
       handleAppointmentCreated(data);
     });
-    channel.bind('appointment.state.updated', data => {
+    channel.bind("appointment.state.updated", data => {
       handleAppointmentStateUpdated(data);
     });
-    channel.bind('appointment.inactivated', data => {
+    channel.bind("appointment.inactivated", data => {
       handleAppointmentInactivated(data);
     });
-    const asyncScope = async () => {
-      const tenant = window.location.hostname.split(".")[0];
-      const data = {
-        tenantId: tenant,
-        belongsTo: "turnos-llamadoPaciente",
-        type: "whatsapp"
-      };
-      const companies = await infoCompanyService.getCompany();
-      const communications = await infoCompanyService.getInfoCommunication(companies.data[0].id);
-      let template;
-      try {
-        template = await templateService.getTemplate(data);
-      } catch (error) {
-        console.error('Error al obtener template:', error);
-      }
-      const infoInstance = {
-        api_key: communications.api_key,
-        instance: communications.instance
-      };
-      const messaging = createMassMessaging(infoInstance);
-      setMessaging(messaging);
-      setTemplate(template);
-    };
-    asyncScope();
     return () => {
       channel.unbind_all();
       channel.unsubscribe();
@@ -184,7 +161,7 @@ export const PatientConsultationList = () => {
       const pacienteExistenteIndex = prevPatients.findIndex(p => p.paciente.id === data.appointment.patient_id);
       if (pacienteExistenteIndex !== -1) {
         const pacienteExistente = prevPatients[pacienteExistenteIndex];
-        const hoy = new Date().toISOString().split('T')[0];
+        const hoy = new Date().toISOString().split("T")[0];
         if (data.appointment.appointment_date === hoy) {
           const nuevaCita = {
             paciente: pacienteExistente.paciente,
@@ -214,7 +191,7 @@ export const PatientConsultationList = () => {
               appointment_state: nuevoEstado
             },
             estado: nuevoEstado.name,
-            _esFinalizadaOCancelada: nuevoEstado.name === 'consultation_completed' || nuevoEstado.name === 'cancelled'
+            _esFinalizadaOCancelada: nuevoEstado.name === "consultation_completed" || nuevoEstado.name === "cancelled"
           };
         }
         return citaData;
@@ -225,14 +202,14 @@ export const PatientConsultationList = () => {
     setPatients(prevPatients => {
       return prevPatients.map(citaData => {
         if (citaData.cita.id === data.appointmentId) {
-          const estadoCancelado = appointmentStatesRef.current.find(state => state.name === 'cancelled');
+          const estadoCancelado = appointmentStatesRef.current.find(state => state.name === "cancelled");
           return {
             ...citaData,
             cita: {
               ...citaData.cita,
               appointment_state: estadoCancelado
             },
-            estado: 'cancelled',
+            estado: "cancelled",
             _esFinalizadaOCancelada: true
           };
         }
@@ -254,50 +231,18 @@ export const PatientConsultationList = () => {
     const newPage = event.page + 1;
     fetchPatients(newPage);
   };
-  function sendMessageWhatsapp(data, currentAppointment) {
-    const replacements = {
-      NOMBRE_PACIENTE: `${data?.patient?.first_name ?? ""} ${data?.patient?.middle_name ?? ""} ${data?.patient?.last_name ?? ""} ${data?.patient?.second_last_name ?? ""}`,
-      TICKET: `${data?.ticket_number ?? ""}`,
-      MODULO: `${data?.module?.name ?? ""}`,
-      ESPECIALISTA: `${currentAppointment?.user_availability?.user?.specialty?.name ?? ""}`,
-      CONSULTORIO: `${data?.branch?.address ?? ""}`
-    };
-    const templateFormatted = formatWhatsAppMessage(template?.data?.template, replacements);
-    const dataMessage = {
-      channel: "whatsapp",
-      message_type: "text",
-      recipients: [getIndicativeByCountry(data?.patient.country_id) + data?.patient.whatsapp],
-      message: templateFormatted,
-      webhook_url: "https://example.com/webhook"
-    };
-    messaging?.sendMessage(dataMessage).then(() => {});
-  }
-  const llamarPaciente = async (patientId, appointmentId) => {
+  const llamarPaciente = async patientId => {
     //@ts-ignore
     Swal.fire({
-      title: '¿Estás seguro de llamar al paciente al consultorio?',
-      icon: 'warning',
+      title: "¿Estás seguro de llamar al paciente al consultorio?",
+      icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Sí, llamar'
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Sí, llamar"
     }).then(async result => {
       if (result.isConfirmed) {
-        const patient = await patientService.get(patientId);
-        const currentAppointment = await appointmentService.get(appointmentId);
-        if (currentAppointment) {
-          await appointmentService.changeStatus(currentAppointment.id, 'called');
-          await ticketService.lastByPatient(patientId).then(response => {
-            if (response?.patient?.whatsapp_notifications) {
-              sendMessageWhatsapp(response, currentAppointment);
-            }
-            //@ts-ignore
-            Swal.fire('¡Paciente llamado!', 'Se ha llamado al paciente para que se acerque al consultorio.', 'success');
-          });
-        } else {
-          //@ts-ignore
-          Swal.fire('Error', 'El paciente no está en espera de consulta.', 'error');
-        }
+        callPatient(patientId);
       }
     });
   };
@@ -352,7 +297,7 @@ export const PatientConsultationList = () => {
     const appointmentData = {
       id: citaData.cita.id,
       patientId: citaData.paciente.id,
-      patientName: `${citaData.paciente.first_name || ''} ${citaData.paciente.middle_name || ''} ${citaData.paciente.last_name || ''} ${citaData.paciente.second_last_name || ''}`,
+      patientName: `${citaData.paciente.first_name || ""} ${citaData.paciente.middle_name || ""} ${citaData.paciente.last_name || ""} ${citaData.paciente.second_last_name || ""}`,
       patient: citaData.paciente,
       appointment_date: citaData.cita.appointment_date,
       appointment_time: citaData.cita.appointment_time
@@ -381,13 +326,13 @@ export const PatientConsultationList = () => {
   // Función para traducir estados al español
   const traducirEstado = estado => {
     const traducciones = {
-      'pending': 'Pendiente',
-      'pending_consultation': 'En espera',
-      'called': 'Llamado',
-      'in_consultation': 'En proceso',
-      'consultation_completed': 'Finalizada',
-      'cancelled': 'Cancelada',
-      'Sin estado': 'Sin estado'
+      pending: "Pendiente",
+      pending_consultation: "En espera",
+      called: "Llamado",
+      in_consultation: "En proceso",
+      consultation_completed: "Finalizada",
+      cancelled: "Cancelada",
+      "Sin estado": "Sin estado"
     };
     return traducciones[estado] || estado;
   };
@@ -395,19 +340,19 @@ export const PatientConsultationList = () => {
   // Función auxiliar para obtener el color según el estado
   const obtenerColorEstado = estado => {
     const colores = {
-      'pending': 'warning',
-      'pending_consultation': 'info',
-      'called': 'primary',
-      'in_consultation': 'success',
-      'consultation_completed': 'secondary',
-      'cancelled': 'danger'
+      pending: "warning",
+      pending_consultation: "info",
+      called: "primary",
+      in_consultation: "success",
+      consultation_completed: "secondary",
+      cancelled: "danger"
     };
-    return colores[estado] || 'secondary';
+    return colores[estado] || "secondary";
   };
 
   // Filtrar pacientes por estado para los tabs
   const getPatientsByStatus = status => {
-    if (status === 'all') {
+    if (status === "all") {
       return filteredPatients;
     }
     return filteredPatients.filter(citaData => citaData.estado === status);
@@ -430,7 +375,7 @@ export const PatientConsultationList = () => {
     }, patientsToRender.map((citaData, index) => {
       const paciente = citaData.paciente;
       const cita = citaData.cita;
-      const estadoActual = cita.appointment_state?.name || citaData.estado || 'Sin estado';
+      const estadoActual = cita.appointment_state?.name || citaData.estado || "Sin estado";
       const estadoTraducido = traducirEstado(estadoActual);
       const estadoColor = obtenerColorEstado(estadoActual);
       return /*#__PURE__*/React.createElement("div", {
@@ -470,7 +415,7 @@ export const PatientConsultationList = () => {
         className: "fw-bold"
       }, "Edad")), /*#__PURE__*/React.createElement("div", {
         className: "text-body-emphasis"
-      }, calculateAge(paciente.date_of_birth), " A\xF1os")), /*#__PURE__*/React.createElement("div", {
+      }, calculateAge(paciente.date_of_birth), " ", "A\xF1os")), /*#__PURE__*/React.createElement("div", {
         className: "grid-item"
       }, /*#__PURE__*/React.createElement("div", {
         className: "d-flex align-items-center mb-1"
@@ -500,8 +445,8 @@ export const PatientConsultationList = () => {
         className: "fw-bold"
       }, "Nombre")), /*#__PURE__*/React.createElement("div", {
         className: "text-body-emphasis text-truncate",
-        title: `${paciente.first_name || ''} ${paciente.middle_name || ''} ${paciente.last_name || ''} ${paciente.second_last_name || ''}`
-      }, paciente.first_name || '', paciente.middle_name ? ` ${paciente.middle_name}` : '', paciente.last_name ? ` ${paciente.last_name}` : '', paciente.second_last_name ? ` ${paciente.second_last_name}` : ''))), /*#__PURE__*/React.createElement("div", {
+        title: `${paciente.first_name || ""} ${paciente.middle_name || ""} ${paciente.last_name || ""} ${paciente.second_last_name || ""}`
+      }, paciente.first_name || "", paciente.middle_name ? ` ${paciente.middle_name}` : "", paciente.last_name ? ` ${paciente.last_name}` : "", paciente.second_last_name ? ` ${paciente.second_last_name}` : ""))), /*#__PURE__*/React.createElement("div", {
         className: "d-flex flex-column gap-2 w-100 mt-3"
       }, /*#__PURE__*/React.createElement(Button, {
         label: "Ver Paciente",
@@ -509,12 +454,12 @@ export const PatientConsultationList = () => {
         onClick: () => window.location.href = `verPaciente?id=${paciente.id}`
       }), estadoActual === "pending" && /*#__PURE__*/React.createElement(Button, {
         label: "Facturar Admisi\xF3n",
-        className: "btn-sm btn btn-primary",
+        className: "btn-sm btn btn-success",
         onClick: () => handleFacturarAdmision(citaData)
       }), (estadoActual === "pending_consultation" || estadoActual === "called") && /*#__PURE__*/React.createElement(Button, {
         label: "Llamar paciente",
         className: "btn-sm btn btn-primary",
-        onClick: () => llamarPaciente(paciente.id, cita.id)
+        onClick: () => llamarPaciente(paciente.id)
       }), (estadoActual === "pending_consultation" || estadoActual === "called" || estadoActual === "in_consultation") && cita.attention_type === "CONSULTATION" && /*#__PURE__*/React.createElement(Button, {
         label: "Realizar Consulta",
         className: "btn-sm btn btn-primary",
@@ -540,38 +485,38 @@ export const PatientConsultationList = () => {
 
   // Definir los tabs con nuevo orden: En Espera primero, Todos al final
   const tabItems = [{
-    label: 'En Espera',
-    value: 'pending_consultation',
-    count: getPatientsByStatus('pending_consultation').length
+    label: "En Espera",
+    value: "pending_consultation",
+    count: getPatientsByStatus("pending_consultation").length
   }, {
-    label: 'Pendientes',
-    value: 'pending',
-    count: getPatientsByStatus('pending').length
+    label: "Pendientes",
+    value: "pending",
+    count: getPatientsByStatus("pending").length
   }, {
-    label: 'Llamados',
-    value: 'called',
-    count: getPatientsByStatus('called').length
+    label: "Llamados",
+    value: "called",
+    count: getPatientsByStatus("called").length
   }, {
-    label: 'En Proceso',
-    value: 'in_consultation',
-    count: getPatientsByStatus('in_consultation').length
+    label: "En Proceso",
+    value: "in_consultation",
+    count: getPatientsByStatus("in_consultation").length
   }, {
-    label: 'Finalizadas',
-    value: 'consultation_completed',
-    count: getPatientsByStatus('consultation_completed').length
+    label: "Finalizadas",
+    value: "consultation_completed",
+    count: getPatientsByStatus("consultation_completed").length
   }, {
-    label: 'Canceladas',
-    value: 'cancelled',
-    count: getPatientsByStatus('cancelled').length
+    label: "Canceladas",
+    value: "cancelled",
+    count: getPatientsByStatus("cancelled").length
   }, {
-    label: 'Todos',
-    value: 'all',
+    label: "Todos",
+    value: "all",
     count: filteredPatients.length
   }];
 
   // Función para limpiar filtros
   const limpiarFiltros = () => {
-    setSearchText('');
+    setSearchText("");
     setFilteredPatients(patients);
   };
   return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {

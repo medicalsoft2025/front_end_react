@@ -21,16 +21,12 @@ import { useValidateBulkAppointments } from "./hooks/useValidateBulkAppointments
 import { Tooltip } from "primereact/tooltip";
 import { AutoComplete } from "primereact/autocomplete";
 import { useProductsByType } from "../products/hooks/useProductsByType.js";
-import { useMassMessaging } from "../hooks/useMassMessaging.js";
-import { useTemplate } from "../hooks/useTemplate.js";
-import { formatWhatsAppMessage, getIndicativeByCountry, formatDate } from "../../services/utilidades.js";
 import PatientFormModal from "../patients/modals/form/PatientFormModal.js";
 import { Dialog } from "primereact/dialog";
 import { usePRToast } from "../hooks/usePRToast.js";
 import { Toast } from "primereact/toast";
 import { InputSwitch } from "primereact/inputswitch";
 import { useAppointmentBulkCreateGroup } from "./hooks/useAppointmentBulkCreateGroup.js";
-import { useGoogleCalendarConfig } from "./hooks/useGoogleCalendarConfig.js";
 import { Button } from "primereact/button";
 export const AppointmentFormModal = ({
   isOpen,
@@ -72,10 +68,6 @@ export const AppointmentFormModal = ({
     createAppointmentBulkGroup
   } = useAppointmentBulkCreateGroup();
   const {
-    createGoogleCalendarConfig,
-    loading: googleCalendarLoading
-  } = useGoogleCalendarConfig(null);
-  const {
     validateBulkAppointments
   } = useValidateBulkAppointments();
   const {
@@ -84,29 +76,10 @@ export const AppointmentFormModal = ({
     fetchPatientExamRecipes
   } = usePatientExamRecipes();
   const {
-    sendMessage,
-    responseMsg,
-    loading,
-    error
-  } = useMassMessaging();
-  const {
     showSuccessToast,
-    showErrorToast,
-    showFormErrorsToast,
     showServerErrorsToast,
     toast
   } = usePRToast();
-  const tenant = window.location.hostname.split(".")[0];
-  const data = {
-    tenantId: tenant,
-    belongsTo: "citas-creacion",
-    type: "whatsapp"
-  };
-  const {
-    template,
-    setTemplate,
-    fetchTemplate
-  } = useTemplate(data);
   const consultationPurposes = Object.entries(purposeConsultations).map(([key, value]) => ({
     value: key,
     label: value
@@ -140,8 +113,6 @@ export const AppointmentFormModal = ({
   }];
   const {
     control,
-    register,
-    reset,
     handleSubmit,
     setValue,
     getValues,
@@ -274,37 +245,9 @@ export const AppointmentFormModal = ({
           appointments: data
         });
       }
-      for (const appointment of appointments) {
-        const googleCalendarPayload = {
-          user_id: appointment.assigned_user_availability?.user?.id || "12",
-          nombre: `${patient?.first_name || ""} ${patient?.last_name || ""}`.trim(),
-          fecha: appointment.appointment_date?.toISOString().split("T")[0] || "",
-          hora: `${appointment.appointment_time}:00` || "",
-          hora_final: calcularHoraFinal(appointment.appointment_time, appointment.assigned_user_availability?.appointment_duration),
-          motivo: appointment.consultation_purpose || "Consulta médica"
-        };
-        console.log("googleCalendarPayload", googleCalendarPayload);
-        await createGoogleCalendarConfig(googleCalendarPayload);
-      }
       showSuccessToast();
       if (onAppointmentCreated) {
         onAppointmentCreated();
-      }
-      if (!isGroup) {
-        for (const appointment of appointments) {
-          if (appointment.patient?.whatsapp_notifications) {
-            await sendMessageWhatsapp(appointment, appointment.patient);
-          }
-        }
-      }
-      if (isGroup) {
-        for (const appointment of appointments) {
-          for (const patient of appointment.patients) {
-            if (patient?.whatsapp_notifications) {
-              await sendMessageWhatsapp(appointment, patient);
-            }
-          }
-        }
       }
       onClose();
       // setTimeout(() => {
@@ -315,31 +258,6 @@ export const AppointmentFormModal = ({
       console.error(error);
     }
   };
-  const calcularHoraFinal = (horaInicio, duracionMinutos) => {
-    const [horas, minutos] = horaInicio.split(":").map(Number);
-    const fecha = new Date();
-    fecha.setHours(horas, minutos, 0, 0);
-    fecha.setMinutes(fecha.getMinutes() + duracionMinutos);
-    return `${fecha.getHours().toString().padStart(2, "0")}:${fecha.getMinutes().toString().padStart(2, "0")}:00`;
-  };
-  async function sendMessageWhatsapp(appointment, patient) {
-    const replacements = {
-      NOMBRE_PACIENTE: `${patient.first_name} ${patient.middle_name} ${patient.last_name} ${patient.second_last_name}`,
-      ESPECIALISTA: `${appointment.assigned_user_availability.full_name}`,
-      ESPECIALIDAD: `${appointment.user_specialty.name}`,
-      FECHA_CITA: `${formatDate(appointment.appointment_date, true)}`,
-      HORA_CITA: `${appointment.appointment_time}`
-    };
-    const templateFormatted = formatWhatsAppMessage(template.template, replacements);
-    const dataMessage = {
-      channel: "whatsapp",
-      message_type: "text",
-      recipients: [getIndicativeByCountry(patient.country_id) + patient.whatsapp],
-      message: templateFormatted,
-      webhook_url: "https://example.com/webhook"
-    };
-    await sendMessage(dataMessage);
-  }
   const isGroup = useWatch({
     control,
     name: "is_group"
@@ -665,47 +583,6 @@ export const AppointmentFormModal = ({
     availableBlocks.forEach(item => {
       // Buscar por ID de disponibilidad
       if (item.availability_id === availabilityId) {
-        item.days.forEach(day => {
-          if (day.date === dateString) {
-            day.blocks.forEach(block => {
-              blocks.push({
-                start: block.start_time,
-                end: block.end_time,
-                duration: item.appointment_duration
-              });
-            });
-          }
-        });
-      }
-    });
-    let options = [];
-    blocks.forEach(block => {
-      const slots = computeTimeSlots(block.start, block.end, block.duration);
-      options = options.concat(slots.map(slot => ({
-        label: slot,
-        value: slot
-      })));
-    });
-
-    // Eliminar duplicados y ordenar
-    let uniqueOptions = options.filter((option, index, self) => index === self.findIndex(o => o.value === option.value)).sort((a, b) => a.value.localeCompare(b.value));
-
-    // Filtrar horas pasadas si es la fecha actual
-    const now = new Date();
-    const todayDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
-    const currentTime = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
-    if (dateString === todayDate) {
-      uniqueOptions = uniqueOptions.filter(option => option.value >= currentTime);
-    }
-    setAppointmentTimeOptions(uniqueOptions);
-    setValue("appointment_time", uniqueOptions[0]?.value || null);
-  };
-  const updateTimeSlotsForDoctor = (availableBlocks, dateString, doctorId) => {
-    let blocks = [];
-
-    // Buscamos los bloques del doctor específico
-    availableBlocks.forEach(item => {
-      if (item.availability_id === doctorId) {
         item.days.forEach(day => {
           if (day.date === dateString) {
             day.blocks.forEach(block => {

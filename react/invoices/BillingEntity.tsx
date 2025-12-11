@@ -468,7 +468,7 @@ export const BillingEntity = () => {
     setFacturaSeleccionada(invoice);
   }, []);
 
-  const handleSuccesToDeny = () => {
+  const handleSuccesToDeny = (data: any) => {
     setShowToDenyModal(false);
     handleRefresh();
   };

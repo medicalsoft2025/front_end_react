@@ -12,27 +12,32 @@ import { ColumnGroup } from "primereact/columngroup";
 import { Row } from "primereact/row";
 import { Button } from "primereact/button";
 import { InputNumber } from "primereact/inputnumber";
+import { InputText } from "primereact/inputtext";
+import { useBillingByType } from "../../billing/hooks/useBillingByType.js";
 export const ToDenyForm = ({
   dataToInvoice,
   onSuccess
 }) => {
-  console.log("dataToInvoice: ", dataToInvoice);
   const {
     control,
-    handleSubmit,
-    watch,
-    setValue
+    handleSubmit
   } = useForm({
     defaultValues: {
       invoices: [],
-      reason: ""
+      reason: "",
+      tax_receipt: "",
+      invoice_number: ""
     }
   });
   const [invoices, setInvoices] = useState([]);
-  const [selectedInvoices, setSelectedInvoices] = useState([]); // Estado para las facturas seleccionadas
-
+  const [selectedInvoices, setSelectedInvoices] = useState([]);
+  const {
+    fetchBillingByType
+  } = useBillingByType();
+  const [billing, setBilling] = useState(null);
   useEffect(() => {
     loadInvoices();
+    loadBillingType();
   }, []);
   async function loadInvoices() {
     const filters = {
@@ -42,10 +47,19 @@ export const ToDenyForm = ({
       sort: "-id"
     };
     const invoices = await invoiceService.filterInvoice(cleanJsonObject(filters));
-    setInvoices(invoices.data);
+    const invoicesMapped = invoices.data.map(invoice => {
+      return {
+        ...invoice,
+        value_to_deny: 0
+      };
+    });
+    setInvoices(invoicesMapped);
+  }
+  async function loadBillingType() {
+    const billing = await fetchBillingByType("debit_note");
+    setBilling(billing.data);
   }
   function handleInvoicesToDeny(selectedItems) {
-    console.log("selected invoices: ", selectedItems);
     setSelectedInvoices(selectedItems);
   }
   const getEstadoSeverity = estado => {
@@ -86,7 +100,7 @@ export const ToDenyForm = ({
   };
   const footerGroup = /*#__PURE__*/React.createElement(ColumnGroup, null, /*#__PURE__*/React.createElement(Row, null, /*#__PURE__*/React.createElement(Column, {
     footer: `Total glosado: $${selectedInvoices.reduce((sum, invoice) => {
-      return sum + (Number(invoice?.admission?.entity_authorized_amount) || 0);
+      return sum + (Number(invoice?.value_to_deny) || 0);
     }, 0).toFixed(2)}`,
     colSpan: 4,
     footerStyle: {
@@ -107,18 +121,12 @@ export const ToDenyForm = ({
       field,
       originalEvent: event
     } = e;
-    console.log("rowData: ", rowData);
-    console.log("field: ", field);
-    console.log("newValue: ", newValue);
-    if (field === "admission") {
-      console.log("rowData: ", rowData);
-      console.log("field: ", field);
-      console.log("newValue: ", newValue);
+    if (field === "glossed_amount") {
       if (isPositiveNumber(newValue)) {
-        if (!rowData.admission) {
-          rowData.admission = {};
+        if (!rowData) {
+          rowData = {};
         }
-        rowData.admission.entity_authorized_amount = Number(newValue);
+        rowData.value_to_deny = Number(newValue).toFixed(2);
         const updatedInvoices = [...selectedInvoices];
         const index = updatedInvoices.findIndex(invoice => invoice.id === rowData.id);
         if (index !== -1) {
@@ -140,23 +148,45 @@ export const ToDenyForm = ({
       currency: "USD",
       locale: "en-US",
       onKeyDown: e => e.stopPropagation(),
-      className: "w-100"
+      className: "w-100",
+      max: Number(options.rowData.admission.entity_authorized_amount)
     });
   };
   const amountBodyTemplate = rowData => {
     const amount = rowData?.admission?.entity_authorized_amount || 0;
     return `$${Number(amount).toFixed(2)}`;
   };
-  const onSubmit = data => {
+  const onSubmit = async data => {
+    console.log("data:", data);
+    const amountToDeny = selectedInvoices.reduce((sum, invoice) => {
+      return Number(sum) + Number(invoice?.value_to_deny);
+    }, 0).toFixed(2);
     const submitData = {
       reason: data.reason,
-      toDenyInvoices: selectedInvoices
+      to_deny_invoices: selectedInvoices.map(item => {
+        return {
+          id: item.id,
+          value_to_deny: item.value_to_deny,
+          entity_invoice_id: item.entity_invoice_id,
+          paid_amount: item.admission.entity_authorized_amount - item.value_to_deny,
+          admission: {
+            entity_authorized_amount: Number(item.admission.entity_authorized_amount).toFixed(2),
+            id: item.admission.id
+          }
+        };
+      }),
+      credit_note: {
+        invoice_id: dataToInvoice.id,
+        amount: Number(amountToDeny),
+        reason: data.reason,
+        fiscal_receipt: data.tax_receipt,
+        invoice_number: data.invoice_number,
+        billing: billing
+      }
     };
     console.log("Datos a enviar:", submitData);
-
-    // if (onSuccess) {
-    //   onSuccess();
-    // }
+    const response = await invoiceService.createGlossToInvoiceByEntity(submitData);
+    onSuccess(response);
   };
   return /*#__PURE__*/React.createElement("div", {
     className: "container-fluid p-2"
@@ -212,6 +242,34 @@ export const ToDenyForm = ({
       className: "w-100",
       rows: 3
     }))
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "col-6"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "form-group"
+  }, /*#__PURE__*/React.createElement("label", {
+    className: "form-label"
+  }, "Comprobante fiscal *"), /*#__PURE__*/React.createElement(Controller, {
+    name: "tax_receipt",
+    control: control,
+    render: ({
+      field
+    }) => /*#__PURE__*/React.createElement(InputText, _extends({}, field, {
+      className: "w-100 form-control"
+    }))
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "col-6"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "form-group"
+  }, /*#__PURE__*/React.createElement("label", {
+    className: "form-label"
+  }, "N\xFAmero de la factura *"), /*#__PURE__*/React.createElement(Controller, {
+    name: "invoice_number",
+    control: control,
+    render: ({
+      field
+    }) => /*#__PURE__*/React.createElement(InputText, _extends({}, field, {
+      className: "w-100 form-control"
+    }))
   })))), selectedInvoices.length > 0 && /*#__PURE__*/React.createElement("div", {
     className: "row mt-3"
   }, /*#__PURE__*/React.createElement("div", {
@@ -245,6 +303,16 @@ export const ToDenyForm = ({
     header: "Monto autorizado",
     sortable: true,
     body: amountBodyTemplate,
+    style: {
+      width: "25%"
+    }
+  }), /*#__PURE__*/React.createElement(Column, {
+    field: "glossed_amount",
+    header: "Monto a glosar",
+    sortable: true,
+    body: rowData => {
+      return rowData.value_to_deny;
+    },
     editor: options => amountEditor(options),
     onCellEditComplete: onCellEditComplete,
     style: {

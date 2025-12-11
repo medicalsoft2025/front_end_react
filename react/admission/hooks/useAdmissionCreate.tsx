@@ -2,74 +2,110 @@ import { useState } from "react";
 import { getUserLogged } from "../../../services/utilidades";
 import { calculateTotal } from "../admission-billing/utils/helpers";
 import { AdmissionBillingFormData } from "../admission-billing/interfaces/AdmisionBilling";
-import { admissionService } from "../../../services/api";
+import { admissionService, thirdPartyService } from "../../../services/api";
 
 export const useAdmissionCreate = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const createAdmission = async (formData: AdmissionBillingFormData, appointmentData?: any) => {
-
+    const createAdmission = async (
+        formData: AdmissionBillingFormData,
+        appointmentData?: any
+    ) => {
         setLoading(true);
         setError(null);
 
         try {
             const userLogged = getUserLogged();
-            const currentDate = new Date().toISOString().split('T')[0];
+            const currentDate = new Date().toISOString().split("T")[0];
 
             const dueDate = new Date();
             dueDate.setDate(dueDate.getDate() + 30);
-            const dueDateString = dueDate.toISOString().split('T')[0];
+            const dueDateString = dueDate.toISOString().split("T")[0];
+
+            const thirdParty = await thirdPartyService.getByExternalIdAndType({
+                externalId: formData.patient.id,
+                externalType: "client",
+            });
 
             const admissionData = {
                 external_id: `${userLogged.external_id}`,
                 public_invoice: formData.billing.facturacionConsumidor,
                 admission: {
                     entity_id: formData.patient.entity_id,
-                    entity_authorized_amount: formData.billing.authorizedAmount.replace('.', '') || 0,
-                    authorization_number: formData.billing.facturacionEntidad ? formData.billing.authorizationNumber : "",
-                    authorization_date: formData.billing.facturacionEntidad && formData.billing.authorizationDate
-                        ? formData.billing.authorizationDate.toISOString().split('T')[0]
+                    entity_authorized_amount:
+                        formData.billing.authorizedAmount.replace(".", "") || 0,
+                    authorization_number: formData.billing.facturacionEntidad
+                        ? formData.billing.authorizationNumber
                         : "",
+                    authorization_date:
+                        formData.billing.facturacionEntidad &&
+                        formData.billing.authorizationDate
+                            ? formData.billing.authorizationDate
+                                  .toISOString()
+                                  .split("T")[0]
+                            : "",
                     appointment_id: appointmentData?.id,
                     koneksi_claim_id: null,
                 },
                 invoice: {
-                    type: formData.billing.facturacionEntidad ? "entity" : "public",
+                    type: formData.billing.facturacionEntidad
+                        ? "entity"
+                        : "public",
                     status: "Pagado",
-                    subtotal: calculateTotal(formData.products, formData.billing.facturacionEntidad),
+                    subtotal: calculateTotal(
+                        formData.products,
+                        formData.billing.facturacionEntidad
+                    ),
                     discount: 0,
-                    taxes: formData.products.reduce((sum, product) =>
-                        sum + (product.price * product.quantity * product.tax / 100), 0),
-                    total_amount: calculateTotal(formData.products, formData.billing.facturacionEntidad),
+                    taxes: formData.products.reduce(
+                        (sum, product) =>
+                            sum +
+                            (product.price * product.quantity * product.tax) /
+                                100,
+                        0
+                    ),
+                    total_amount: calculateTotal(
+                        formData.products,
+                        formData.billing.facturacionEntidad
+                    ),
                     observations: "",
                     due_date: dueDateString,
-                    paid_amount: calculateTotal(formData.products, formData.billing.facturacionEntidad),
+                    paid_amount: calculateTotal(
+                        formData.products,
+                        formData.billing.facturacionEntidad
+                    ),
                     user_id: userLogged.id,
-                    third_party_id: 1,
-                    sub_type: formData.billing.facturacionEntidad ? "entity" : "public",
+                    third_party_id: thirdParty?.id,
+                    sub_type: formData.billing.facturacionEntidad
+                        ? "entity"
+                        : "public",
                 },
-                invoice_detail: formData.products.map(product => ({
+                invoice_detail: formData.products.map((product) => ({
                     product_id: product.id,
                     type_product: "",
                     description: product.description,
                     quantity: product.quantity,
-                    unit_price: formData.billing.facturacionEntidad ? Number(product.copayment) : product.price,
+                    unit_price: formData.billing.facturacionEntidad
+                        ? Number(product.copayment)
+                        : product.price,
                     tax_rate: product.tax,
                     discount: product.discount,
-                    total: formData.billing.facturacionEntidad ? Number(product.copayment) : product.total
+                    total: formData.billing.facturacionEntidad
+                        ? Number(product.copayment)
+                        : product.total,
                 })),
                 payments: formData.payments.map((payment, index) => {
-                    return ({
+                    return {
                         method: payment.method,
                         amount: payment.amount,
                         authorization_number: payment.authorizationNumber,
                         notes: payment.notes,
                         payment_method_id: payment.id,
                         payment_date: currentDate,
-                        status: "completed"
-                    })
-                })
+                        status: "completed",
+                    };
+                }),
             };
 
             const response = await admissionService.createAdmission(
@@ -90,6 +126,6 @@ export const useAdmissionCreate = () => {
         createAdmission,
         loading,
         error,
-        clearError: () => setError(null)
+        clearError: () => setError(null),
     };
 };

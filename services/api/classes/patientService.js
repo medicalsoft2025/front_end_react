@@ -152,4 +152,10 @@ export class PatientService extends BaseApiService {
       }
     );
   }
+
+  async callPatient(patientId) {
+    return await this.httpClient.post(
+      this.microservice + "/patients/"+patientId+"/call", {}
+    );
+  } 
 }
