@@ -224,7 +224,7 @@ export const UserTable = ({
     }];
 
     // Agregar items específicos para DOCTOR
-    if (rowData.roleGroup === "DOCTOR") {
+    if (["DOCTOR", "DOCTOR_ASSISTANT"].includes(rowData.roleGroup)) {
       menuItems.push({
         label: rowData.signatureMinioUrl ? "Actualizar firma" : "Añadir firma",
         icon: /*#__PURE__*/React.createElement("i", {
@@ -298,28 +298,28 @@ export const UserTable = ({
     actions: user
   }));
   const columns = [{
-    field: 'fullName',
-    header: 'Nombre',
+    field: "fullName",
+    header: "Nombre",
     sortable: true
   }, {
-    field: 'role',
-    header: 'Rol',
+    field: "role",
+    header: "Rol",
     sortable: true
   }, {
-    field: 'city',
-    header: 'Ciudad',
+    field: "city",
+    header: "Ciudad",
     sortable: true
   }, {
-    field: 'phone',
-    header: 'Número de contacto',
+    field: "phone",
+    header: "Número de contacto",
     sortable: true
   }, {
-    field: 'email',
-    header: 'Correo',
+    field: "email",
+    header: "Correo",
     sortable: true
   }, {
-    field: 'actions',
-    header: 'Acciones',
+    field: "actions",
+    header: "Acciones",
     body: rowData => actionBodyTemplate(rowData.actions),
     exportable: false
   }];
@@ -340,7 +340,7 @@ export const UserTable = ({
     disabled: loading
   }, /*#__PURE__*/React.createElement("i", {
     className: "fas fa-plus me-2"
-  }), loading ? 'Cargando...' : 'Nuevo Usuario')), /*#__PURE__*/React.createElement(CustomPRTable, {
+  }), loading ? "Cargando..." : "Nuevo Usuario")), /*#__PURE__*/React.createElement(CustomPRTable, {
     columns: columns,
     data: tableItems,
     loading: false,
@@ -365,7 +365,7 @@ export const UserTable = ({
       fontSize: "2rem",
       color: "#F8BB86"
     }
-  }), userToDelete && /*#__PURE__*/React.createElement("span", null, "\xBFEst\xE1s seguro que deseas eliminar al usuario ", /*#__PURE__*/React.createElement("b", null, userToDelete.fullName), "?"))), /*#__PURE__*/React.createElement("input", {
+  }), userToDelete && /*#__PURE__*/React.createElement("span", null, "\xBFEst\xE1s seguro que deseas eliminar al usuario", " ", /*#__PURE__*/React.createElement("b", null, userToDelete.fullName), "?"))), /*#__PURE__*/React.createElement("input", {
     id: "fileInput",
     type: "file",
     accept: "image/*",
@@ -410,18 +410,16 @@ export const UserTable = ({
     }
   })), /*#__PURE__*/React.createElement("div", {
     className: "modal-footer"
-  }, /*#__PURE__*/React.createElement(Button, {
+  }, /*#__PURE__*/React.createElement("button", {
     type: "button",
-    className: "p-button-secondary d-flex align-items-center gap-2",
+    className: "btn btn-secondary",
     onClick: () => {
       setPreviewUrl(null);
       setSelectedFile(null);
     }
-  }, /*#__PURE__*/React.createElement("i", {
-    className: "fas fa-times"
-  }), "Cancelar"), currentUserId && /*#__PURE__*/React.createElement(Button, {
+  }, "Cancelar"), currentUserId && /*#__PURE__*/React.createElement("button", {
     type: "button",
-    className: "p-button-danger d-flex align-items-center gap-2",
+    className: "btn btn-danger",
     onClick: () => {
       if (actionType === "signature" && onDeleteSignature) {
         onDeleteSignature(currentUserId);
@@ -431,15 +429,11 @@ export const UserTable = ({
       setPreviewUrl(null);
       setSelectedFile(null);
     }
-  }, /*#__PURE__*/React.createElement("i", {
-    className: "fas fa-trash"
-  }), actionType === "signature" && users.find(user => user.id === currentUserId)?.signatureMinioUrl ? "Eliminar firma" : actionType === "stamp" && users.find(user => user.id === currentUserId)?.imageMinioUrl ? "Eliminar sello" : "Eliminar"), /*#__PURE__*/React.createElement(Button, {
+  }, actionType === "signature" && users.find(user => user.id === currentUserId)?.signatureMinioUrl ? "Eliminar firma" : actionType === "stamp" && users.find(user => user.id === currentUserId)?.imageMinioUrl ? "Eliminar sello" : "Eliminar"), /*#__PURE__*/React.createElement("button", {
     type: "button",
-    className: "d-flex align-items-center gap-2",
+    className: "btn btn-primary",
     onClick: handleConfirm
-  }, /*#__PURE__*/React.createElement("i", {
-    className: "fas fa-check"
-  }), actionType === "signature" && users.find(user => user.id === currentUserId)?.signatureMinioUrl ? "Actualizar firma" : actionType === "stamp" && users.find(user => user.id === currentUserId)?.imageMinioUrl ? "Actualizar sello" : "Confirmar"))))), /*#__PURE__*/React.createElement(CustomFormModal, {
+  }, actionType === "signature" && users.find(user => user.id === currentUserId)?.signatureMinioUrl ? "Actualizar firma" : actionType === "stamp" && users.find(user => user.id === currentUserId)?.imageMinioUrl ? "Actualizar sello" : "Confirmar"))))), /*#__PURE__*/React.createElement(CustomFormModal, {
     show: showAssistantsModal,
     formId: "assistantsForm",
     title: "Gestionar asistentes",
@@ -450,8 +444,8 @@ export const UserTable = ({
     initialData: assistantsFormInitialData
   })), /*#__PURE__*/React.createElement(GoogleCalendarModal, {
     show: showGoogleCalendarModal,
-    userId: currentUserId || '',
-    userEmail: currentEmail || '',
+    userId: currentUserId || "",
+    userEmail: currentEmail || "",
     onHide: () => setShowGoogleCalendarModal(false),
     onSuccess: () => {
       onReload && onReload();

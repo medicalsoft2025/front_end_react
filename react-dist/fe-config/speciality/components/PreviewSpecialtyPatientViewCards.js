@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useLoadUserPatientViewCards } from "../hooks/useLoadUserPatientViewCards.js";
 import { useCallPatient } from "../../../patients/hooks/useCallPatient.js";
+import UserManager from "../../../../services/userManager.js";
 export const PreviewSpecialtyPatientViewCards = props => {
   const urlParams = new URLSearchParams(window.location.search);
   const {
@@ -148,6 +149,11 @@ export const PreviewSpecialtyPatientViewCards = props => {
   };
   const handleCardClick = card => {
     switch (card.id) {
+      case "consulta":
+        UserManager.onAuthChange(async (isAuthenticated, user) => {
+          window.location.href = `consultas-especialidad?patient_id=${patientId}&especialidad=${user.specialty.name}`;
+        });
+        break;
       case "llamar-paciente":
         if (!patientId) return;
         llamarPaciente(patientId);
@@ -157,7 +163,6 @@ export const PreviewSpecialtyPatientViewCards = props => {
         break;
     }
   };
-  console.log("finalAvailableCardsIds", finalAvailableCardsIds);
   return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
     className: "patient-cards-container"
   }, /*#__PURE__*/React.createElement("div", {

@@ -6,12 +6,13 @@ import { Button } from "primereact/button";
 import { TabView, TabPanel } from "primereact/tabview";
 import { Accordion, AccordionTab } from "primereact/accordion";
 import {
+    appointmentService,
     examOrderService,
     examRecipeResultService,
     examRecipeService,
     patientService,
 } from "../../services/api";
-import { getUserLogged } from "../../services/utilidades";
+import { getLocalTodayISODate, getUserLogged } from "../../services/utilidades";
 import AdmissionBilling from "../admission/admission-billing/AdmissionBilling";
 
 import "https://js.pusher.com/8.2.0/pusher.min.js";
@@ -90,7 +91,9 @@ export const PatientConsultationList = () => {
     }, []);
 
     const procesarPacientes = (pacientes) => {
-        const hoy = new Date().toISOString().split("T")[0];
+        const hoy = getLocalTodayISODate();
+
+        console.log("procesar pacientes fecha actual: ", hoy);
 
         const citasDeHoy = pacientes.flatMap((paciente) => {
             return paciente.appointments
@@ -370,8 +373,12 @@ export const PatientConsultationList = () => {
         patientId: string,
         appointmentId: string
     ) => {
-        UserManager.onAuthChange((isAuthenticated, user) => {
+        UserManager.onAuthChange(async (isAuthenticated, user) => {
             if (user) {
+                await appointmentService.changeStatus(
+                    appointmentId,
+                    "in_consultation"
+                );
                 window.location.href = `consultas-especialidad?patient_id=${patientId}&especialidad=${user.specialty.name}&appointment_id=${appointmentId}`;
             }
         });

@@ -24,23 +24,21 @@ export const ExamGeneralTable = ({
   const [showPdfModal, setShowPdfModal] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState(null);
   useEffect(() => {
-    const mappedExams = exams.map(exam => {
-      return {
-        id: exam.id,
-        examName: (exam.items.length > 0 ? exam.items.map(item => item.exam.name).join(', ') : exam.exam_type?.name) || '--',
-        status: examOrderStates[exam.exam_order_state?.name.toLowerCase()] ?? '--',
-        statusColor: examOrderStateColors[exam.exam_order_state?.name.toLowerCase()] ?? '--',
-        minioId: exam.minio_id,
-        patientId: exam.patient_id,
-        patientName: `${exam.patient.first_name || ''} ${exam.patient.middle_name || ''} ${exam.patient?.last_name || ''} ${exam.patient?.second_last_name || ''}`.trim(),
-        appointmentId: exam.appointment_id,
-        state: exam.exam_order_state?.name || 'pending',
-        created_at: exam.created_at,
-        dateTime: formatDate(exam.created_at),
-        original: exam,
-        updated_at: exam.updated_at_formatted || undefined
-      };
-    });
+    const mappedExams = exams.map(exam => ({
+      id: exam.id,
+      examName: (exam.items.length > 0 ? exam.items.map(item => item.exam.name).join(', ') : exam.exam_type?.name) || '--',
+      status: examOrderStates[exam.exam_order_state?.name.toLowerCase()] ?? '--',
+      statusColor: examOrderStateColors[exam.exam_order_state?.name.toLowerCase()] ?? '--',
+      minioId: exam.minio_id,
+      patientId: exam.patient_id,
+      patientName: `${exam.patient.first_name || ''} ${exam.patient.middle_name || ''} ${exam.patient?.last_name || ''} ${exam.patient?.second_last_name || ''}`.trim(),
+      appointmentId: exam.appointment_id,
+      state: exam.exam_order_state?.name || 'pending',
+      created_at: exam.created_at,
+      dateTime: formatDate(exam.created_at),
+      original: exam,
+      updated_at: exam.updated_at_formatted || undefined
+    })).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     const sortedExams = [...mappedExams].sort((a, b) => {
       return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     });
@@ -125,9 +123,9 @@ export const ExamGeneralTable = ({
       onViewExamResults: onViewExamResults,
       onUploadExamsFile: onUploadExamsFile,
       onPrint: async () => {
-        if (data.minioId) {
+        if (data.original.minio_url) {
           //@ts-ignore
-          const url = await getFileUrl(data.minioId);
+          const url = await getUrlImage(data.original.minio_url);
           window.open(url, "_blank");
         } else {
           //@ts-ignore
@@ -135,10 +133,10 @@ export const ExamGeneralTable = ({
         }
       },
       onDownload: async () => {
-        if (data.minioId) {
+        if (data.original.minio_url) {
           try {
             //@ts-ignore
-            const url = await getFileUrl(data.minioId);
+            const url = await getFileUrl(data.original.minio_url);
             var link = document.createElement("a");
             link.href = url.replace("http", "https");
             link.download = "file.pdf";
@@ -202,9 +200,9 @@ export const ExamGeneralTable = ({
       onViewExamResults: onViewExamResults,
       onUploadExamsFile: onUploadExamsFile,
       onPrint: async () => {
-        if (data.minioId) {
+        if (data.original.minio_url) {
           //@ts-ignore
-          const url = await getFileUrl(data.minioId);
+          const url = await getFileUrl(data.original.minio_url);
           window.open(url, "_blank");
         } else {
           //@ts-ignore
@@ -212,10 +210,10 @@ export const ExamGeneralTable = ({
         }
       },
       onDownload: async () => {
-        if (data.minioId) {
+        if (data.original.minio_url) {
           try {
             //@ts-ignore
-            const url = await getFileUrl(data.minioId);
+            const url = await getFileUrl(data.original.minio_url);
             var link = document.createElement("a");
             link.href = url.replace("http", "https");
             link.download = "file.pdf";
@@ -329,7 +327,6 @@ const TableActionsMenu = ({
     }),
     command: () => {
       onViewExamResults(data, data.minioId);
-      menu.current?.hide();
     }
   }, {
     separator: true
@@ -338,9 +335,8 @@ const TableActionsMenu = ({
     icon: /*#__PURE__*/React.createElement("i", {
       className: "fa-solid fa-print"
     }),
-    command: () => {
+    command: e => {
       onPrint();
-      menu.current?.hide();
     }
   }, {
     separator: true
@@ -351,7 +347,6 @@ const TableActionsMenu = ({
     }),
     command: () => {
       onDownload();
-      menu.current?.hide();
     }
   }, {
     separator: true

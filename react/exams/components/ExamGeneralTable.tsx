@@ -167,9 +167,9 @@ export const ExamGeneralTable: React.FC<ExamTableProps> = ({ exams, onLoadExamRe
                     onViewExamResults={onViewExamResults}
                     onUploadExamsFile={onUploadExamsFile}
                     onPrint={async () => {
-                        if (data.minioId) {
+                        if (data.original.minio_url) {
                             //@ts-ignore
-                            const url = await getFileUrl(data.minioId);
+                            const url = await getUrlImage(data.original.minio_url);
                             window.open(url, "_blank");
                         } else {
                             //@ts-ignore
@@ -177,10 +177,10 @@ export const ExamGeneralTable: React.FC<ExamTableProps> = ({ exams, onLoadExamRe
                         }
                     }}
                     onDownload={async () => {
-                        if (data.minioId) {
+                        if (data.original.minio_url) {
                             try {
                                 //@ts-ignore
-                                const url = await getFileUrl(data.minioId);
+                                const url = await getFileUrl(data.original.minio_url);
                                 var link = document.createElement("a");
                                 link.href = url.replace("http", "https");
                                 link.download = "file.pdf";
@@ -258,9 +258,9 @@ export const ExamGeneralTable: React.FC<ExamTableProps> = ({ exams, onLoadExamRe
                     onViewExamResults={onViewExamResults}
                     onUploadExamsFile={onUploadExamsFile}
                     onPrint={async () => {
-                        if (data.minioId) {
+                        if (data.original.minio_url) {
                             //@ts-ignore
-                            const url = await getFileUrl(data.minioId);
+                            const url = await getFileUrl(data.original.minio_url);
                             window.open(url, "_blank");
                         } else {
                             //@ts-ignore
@@ -268,10 +268,10 @@ export const ExamGeneralTable: React.FC<ExamTableProps> = ({ exams, onLoadExamRe
                         }
                     }}
                     onDownload={async () => {
-                        if (data.minioId) {
+                        if (data.original.minio_url) {
                             try {
                                 //@ts-ignore
-                                const url = await getFileUrl(data.minioId);
+                                const url = await getFileUrl(data.original.minio_url);
                                 var link = document.createElement("a");
                                 link.href = url.replace("http", "https");
                                 link.download = "file.pdf";
@@ -414,7 +414,6 @@ const TableActionsMenu: React.FC<{
                 icon: <i className="fa-solid fa-eye"></i>,
                 command: () => {
                     onViewExamResults(data, data.minioId);
-                    menu.current?.hide();
                 }
             },
             {
@@ -423,9 +422,8 @@ const TableActionsMenu: React.FC<{
             {
                 label: "Imprimir",
                 icon: <i className="fa-solid fa-print"></i>,
-                command: () => {
+                command: (e: any) => {
                     onPrint();
-                    menu.current?.hide();
                 }
             },
             {
@@ -436,7 +434,6 @@ const TableActionsMenu: React.FC<{
                 icon: <i className="fa-solid fa-download "></i>,
                 command: () => {
                     onDownload();
-                    menu.current?.hide();
                 }
             },
             {

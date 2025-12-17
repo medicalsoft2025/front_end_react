@@ -203,94 +203,230 @@
         extractDataFromTree
     } from "./services/utilidades.js";
 
+    // Variable para saber si ya se está cargando el usuario
+    let isLoadingUser = false;
 
     document.addEventListener('DOMContentLoaded', async function() {
         // Aplicar middleware de autenticación
-        // authMiddleware();        
-        const user = await userService.getByExternalId(getJWTPayload().sub);
+        // authMiddleware();
 
-        if (user) {
-            document.querySelectorAll('.username').forEach(element => {
-                element.textContent =
-                    `${user.first_name || ''} ${user.middle_name || ''} ${user.last_name || ''} ${user.second_last_name || ''}`;
-            })
-            document.querySelectorAll('.user-role').forEach(element => {
-                element.textContent = user.role.name;
-            })
-            document.querySelectorAll('.user-specialty').forEach(element => {
-                if (user.role.group == 'DOCTOR') {
-                    element.textContent = ' | ' + user.specialty.name;
-                }
-            })
-            const menu = await userService.getMenuByRole(user.id);
-            const permissionsAuthRoute = await userService.getMenuByRolePermission(user.role.id);
+        // Obtener datos del usuario desde localStorage si existen
+        const storedUser = localStorage.getItem('userData');
 
-            localStorage.setItem("roles", JSON.stringify(user.role));
-            localStorage.setItem("permissionsAuthRoute", JSON.stringify(permissionsAuthRoute.menus));
-            localStorage.setItem("menus", JSON.stringify(menu.menus));
+        if (storedUser && JSON.parse(storedUser)?.id) {
+            // Usar datos del storage (sin hacer petición al servidor)
+            const user = JSON.parse(storedUser);
+            renderUserInfo(user);
+            // También cargar menús desde cache si existen
+            await loadUserMenuAndPermissions(user, true); // true = usar cache
+        } else {
+            // Mostrar estado de carga mientras se obtiene el usuario
+            showLoadingState();
 
-            function extractUrls(menuArray) {
-                return extractDataFromTree({
-                    tree: menuArray,
-                    key: 'url',
-                    childrenKey: 'items'
-                });
+            // Solo hacer petición si no hay datos almacenados
+            const user = await userService.getByExternalId(getJWTPayload().sub);
+
+            // Guardar en localStorage para futuras cargas
+            localStorage.setItem('userData', JSON.stringify(user));
+
+            // Renderizar la información del usuario
+            renderUserInfo(user);
+
+            // Cargar menús (primera vez, no hay cache)
+            await loadUserMenuAndPermissions(user, false);
+        }
+    });
+
+    // Mostrar estado de carga mientras se obtiene el usuario
+    function showLoadingState() {
+        // Puedes mostrar un spinner o placeholder
+        document.querySelectorAll('.username').forEach(element => {
+            element.textContent = 'Cargando...';
+        });
+
+        document.querySelectorAll('.user-role').forEach(element => {
+            element.textContent = '';
+        });
+
+        // Ocultar especialidad mientras carga
+        document.querySelectorAll('.user-specialty').forEach(element => {
+            element.textContent = '';
+        });
+
+        // Mostrar avatar por defecto
+        document.querySelectorAll('.user-avatar').forEach(element => {
+            element.src = 'assets/img/profile/profile_default.jpg';
+        });
+    }
+
+    // Función para renderizar la información del usuario
+    function renderUserInfo(user) {
+        if (!user) return;
+
+        // Nombre completo
+        document.querySelectorAll('.username').forEach(element => {
+            const fullName = `${user.first_name || ''} ${user.middle_name || ''} ${user.last_name || ''} ${user.second_last_name || ''}`.trim();
+            element.textContent = fullName || 'Usuario';
+        });
+
+        // Rol
+        document.querySelectorAll('.user-role').forEach(element => {
+            element.textContent = user.role?.name || '';
+        });
+
+        // Especialidad (solo para doctores)
+        document.querySelectorAll('.user-specialty').forEach(element => {
+            if (user.role?.group == 'DOCTOR' && user.specialty?.name) {
+                element.textContent = ' | ' + user.specialty.name;
+            } else {
+                element.textContent = '';
             }
+        });
 
+        // Avatar
+        const avatarUrl = getUrlImage(user.minio_url);
+        document.querySelectorAll('.user-avatar').forEach(element => {
+            element.src = avatarUrl || 'assets/img/profile/profile_default.jpg';
+        });
 
-            fetch('./saveMenus', {
-                method: 'POST',
-                body: JSON.stringify({
-                    menus: extractUrls(menu.menus)
-                }),
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
+        // Información adicional según rol
+        const adminContainer = document.getElementById('admin-container');
+        const doctorContainer = document.getElementById('doctor-container');
 
-            if (window.updateNavbarMenus) {
-                window.updateNavbarMenus();
-            }
-            const avatarUrl = getUrlImage(user.minio_url);
+        // Limpiar contenedores primero
+        if (adminContainer) {
+            adminContainer.innerHTML = '';
+            adminContainer.style.display = 'none';
+        }
+        if (doctorContainer) {
+            doctorContainer.innerHTML = '';
+            doctorContainer.style.display = 'none';
+        }
 
+        if (user.role?.group == 'ADMIN' && user.availabilities) {
+            adminContainer.style.display = 'block';
+            const adminContent = document.createElement('p');
 
-            document.querySelectorAll('.user-avatar').forEach(element => {
-                element.src = avatarUrl || 'assets/img/profile/profile_default.jpg';
-            })
+            const dayModule = user.availabilities.find(availability => {
+                return availability.days_of_week.includes(new Date().getDay()) && availability.is_active
+            })?.module?.name;
 
-            const adminContainer = document.getElementById('admin-container');
-            const doctorContainer = document.getElementById('doctor-container');
+            adminContent.textContent = 'Módulo: ' + (dayModule || 'Sin módulo asignado');
+            adminContainer.appendChild(adminContent);
+        } else if (user.role?.group == 'DOCTOR' && user.availabilities) {
+            doctorContainer.style.display = 'block';
+            const doctorContent = document.createElement('p');
 
-            if (user.role.group == 'ADMIN') {
+            const dayOffice = user.availabilities.find(availability => {
+                return availability.days_of_week.includes(new Date().getDay())
+            })?.office;
 
-                adminContainer.style.display = 'block';
-                const adminContent = document.createElement('p');
+            doctorContent.textContent = 'Consultorio: ' + (dayOffice || 'Sin consultorio');
+            doctorContainer.appendChild(doctorContent);
+        }
+    }
 
-                const dayModule = user.availabilities.find(availability => {
-                    return availability.days_of_week.includes(new Date().getDay()) && availability
-                        .is_active
-                }).module.name
+    // Función optimizada para cargar menús y permisos con cache
+    async function loadUserMenuAndPermissions(user, useCache = true) {
+        if (!user || !user.role) return;
 
-                adminContent.textContent = 'Modulo: ' + dayModule;
-                adminContainer.appendChild(adminContent);
+        const roleId = user.role.id;
+        const userId = user.id;
 
-            } else if (user.role.group == 'DOCTOR') {
+        // Claves únicas para cache por rol y usuario
+        const menuCacheKey = `menus_role_${roleId}`;
+        const permissionsCacheKey = `permissions_role_${roleId}`;
+        const userMenusCacheKey = `user_menus_${userId}`;
 
-                doctorContainer.style.display = 'block';
-                const doctorContent = document.createElement('p');
+        let menu, permissionsAuthRoute;
 
-                const dayOffice = user.availabilities.find(availability => {
-                    return availability.days_of_week.includes(new Date().getDay())
-                })?.office
+        if (useCache) {
+            // Intentar cargar desde cache
+            const cachedMenus = localStorage.getItem(userMenusCacheKey);
+            const cachedPermissions = localStorage.getItem(permissionsCacheKey);
+            const cachedRoleData = localStorage.getItem(menuCacheKey);
 
-                doctorContent.textContent = 'Consultorio: ' + (dayOffice || 'Sin consultorio');
-                doctorContainer.appendChild(doctorContent);
+            if (cachedMenus && cachedPermissions && cachedRoleData) {
+                // Todo está en cache
+                menu = {
+                    menus: JSON.parse(cachedMenus)
+                };
+                permissionsAuthRoute = {
+                    menus: JSON.parse(cachedPermissions)
+                };
+                localStorage.setItem("roles", cachedRoleData);
+                localStorage.setItem("permissionsAuthRoute", cachedPermissions);
+                localStorage.setItem("menus", cachedMenus);
+
+                triggerMenuUpdate();
+                return;
             }
         }
-    })
+
+        try {
+            // Hacer peticiones en paralelo para mejor performance
+            [menu, permissionsAuthRoute] = await Promise.all([
+                userService.getMenuByRole(userId),
+                userService.getMenuByRolePermission(roleId)
+            ]);
+
+            // Guardar en cache
+            localStorage.setItem("roles", JSON.stringify(user.role));
+            localStorage.setItem("permissionsAuthRoute", JSON.stringify(permissionsAuthRoute?.menus || []));
+            localStorage.setItem("menus", JSON.stringify(menu?.menus || []));
+
+            // Guardar en cache con claves específicas
+            localStorage.setItem(menuCacheKey, JSON.stringify(user.role));
+            localStorage.setItem(permissionsCacheKey, JSON.stringify(permissionsAuthRoute?.menus || []));
+            localStorage.setItem(userMenusCacheKey, JSON.stringify(menu?.menus || []));
+
+            // Guardar URLs extraídas si es necesario
+            if (menu?.menus) {
+                saveExtractedUrls(menu.menus);
+            }
+
+            triggerMenuUpdate();
+        } catch (error) {
+            console.error('Error cargando menús y permisos:', error);
+        }
+    }
+
+    // Función separada para guardar URLs extraídas
+    function saveExtractedUrls(menus) {
+        function extractUrls(menuArray) {
+            return extractDataFromTree({
+                tree: menuArray,
+                key: 'url',
+                childrenKey: 'items'
+            });
+        }
+
+        const extractedUrls = extractUrls(menus);
+
+        // Guardar en cache también
+        localStorage.setItem('extracted_urls', JSON.stringify(extractedUrls));
+
+        // Enviar al servidor (esto podría necesitarse solo una vez)
+        fetch('./saveMenus', {
+            method: 'POST',
+            body: JSON.stringify({
+                menus: extractedUrls
+            }),
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+    }
+
+    // Función para disparar la actualización de menús
+    function triggerMenuUpdate() {
+        if (window.updateNavbarMenus) {
+            window.updateNavbarMenus();
+        }
+    }
 </script>
 
-<script>
+<!-- <script>
     const themeController = document.body;
 
     const imgLogo = document.getElementById("imgLogo");
@@ -544,4 +680,4 @@
             markAllButton.addEventListener('click', markAllAsRead);
         }
     });
-</script>
+</script> -->

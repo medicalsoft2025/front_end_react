@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import { Stepper } from 'primereact/stepper';
-import { StepperPanel } from 'primereact/stepperpanel';
-import { Card } from 'primereact/card';
+import { Stepper } from "primereact/stepper";
+import { StepperPanel } from "primereact/stepperpanel";
+import { Card } from "primereact/card";
 import { Dialog } from "primereact/dialog";
 import { Toast } from "primereact/toast";
 import PatientStep from "./steps/PatientStep.js";
@@ -164,6 +164,7 @@ const AdmissionBilling = ({
           minio_id: dataToFile?.id,
           webhook_url: "https://example.com/webhook"
         };
+        console.log("dataMessage", dataMessage);
         await sendMessage.current(dataMessage);
       } catch (error) {
         console.error("Error enviando mensaje por WhatsApp:", error);
@@ -343,9 +344,9 @@ const AdmissionBilling = ({
     }
     window.scrollTo({
       top: 0,
-      behavior: 'smooth'
+      behavior: "smooth"
     });
-    const dialogContent = document.querySelector('.p-dialog-content');
+    const dialogContent = document.querySelector(".p-dialog-content");
     if (dialogContent) {
       dialogContent.scrollTop = 0;
     }
@@ -357,15 +358,15 @@ const AdmissionBilling = ({
     setActiveIndex(prevIndex);
   };
   const billingSteps = [{
-    id: 'patient',
+    id: "patient",
     label: "Datos del Paciente",
     icon: "pi pi-user"
   }, {
-    id: 'products-payments',
+    id: "products-payments",
     label: "Productos y Pagos",
     icon: "pi pi-shopping-cart"
   }, {
-    id: 'confirmation',
+    id: "confirmation",
     label: "Confirmación",
     icon: "pi pi-check-circle"
   }];
@@ -430,8 +431,8 @@ const AdmissionBilling = ({
     maximizable: true,
     className: "admission-billing-dialog",
     breakpoints: {
-      '960px': '75vw',
-      '641px': '90vw'
+      "960px": "75vw",
+      "641px": "90vw"
     }
   }, /*#__PURE__*/React.createElement("div", {
     className: "container-fluid"
@@ -446,7 +447,7 @@ const AdmissionBilling = ({
   }, /*#__PURE__*/React.createElement("div", {
     className: "horizontal-stepper-section mb-4",
     style: {
-      pointerEvents: 'none'
+      pointerEvents: "none"
     }
   }, /*#__PURE__*/React.createElement(Stepper, {
     activeStep: activeIndex,

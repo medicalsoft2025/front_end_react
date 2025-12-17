@@ -182,9 +182,15 @@ const PatientFormModal: React.FC<PatientFormModalProps> = ({
             setValue("patient.first_name", patientData.first_name);
             setValue("patient.middle_name", patientData.middle_name || "");
             setValue("patient.last_name", patientData.last_name);
-            setValue("patient.second_last_name", patientData.second_last_name || "");
+            setValue(
+                "patient.second_last_name",
+                patientData.second_last_name || ""
+            );
             setValue("patient.gender", patientData.gender);
-            setValue("patient.date_of_birth", new Date(patientData.date_of_birth));
+            setValue(
+                "patient.date_of_birth",
+                new Date(patientData.date_of_birth)
+            );
             setValue("patient.whatsapp", patientData.whatsapp);
             setValue("patient.email", patientData.email || "");
             setValue("patient.civil_status", patientData.civil_status);
@@ -254,11 +260,17 @@ const PatientFormModal: React.FC<PatientFormModalProps> = ({
                         await handleCountryChange(patientData.country_id);
 
                         if (patientData.department_id) {
-                            setValue("patient.department_id", patientData.department_id);
+                            setValue(
+                                "patient.department_id",
+                                patientData.department_id
+                            );
                             await loadCities(patientData.department_id);
 
                             if (patientData.city_id) {
-                                setValue("patient.city_id", patientData.city_id);
+                                setValue(
+                                    "patient.city_id",
+                                    patientData.city_id
+                                );
                             }
                         }
                     }
@@ -287,10 +299,16 @@ const PatientFormModal: React.FC<PatientFormModalProps> = ({
             if (countryExists) {
                 handleCountryChange(patientData.country_id).then(() => {
                     if (patientData.department_id && departments.length > 0) {
-                        setValue("patient.department_id", patientData.department_id);
+                        setValue(
+                            "patient.department_id",
+                            patientData.department_id
+                        );
                         loadCities(patientData.department_id).then(() => {
                             if (patientData.city_id) {
-                                setValue("patient.city_id", patientData.city_id);
+                                setValue(
+                                    "patient.city_id",
+                                    patientData.city_id
+                                );
                             }
                         });
                     }
@@ -332,7 +350,9 @@ const PatientFormModal: React.FC<PatientFormModalProps> = ({
                 return;
             }
 
-            const department = departments.find((c) => c.value === departmentId);
+            const department = departments.find(
+                (c) => c.value === departmentId
+            );
             if (!department) {
                 setCities([]);
                 return;
@@ -346,7 +366,9 @@ const PatientFormModal: React.FC<PatientFormModalProps> = ({
                 : response?.data || [];
 
             if (!Array.isArray(citiesData)) {
-                throw new Error("La respuesta de ciudades no es un array válido");
+                throw new Error(
+                    "La respuesta de ciudades no es un array válido"
+                );
             }
 
             const cityOptions = citiesData.map((c: any) => ({
@@ -410,7 +432,9 @@ const PatientFormModal: React.FC<PatientFormModalProps> = ({
                 : response?.data || [];
 
             if (!Array.isArray(departmentsData)) {
-                throw new Error("La respuesta de departamentos no es un array válido");
+                throw new Error(
+                    "La respuesta de departamentos no es un array válido"
+                );
             }
             const depts = departmentsData.map((d) => ({
                 label: d.name,
@@ -422,12 +446,18 @@ const PatientFormModal: React.FC<PatientFormModalProps> = ({
             }));
             setDepartments(depts);
 
-            if (patientData?.department_id && patientData.country_id === value) {
+            if (
+                patientData?.department_id &&
+                patientData.country_id === value
+            ) {
                 const departmentExists = depts.some(
                     (d) => d.value === patientData.department_id
                 );
                 if (departmentExists) {
-                    setValue("patient.department_id", patientData.department_id);
+                    setValue(
+                        "patient.department_id",
+                        patientData.department_id
+                    );
                     await loadCities(patientData.department_id);
                 }
             }
@@ -487,10 +517,14 @@ const PatientFormModal: React.FC<PatientFormModalProps> = ({
 
                 if (window.innerWidth < 768) {
                     constraints.video.width = { ideal: window.innerWidth };
-                    constraints.video.height = { ideal: window.innerHeight * 0.4 };
+                    constraints.video.height = {
+                        ideal: window.innerHeight * 0.4,
+                    };
                 }
 
-                const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                const stream = await navigator.mediaDevices.getUserMedia(
+                    constraints
+                );
                 setCameraStream(stream);
 
                 if (videoRef.current) {
@@ -500,7 +534,10 @@ const PatientFormModal: React.FC<PatientFormModalProps> = ({
                             ?.play()
                             .then(() => setIsCameraLoading(false))
                             .catch((error) => {
-                                console.error("Error al reproducir video:", error);
+                                console.error(
+                                    "Error al reproducir video:",
+                                    error
+                                );
                                 setIsCameraLoading(false);
                                 SwalManager.error("Error al iniciar la cámara");
                             });
@@ -529,12 +566,20 @@ const PatientFormModal: React.FC<PatientFormModalProps> = ({
             if (ctx) {
                 ctx.translate(canvas.width, 0);
                 ctx.scale(-1, 1);
-                ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+                ctx.drawImage(
+                    videoRef.current,
+                    0,
+                    0,
+                    canvas.width,
+                    canvas.height
+                );
                 ctx.setTransform(1, 0, 0, 1, 0, 0);
 
                 const imageDataUrl = canvas.toDataURL("image/jpeg", 0.8);
                 const blob = dataURItoBlob(imageDataUrl);
-                const file = new File([blob], "profile.jpg", { type: "image/jpeg" });
+                const file = new File([blob], "profile.jpg", {
+                    type: "image/jpeg",
+                });
 
                 setProfileImage({
                     url: imageDataUrl,
@@ -635,7 +680,10 @@ const PatientFormModal: React.FC<PatientFormModalProps> = ({
 
             if (patientData) {
                 patientId = patientData.id;
-                response = await patientService.updatePatient(patientId, formData);
+                response = await patientService.updatePatient(
+                    patientId,
+                    formData
+                );
             } else {
                 response = await patientService.storePatient(formData);
                 patientId = response.message[0].id;
@@ -659,8 +707,7 @@ const PatientFormModal: React.FC<PatientFormModalProps> = ({
                     toast.current?.show({
                         severity: "warn",
                         summary: "Advertencia",
-                        detail:
-                            "El paciente se guardó pero hubo un error al subir la imagen",
+                        detail: "El paciente se guardó pero hubo un error al subir la imagen",
                         life: 5000,
                     });
                 }
@@ -721,8 +768,9 @@ const PatientFormModal: React.FC<PatientFormModalProps> = ({
             toast.current?.show({
                 severity: "error",
                 summary: "Error",
-                detail: `Por favor complete todos los campos requeridos en el paso ${stepIndex + 1
-                    }`,
+                detail: `Por favor complete todos los campos requeridos en el paso ${
+                    stepIndex + 1
+                }`,
                 life: 3000,
             });
         }
@@ -750,7 +798,9 @@ const PatientFormModal: React.FC<PatientFormModalProps> = ({
             if (!errorObj) break;
         }
 
-        return errorObj && <small className="p-error">{errorObj.message}</small>;
+        return (
+            errorObj && <small className="p-error">{errorObj.message}</small>
+        );
     };
 
     const renderBasicInfoStep = () => (
@@ -763,7 +813,10 @@ const PatientFormModal: React.FC<PatientFormModalProps> = ({
                                 <Controller
                                     name="patient.document_type"
                                     control={control}
-                                    rules={{ required: "Tipo de documento es requerido" }}
+                                    rules={{
+                                        required:
+                                            "Tipo de documento es requerido",
+                                    }}
                                     render={({ field, fieldState }) => {
                                         return (
                                             <div>
@@ -772,19 +825,27 @@ const PatientFormModal: React.FC<PatientFormModalProps> = ({
                                                 </label>
                                                 <Dropdown
                                                     appendTo="self"
-                                                    options={documentTypeOptions}
+                                                    options={
+                                                        documentTypeOptions
+                                                    }
                                                     optionLabel="label"
                                                     optionValue="value"
                                                     placeholder="Seleccione"
-                                                    className={classNames("w-100", {
-                                                        "is-invalid": fieldState.error,
-                                                    })}
+                                                    className={classNames(
+                                                        "w-100",
+                                                        {
+                                                            "is-invalid":
+                                                                fieldState.error,
+                                                        }
+                                                    )}
                                                     value={field.value || ""}
                                                     onChange={(e) => {
                                                         field.onChange(e.value);
                                                     }}
                                                 />
-                                                {getFormErrorMessage(field.name)}
+                                                {getFormErrorMessage(
+                                                    field.name
+                                                )}
                                             </div>
                                         );
                                     }}
@@ -792,13 +853,18 @@ const PatientFormModal: React.FC<PatientFormModalProps> = ({
                                 <Controller
                                     name="patient.first_name"
                                     control={control}
-                                    rules={{ required: "Primer nombre es requerido" }}
+                                    rules={{
+                                        required: "Primer nombre es requerido",
+                                    }}
                                     render={({ field, fieldState }) => (
                                         <div>
-                                            <label className="form-label">Primer nombre *</label>
+                                            <label className="form-label">
+                                                Primer nombre *
+                                            </label>
                                             <InputText
                                                 className={classNames("w-100", {
-                                                    "is-invalid": fieldState.error,
+                                                    "is-invalid":
+                                                        fieldState.error,
                                                 })}
                                                 {...field}
                                             />
@@ -809,13 +875,19 @@ const PatientFormModal: React.FC<PatientFormModalProps> = ({
                                 <Controller
                                     name="patient.last_name"
                                     control={control}
-                                    rules={{ required: "Primer apellido es requerido" }}
+                                    rules={{
+                                        required:
+                                            "Primer apellido es requerido",
+                                    }}
                                     render={({ field, fieldState }) => (
                                         <div>
-                                            <label className="form-label">Primer apellido *</label>
+                                            <label className="form-label">
+                                                Primer apellido *
+                                            </label>
                                             <InputText
                                                 className={classNames("w-100", {
-                                                    "is-invalid": fieldState.error,
+                                                    "is-invalid":
+                                                        fieldState.error,
                                                 })}
                                                 {...field}
                                             />
@@ -828,7 +900,10 @@ const PatientFormModal: React.FC<PatientFormModalProps> = ({
                                 <Controller
                                     name="patient.document_number"
                                     control={control}
-                                    rules={{ required: "Número de documento es requerido" }}
+                                    rules={{
+                                        required:
+                                            "Número de documento es requerido",
+                                    }}
                                     render={({ field, fieldState }) => (
                                         <div>
                                             <label className="form-label">
@@ -836,7 +911,8 @@ const PatientFormModal: React.FC<PatientFormModalProps> = ({
                                             </label>
                                             <InputText
                                                 className={classNames("w-100", {
-                                                    "is-invalid": fieldState.error,
+                                                    "is-invalid":
+                                                        fieldState.error,
                                                 })}
                                                 {...field}
                                             />
@@ -849,8 +925,13 @@ const PatientFormModal: React.FC<PatientFormModalProps> = ({
                                     control={control}
                                     render={({ field }) => (
                                         <div>
-                                            <label className="form-label">Segundo Nombre *</label>
-                                            <InputText className={classNames("w-100")} {...field} />
+                                            <label className="form-label">
+                                                Segundo Nombre
+                                            </label>
+                                            <InputText
+                                                className={classNames("w-100")}
+                                                {...field}
+                                            />
                                         </div>
                                     )}
                                 />
@@ -859,8 +940,13 @@ const PatientFormModal: React.FC<PatientFormModalProps> = ({
                                     control={control}
                                     render={({ field }) => (
                                         <div>
-                                            <label className="form-label">Segundo apellido *</label>
-                                            <InputText className={classNames("w-100")} {...field} />
+                                            <label className="form-label">
+                                                Segundo apellido
+                                            </label>
+                                            <InputText
+                                                className={classNames("w-100")}
+                                                {...field}
+                                            />
                                         </div>
                                     )}
                                 />
@@ -877,15 +963,20 @@ const PatientFormModal: React.FC<PatientFormModalProps> = ({
                                     rules={{ required: "Género es requerido" }}
                                     render={({ field, fieldState }) => (
                                         <div>
-                                            <label className="form-label">Género *</label>
+                                            <label className="form-label">
+                                                Género *
+                                            </label>
                                             <Dropdown
                                                 options={genderOptions}
                                                 placeholder="Seleccione"
                                                 className={classNames("w-100", {
-                                                    "is-invalid": fieldState.error,
+                                                    "is-invalid":
+                                                        fieldState.error,
                                                 })}
                                                 value={field.value}
-                                                onChange={(e) => field.onChange(e.value)}
+                                                onChange={(e) =>
+                                                    field.onChange(e.value)
+                                                }
                                                 appendTo={"self"}
                                             />
                                             {getFormErrorMessage(field.name)}
@@ -895,13 +986,18 @@ const PatientFormModal: React.FC<PatientFormModalProps> = ({
                                 <Controller
                                     name="patient.whatsapp"
                                     control={control}
-                                    rules={{ required: "WhatsApp es requerido" }}
+                                    rules={{
+                                        required: "WhatsApp es requerido",
+                                    }}
                                     render={({ field, fieldState }) => (
                                         <div>
-                                            <label className="form-label">WhatsApp *</label>
+                                            <label className="form-label">
+                                                WhatsApp *
+                                            </label>
                                             <InputText
                                                 className={classNames("w-100", {
-                                                    "is-invalid": fieldState.error,
+                                                    "is-invalid":
+                                                        fieldState.error,
                                                 })}
                                                 {...field}
                                             />
@@ -912,18 +1008,28 @@ const PatientFormModal: React.FC<PatientFormModalProps> = ({
                                 <Controller
                                     name="patient.civil_status"
                                     control={control}
-                                    rules={{ required: "Estado civil es requerido" }}
+                                    rules={{
+                                        required: "Estado civil es requerido",
+                                    }}
                                     render={({ field, fieldState }) => (
                                         <div>
-                                            <label className="form-label">Estado Civil *</label>
+                                            <label className="form-label">
+                                                Estado Civil *
+                                            </label>
                                             <Dropdown
                                                 options={civilStatusOptions}
                                                 placeholder="Seleccione"
-                                                className={classNames("w-100 h-20", {
-                                                    "is-invalid": fieldState.error,
-                                                })}
+                                                className={classNames(
+                                                    "w-100 h-20",
+                                                    {
+                                                        "is-invalid":
+                                                            fieldState.error,
+                                                    }
+                                                )}
                                                 value={field.value}
-                                                onChange={(e) => field.onChange(e.value)}
+                                                onChange={(e) =>
+                                                    field.onChange(e.value)
+                                                }
                                                 appendTo={"self"}
                                             />
                                             {getFormErrorMessage(field.name)}
@@ -935,13 +1041,17 @@ const PatientFormModal: React.FC<PatientFormModalProps> = ({
                                     control={control}
                                     render={({ field }) => (
                                         <div>
-                                            <label className="form-label">Etnia</label>
+                                            <label className="form-label">
+                                                Etnia
+                                            </label>
                                             <Dropdown
                                                 options={ethnicityOptions}
                                                 placeholder="Seleccione"
                                                 className="w-100 h-50"
                                                 value={field.value}
-                                                onChange={(e) => field.onChange(e.value)}
+                                                onChange={(e) =>
+                                                    field.onChange(e.value)
+                                                }
                                                 appendTo="self"
                                                 scrollHeight="140px"
                                             />
@@ -954,7 +1064,8 @@ const PatientFormModal: React.FC<PatientFormModalProps> = ({
                                     name="patient.date_of_birth"
                                     control={control}
                                     rules={{
-                                        required: "Fecha de nacimiento es requerida",
+                                        required:
+                                            "Fecha de nacimiento es requerida",
                                     }}
                                     render={({ field, fieldState }) => (
                                         <div>
@@ -963,10 +1074,13 @@ const PatientFormModal: React.FC<PatientFormModalProps> = ({
                                             </label>
                                             <Calendar
                                                 className={classNames("w-100", {
-                                                    "is-invalid": fieldState.error,
+                                                    "is-invalid":
+                                                        fieldState.error,
                                                 })}
                                                 value={field.value}
-                                                onChange={(e) => field.onChange(e.value)}
+                                                onChange={(e) =>
+                                                    field.onChange(e.value)
+                                                }
                                                 dateFormat="dd/mm/yy"
                                                 showIcon
                                                 maxDate={new Date()}
@@ -981,10 +1095,13 @@ const PatientFormModal: React.FC<PatientFormModalProps> = ({
                                     control={control}
                                     render={({ field, fieldState }) => (
                                         <div className="mb-1">
-                                            <label className="form-label">Correo electrónico *</label>
+                                            <label className="form-label">
+                                                Correo electrónico
+                                            </label>
                                             <InputText
                                                 className={classNames("w-100", {
-                                                    "is-invalid": fieldState.error,
+                                                    "is-invalid":
+                                                        fieldState.error,
                                                 })}
                                                 {...field}
                                             />
@@ -995,18 +1112,25 @@ const PatientFormModal: React.FC<PatientFormModalProps> = ({
                                 <Controller
                                     name="patient.blood_type"
                                     control={control}
-                                    rules={{ required: "Tipo de sangre es requerido" }}
+                                    rules={{
+                                        required: "Tipo de sangre es requerido",
+                                    }}
                                     render={({ field, fieldState }) => (
                                         <div>
-                                            <label className="form-label">Tipo de sangre *</label>
+                                            <label className="form-label">
+                                                Tipo de sangre *
+                                            </label>
                                             <Dropdown
                                                 options={bloodTypeOptions}
                                                 placeholder="Seleccione"
                                                 className={classNames("w-100", {
-                                                    "is-invalid": fieldState.error,
+                                                    "is-invalid":
+                                                        fieldState.error,
                                                 })}
                                                 value={field.value}
-                                                onChange={(e) => field.onChange(e.value)}
+                                                onChange={(e) =>
+                                                    field.onChange(e.value)
+                                                }
                                                 appendTo={"self"}
                                             />
                                             {getFormErrorMessage(field.name)}
@@ -1068,7 +1192,9 @@ const PatientFormModal: React.FC<PatientFormModalProps> = ({
                                             className="w-100 h-100 rounded shadow-sm"
                                             style={{
                                                 objectFit: "cover",
-                                                display: isCameraLoading ? "none" : "block",
+                                                display: isCameraLoading
+                                                    ? "none"
+                                                    : "block",
                                                 backgroundColor: "#f8f9fa",
                                                 border: "2px solid #dee2e6",
                                             }}
@@ -1092,7 +1218,9 @@ const PatientFormModal: React.FC<PatientFormModalProps> = ({
                                             icon="pi pi-upload"
                                             label="Subir Imagen"
                                             className="w-100"
-                                            onClick={() => fileInputRef.current?.click()}
+                                            onClick={() =>
+                                                fileInputRef.current?.click()
+                                            }
                                         >
                                             <i className="fas fa-plus "></i>
                                         </Button>
@@ -1107,9 +1235,19 @@ const PatientFormModal: React.FC<PatientFormModalProps> = ({
                                     </>
                                 )}
                                 <Button
-                                    icon={showCamera ? "pi pi-check" : "pi pi-camera"}
-                                    label={showCamera ? "Capturar Foto" : "Tomar Foto"}
-                                    severity={showCamera ? "success" : "secondary"}
+                                    icon={
+                                        showCamera
+                                            ? "pi pi-check"
+                                            : "pi pi-camera"
+                                    }
+                                    label={
+                                        showCamera
+                                            ? "Capturar Foto"
+                                            : "Tomar Foto"
+                                    }
+                                    severity={
+                                        showCamera ? "success" : "secondary"
+                                    }
                                     className="w-100"
                                     onClick={(e) => {
                                         if (showCamera) {
@@ -1154,18 +1292,23 @@ const PatientFormModal: React.FC<PatientFormModalProps> = ({
                                     rules={{ required: "País es requerido" }}
                                     render={({ field, fieldState }) => (
                                         <div className="mb-3">
-                                            <label className="form-label">País *</label>
+                                            <label className="form-label">
+                                                País *
+                                            </label>
                                             <Dropdown
                                                 appendTo="self"
                                                 options={countries}
                                                 placeholder="Seleccione"
                                                 className={classNames("w-100", {
-                                                    "is-invalid": fieldState.error,
+                                                    "is-invalid":
+                                                        fieldState.error,
                                                 })}
                                                 value={field.value}
                                                 onChange={(e) => {
                                                     field.onChange(e.value);
-                                                    handleCountryChange(e.value);
+                                                    handleCountryChange(
+                                                        e.value
+                                                    );
                                                 }}
                                                 filter
                                                 filterBy="label"
@@ -1183,7 +1326,9 @@ const PatientFormModal: React.FC<PatientFormModalProps> = ({
                                     rules={{ required: "Ciudad es requerida" }}
                                     render={({ field, fieldState }) => (
                                         <div className="mb-3">
-                                            <label className="form-label">Ciudad *</label>
+                                            <label className="form-label">
+                                                Ciudad *
+                                            </label>
                                             <Dropdown
                                                 appendTo="self"
                                                 options={cities}
@@ -1193,12 +1338,17 @@ const PatientFormModal: React.FC<PatientFormModalProps> = ({
                                                         : "Seleccione"
                                                 }
                                                 className={classNames("w-100", {
-                                                    "is-invalid": fieldState.error,
+                                                    "is-invalid":
+                                                        fieldState.error,
                                                 })}
                                                 value={field.value}
-                                                onChange={(e) => field.onChange(e.value)}
+                                                onChange={(e) =>
+                                                    field.onChange(e.value)
+                                                }
                                                 disabled={
-                                                    !watch("patient.department_id") || cities.length === 0
+                                                    !watch(
+                                                        "patient.department_id"
+                                                    ) || cities.length === 0
                                                 }
                                                 filter
                                                 filterBy="label"
@@ -1221,7 +1371,9 @@ const PatientFormModal: React.FC<PatientFormModalProps> = ({
                                 <Controller
                                     name="patient.department_id"
                                     control={control}
-                                    rules={{ required: "Departamento es requerido" }}
+                                    rules={{
+                                        required: "Departamento es requerido",
+                                    }}
                                     render={({ field, fieldState }) => (
                                         <div className="mb-3">
                                             <label className="form-label">
@@ -1232,14 +1384,17 @@ const PatientFormModal: React.FC<PatientFormModalProps> = ({
                                                 options={departments}
                                                 placeholder="Seleccione"
                                                 className={classNames("w-100", {
-                                                    "is-invalid": fieldState.error,
+                                                    "is-invalid":
+                                                        fieldState.error,
                                                 })}
                                                 value={field.value}
                                                 onChange={(e) => {
                                                     field.onChange(e.value);
                                                     loadCities(e.value);
                                                 }}
-                                                disabled={!watch("patient.country_id")}
+                                                disabled={
+                                                    !watch("patient.country_id")
+                                                }
                                                 filter
                                                 filterBy="label"
                                                 showClear
@@ -1253,19 +1408,26 @@ const PatientFormModal: React.FC<PatientFormModalProps> = ({
                                 <Controller
                                     name="patient.nationality"
                                     control={control}
-                                    rules={{ required: "Nacionalidad es requerida" }}
+                                    rules={{
+                                        required: "Nacionalidad es requerida",
+                                    }}
                                     render={({ field, fieldState }) => (
                                         <div className="mb-3">
-                                            <label className="form-label">Nacionalidad *</label>
+                                            <label className="form-label">
+                                                Nacionalidad *
+                                            </label>
                                             <Dropdown
                                                 appendTo="self"
                                                 options={countries}
                                                 placeholder="Seleccione"
                                                 className={classNames("w-100", {
-                                                    "is-invalid": fieldState.error,
+                                                    "is-invalid":
+                                                        fieldState.error,
                                                 })}
                                                 value={field.value}
-                                                onChange={(e) => field.onChange(e.value)}
+                                                onChange={(e) =>
+                                                    field.onChange(e.value)
+                                                }
                                                 filter
                                                 filterBy="label"
                                                 showClear
@@ -1281,13 +1443,18 @@ const PatientFormModal: React.FC<PatientFormModalProps> = ({
                                 <Controller
                                     name="patient.address"
                                     control={control}
-                                    rules={{ required: "Dirección es requerida" }}
+                                    rules={{
+                                        required: "Dirección es requerida",
+                                    }}
                                     render={({ field, fieldState }) => (
                                         <div className="mb-3">
-                                            <label className="form-label">Dirección *</label>
+                                            <label className="form-label">
+                                                Dirección *
+                                            </label>
                                             <InputText
                                                 className={classNames("w-100", {
-                                                    "is-invalid": fieldState.error,
+                                                    "is-invalid":
+                                                        fieldState.error,
                                                 })}
                                                 {...field}
                                             />
@@ -1309,7 +1476,10 @@ const PatientFormModal: React.FC<PatientFormModalProps> = ({
                                 onChange={(e) => setHasCompanion(e.value)}
                                 style={{ marginTop: "-2px" }}
                             />
-                            <label htmlFor="companionSwitch" style={{ userSelect: "none" }}>
+                            <label
+                                htmlFor="companionSwitch"
+                                style={{ userSelect: "none" }}
+                            >
                                 Agregar Acompañante
                             </label>
                         </div>
@@ -1318,14 +1488,18 @@ const PatientFormModal: React.FC<PatientFormModalProps> = ({
                         {hasCompanion && (
                             <Card>
                                 <div className="p-3">
-                                    <h5 className="mb-3">Información del acompañante</h5>
+                                    <h5 className="mb-3">
+                                        Información del acompañante
+                                    </h5>
                                     <div className="d-flex justify-content-between align-items-center mb-3">
                                         <Button
                                             type="button"
                                             icon="pi pi-plus"
                                             label="Agregar Acompañante "
                                             size="small"
-                                            onClick={() => setShowCompanionModal(true)}
+                                            onClick={() =>
+                                                setShowCompanionModal(true)
+                                            }
                                         >
                                             <i className="fas fa-plus"></i>
                                         </Button>
@@ -1336,14 +1510,26 @@ const PatientFormModal: React.FC<PatientFormModalProps> = ({
                                         emptyMessage="No hay acompañantes agregados"
                                         className="p-datatable p-component p-datatable-selectable p-datatable-scrollable p-datatable-responsive-scroll p-datatable-gridlines"
                                     >
-                                        <Column field="first_name" header="Nombre" />
-                                        <Column field="last_name" header="Apellido" />
-                                        <Column field="relationship" header="Parentesco" />
+                                        <Column
+                                            field="first_name"
+                                            header="Nombre"
+                                        />
+                                        <Column
+                                            field="last_name"
+                                            header="Apellido"
+                                        />
+                                        <Column
+                                            field="relationship"
+                                            header="Parentesco"
+                                        />
                                         <Column
                                             field="document_number"
                                             header="Número de identificación"
                                         />
-                                        <Column field="mobile" header="WhatsApp" />
+                                        <Column
+                                            field="mobile"
+                                            header="WhatsApp"
+                                        />
                                         <Column
                                             field="actions"
                                             header="Acciones"
@@ -1351,13 +1537,20 @@ const PatientFormModal: React.FC<PatientFormModalProps> = ({
                                                 <Button
                                                     severity="danger"
                                                     size="small"
-                                                    onClick={() => removeCompanion(rowIndex)}
+                                                    onClick={() =>
+                                                        removeCompanion(
+                                                            rowIndex
+                                                        )
+                                                    }
                                                 >
                                                     {" "}
                                                     <i className="fa-solid fa-trash"></i>{" "}
                                                 </Button>
                                             )}
-                                            style={{ width: "2rem", paddingRight: "0.5rem" }}
+                                            style={{
+                                                width: "2rem",
+                                                paddingRight: "0.5rem",
+                                            }}
                                         />
                                     </DataTable>
                                 </div>
@@ -1395,19 +1588,26 @@ const PatientFormModal: React.FC<PatientFormModalProps> = ({
                                 <Controller
                                     name="social_security.entity_id"
                                     control={control}
-                                    rules={{ required: "Aseguradora es requerida" }}
+                                    rules={{
+                                        required: "Aseguradora es requerida",
+                                    }}
                                     render={({ field, fieldState }) => (
                                         <div className="mb-3">
-                                            <label className="form-label">Aseguradora *</label>
+                                            <label className="form-label">
+                                                Aseguradora *
+                                            </label>
                                             <Dropdown
                                                 appendTo="self"
                                                 options={entities}
                                                 placeholder="Seleccione"
                                                 className={classNames("w-100", {
-                                                    "is-invalid": fieldState.error,
+                                                    "is-invalid":
+                                                        fieldState.error,
                                                 })}
                                                 value={field.value}
-                                                onChange={(e) => field.onChange(e.value)}
+                                                onChange={(e) =>
+                                                    field.onChange(e.value)
+                                                }
                                             />
                                             {getFormErrorMessage(field.name)}
                                         </div>
@@ -1418,7 +1618,10 @@ const PatientFormModal: React.FC<PatientFormModalProps> = ({
                                 <Controller
                                     name="social_security.affiliate_type"
                                     control={control}
-                                    rules={{ required: "ARS Y TIPO DE REGIMEN es requerida" }}
+                                    rules={{
+                                        required:
+                                            "ARS Y TIPO DE REGIMEN es requerida",
+                                    }}
                                     render={({ field, fieldState }) => (
                                         <div className="mb-3">
                                             <label className="form-label">
@@ -1429,10 +1632,13 @@ const PatientFormModal: React.FC<PatientFormModalProps> = ({
                                                 options={regimeOptions}
                                                 placeholder="Seleccione"
                                                 className={classNames("w-100", {
-                                                    "is-invalid": fieldState.error,
+                                                    "is-invalid":
+                                                        fieldState.error,
                                                 })}
                                                 value={field.value}
-                                                onChange={(e) => field.onChange(e.value)}
+                                                onChange={(e) =>
+                                                    field.onChange(e.value)
+                                                }
                                             />
                                             {getFormErrorMessage(field.name)}
                                         </div>
@@ -1465,9 +1671,13 @@ const PatientFormModal: React.FC<PatientFormModalProps> = ({
                             "patient.document_number",
                         ]);
 
-                        const residenceValid = await trigger(["patient.country_id"]);
+                        const residenceValid = await trigger([
+                            "patient.country_id",
+                        ]);
 
-                        const securityValid = await trigger(["social_security.entity_id"]);
+                        const securityValid = await trigger([
+                            "social_security.entity_id",
+                        ]);
 
                         if (basicValid && residenceValid && securityValid) {
                             handleSubmit(onSubmit)();

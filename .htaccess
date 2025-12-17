@@ -410,3 +410,4 @@ RewriteRule ^reporteAnticipos$ ContabilidadNueva/reporteAnticipos.php
 RewriteRule ^saveMenus$ Utils/saveMenus.php 
 RewriteRule ^middlewareTest$ middleware.php
 RewriteRule ^configuracionesGenerales Config/generalConfiguracion.php
+RewriteRule ^dynamicFormTest$ r-test/dynamicFormTest.php

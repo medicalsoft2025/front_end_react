@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Button } from "primereact/button";
 import { Card } from "primereact/card";
 import { RecordingModal } from "./modals/RecordingModal.js";
 import { VideoConsultationModal } from "./modals/VideoConsultationModal.js";
@@ -202,14 +201,7 @@ export const TelemedicinaMain = () => {
     className: "d-flex justify-content-between align-items-center mb-4"
   }, /*#__PURE__*/React.createElement("h2", {
     className: "mb-0 text-primary"
-  }, "Telemedicina"), /*#__PURE__*/React.createElement(Button, {
-    icon: /*#__PURE__*/React.createElement("i", {
-      className: "fa-solid fa-file-pdf me-1"
-    }),
-    label: "Generar Reporte",
-    className: "p-button-primary",
-    onClick: () => setModalReporteVisible(true)
-  })), /*#__PURE__*/React.createElement(Card, {
+  }, "Telemedicina")), /*#__PURE__*/React.createElement(Card, {
     className: "shadow-sm border-0"
   }, /*#__PURE__*/React.createElement(CustomPRTable, {
     columns: columns,

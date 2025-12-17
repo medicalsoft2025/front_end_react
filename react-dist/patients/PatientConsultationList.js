@@ -5,8 +5,8 @@ import { Badge } from "primereact/badge";
 import { Button } from "primereact/button";
 import { TabView, TabPanel } from "primereact/tabview";
 import { Accordion, AccordionTab } from "primereact/accordion";
-import { examOrderService, examRecipeResultService, examRecipeService, patientService } from "../../services/api/index.js";
-import { getUserLogged } from "../../services/utilidades.js";
+import { appointmentService, examOrderService, examRecipeResultService, examRecipeService, patientService } from "../../services/api/index.js";
+import { getLocalTodayISODate, getUserLogged } from "../../services/utilidades.js";
 import AdmissionBilling from "../admission/admission-billing/AdmissionBilling.js";
 import "https://js.pusher.com/8.2.0/pusher.min.js";
 import { useAppointmentStates } from "../appointments/hooks/useAppointmentStates.js";
@@ -86,7 +86,8 @@ export const PatientConsultationList = () => {
     }
   }, []);
   const procesarPacientes = pacientes => {
-    const hoy = new Date().toISOString().split("T")[0];
+    const hoy = getLocalTodayISODate();
+    console.log("procesar pacientes fecha actual: ", hoy);
     const citasDeHoy = pacientes.flatMap(paciente => {
       return paciente.appointments.filter(cita => cita.appointment_date === hoy).map(cita => {
         const estado = cita.appointment_state.name;
@@ -284,8 +285,9 @@ export const PatientConsultationList = () => {
     }
   };
   const handleMakeClinicalRecord = (patientId, appointmentId) => {
-    UserManager.onAuthChange((isAuthenticated, user) => {
+    UserManager.onAuthChange(async (isAuthenticated, user) => {
       if (user) {
+        await appointmentService.changeStatus(appointmentId, "in_consultation");
         window.location.href = `consultas-especialidad?patient_id=${patientId}&especialidad=${user.specialty.name}&appointment_id=${appointmentId}`;
       }
     });

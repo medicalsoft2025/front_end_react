@@ -143,7 +143,8 @@ export const BillingByEntity = () => {
   }
   async function loadPaymentMethods() {
     const response = await paymentMethodService.getAll();
-    setPaymentMethods(response);
+    const paymentMethodsFiltered = response.filter(method => method.payment_type === "sale");
+    setPaymentMethods(paymentMethodsFiltered);
   }
   async function loadTaxCharges() {
     const response = await taxesService.getAll();
@@ -253,6 +254,22 @@ export const BillingByEntity = () => {
   async function saveBillingByEntity() {
     let userLogged = getUserLogged();
     const formData = getValues();
+    const paymentMethodsLoaded = await paymentMethodService.getAll();
+    let paymentMethodDefault = [];
+    if (!paymentMethodChecked) {
+      const paymentMethodDefaultFiltered = paymentMethodsLoaded.filter(method => method.category == "supplier_expiration")[0];
+      paymentMethodDefault = [{
+        payment_method_id: paymentMethodDefaultFiltered.id,
+        payment_date: new Date().toISOString().slice(0, 10),
+        amount: totals.unitValue
+      }];
+    } else {
+      paymentMethodDefault = [{
+        payment_method_id: formData.paymentMethod.id,
+        payment_date: new Date().toISOString().slice(0, 10),
+        amount: totals.unitValue
+      }];
+    }
     const payload = {
       child_invoice_ids: billingData.map(item => item?.child_invoice_ids[0]),
       tax_charge: `${formData.taxCharge.id}`,
@@ -268,7 +285,7 @@ export const BillingByEntity = () => {
         discount: totals.copayment
       },
       invoice_detail: [],
-      payments: [],
+      payments: paymentMethodDefault,
       observations: formData.observations
     };
     try {

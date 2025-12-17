@@ -718,3 +718,76 @@ export const extractDataFromTree = ({tree, key, childrenKey}) => {
 
     return data;
 }
+
+// Función auxiliar para mezclar objetos profundamente
+export function deepMerge(target, source) {
+    const output = { ...target };
+
+    if (isObject(target) && isObject(source)) {
+        Object.keys(source).forEach((key) => {
+            if (isObject(source[key])) {
+                if (!(key in target)) {
+                    Object.assign(output, { [key]: source[key] });
+                } else {
+                    output[key] = deepMerge(target[key], source[key]);
+                }
+            } else {
+                Object.assign(output, { [key]: source[key] });
+            }
+        });
+    }
+
+    return output;
+}
+
+export function isObject(item) {
+    return item && typeof item === "object" && !Array.isArray(item);
+}
+
+export function getValueByPath(obj, path, defaultValue = undefined) {
+    // Validaciones iniciales
+    if (typeof obj !== 'object' || obj === null) {
+        return defaultValue;
+    }
+    
+    if (typeof path !== 'string' || path.trim() === '') {
+        return defaultValue;
+    }
+    
+    // Normalizar el path: eliminar espacios y separar
+    const normalizedPath = path.trim();
+    
+    try {
+        return normalizedPath.split('.')
+            .reduce((current, key) => {
+                // Manejar arrays con notación [index]
+                const arrayMatch = key.match(/^([^\[\]]+)\[(\d+)\]$/);
+                
+                if (arrayMatch) {
+                    const [_, prop, index] = arrayMatch;
+                    const arr = current ? current[prop] : undefined;
+                    
+                    if (Array.isArray(arr)) {
+                        return arr[parseInt(index, 10)];
+                    }
+                    return undefined;
+                }
+                
+                // Manejar acceso directo a array con [index]
+                if (key.match(/^\[(\d+)\]$/)) {
+                    const match = key.match(/^\[(\d+)\]$/);
+                    const index = parseInt(match[1], 10);
+                    
+                    if (Array.isArray(current)) {
+                        return current[index];
+                    }
+                    return undefined;
+                }
+                
+                // Acceso normal a propiedad
+                return current ? current[key] : undefined;
+            }, obj);
+    } catch (error) {
+        return defaultValue;
+    }
+}

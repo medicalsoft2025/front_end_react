@@ -1,4 +1,3 @@
-
 <?php
 include "../../menu.php";
 include "../../header.php";
@@ -18,7 +17,7 @@ include "../../header.php";
                 <div class="d-flex align-items-center justify-content-between mb-3">
                     <h2>Configuración Empresa</h2>
                 </div>
-                <?php include "../tabs/tab_tenantConfiguration.php";?>
+                <?php include "../tabs/tab_tenantConfiguration.php"; ?>
             </div>
         </div>
     </div>

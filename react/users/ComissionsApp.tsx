@@ -71,6 +71,7 @@ export const ComissionApp = () => {
       console.error("Error creating/updating comission config: ", error);
     } finally {
       setShowUserFormModal(false);
+      setCommission(null);
       await fetchCommissions();
     }
   };
@@ -86,7 +87,7 @@ export const ComissionApp = () => {
   };
 
   async function fetchCommissions() {
-    setLoading(true)
+    setLoading(true);
     try {
       const response = await comissionConfig.comissionConfigGet();
       if (response.length) {
@@ -108,8 +109,9 @@ export const ComissionApp = () => {
             ? item.percentage_value
             : " - - - ",
           commission_value: item.commission_value,
-          fullName: `${item.user.first_name || ""} ${item.user.middle_name || ""
-            } ${item.user.last_name || ""} ${item.user.second_last_name || ""}`,
+          fullName: `${item.user.first_name || ""} ${
+            item.user.middle_name || ""
+          } ${item.user.last_name || ""} ${item.user.second_last_name || ""}`,
         }));
         setCommissions(dataMapped);
       }

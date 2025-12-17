@@ -14,7 +14,7 @@ import { Controller, useForm } from "react-hook-form";
 import { classNames } from "primereact/utils";
 import { countryService, departmentService, cityService, entityService, patientService } from "../../../../services/api/index.js";
 import { ErrorHandler } from "../../../../services/errorHandler.js";
-import { dataURItoBlob } from "../../../../services/utilidades.js";
+import { dataURItoBlob, obtenerUltimaParteUrl } from "../../../../services/utilidades.js";
 import { SwalManager } from "../../../../services/alertManagerImported.js";
 import { StepperPanel } from "primereact/stepperpanel";
 import CompanionModal from "./CompanionFormModal.js";
@@ -614,6 +614,12 @@ const PatientFormModal = ({
         detail: patientData ? "Paciente actualizado correctamente" : "Paciente creado correctamente",
         life: 3000
       });
+      const url = obtenerUltimaParteUrl();
+      if (["verPaciente"].includes(url)) {
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      }
       onHide();
       if (onSuccess) onSuccess();
     } catch (error) {
@@ -768,7 +774,7 @@ const PatientFormModal = ({
       field
     }) => /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
       className: "form-label"
-    }, "Segundo Nombre *"), /*#__PURE__*/React.createElement(InputText, _extends({
+    }, "Segundo Nombre"), /*#__PURE__*/React.createElement(InputText, _extends({
       className: classNames("w-100")
     }, field)))
   }), /*#__PURE__*/React.createElement(Controller, {
@@ -778,7 +784,7 @@ const PatientFormModal = ({
       field
     }) => /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
       className: "form-label"
-    }, "Segundo apellido *"), /*#__PURE__*/React.createElement(InputText, _extends({
+    }, "Segundo apellido"), /*#__PURE__*/React.createElement(InputText, _extends({
       className: classNames("w-100")
     }, field)))
   })))), /*#__PURE__*/React.createElement(Card, {
@@ -895,7 +901,7 @@ const PatientFormModal = ({
       className: "mb-1"
     }, /*#__PURE__*/React.createElement("label", {
       className: "form-label"
-    }, "Correo electr\xF3nico *"), /*#__PURE__*/React.createElement(InputText, _extends({
+    }, "Correo electr\xF3nico"), /*#__PURE__*/React.createElement(InputText, _extends({
       className: classNames("w-100", {
         "is-invalid": fieldState.error
       })

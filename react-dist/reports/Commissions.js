@@ -2,13 +2,11 @@ import React, { useEffect, useState } from "react";
 import { productService, userService, comissionConfig, entityService } from "../../services/api/index.js";
 import { MultiSelect } from "primereact/multiselect";
 import { Calendar } from "primereact/calendar";
-import { DataTable } from "primereact/datatable";
+import { TreeTable } from "primereact/treetable";
 import { Column } from "primereact/column";
-import { ProgressSpinner } from "primereact/progressspinner";
-import { Accordion, AccordionTab } from "primereact/accordion";
-import { Button } from "primereact/button";
 import { exportToExcel } from "../accounting/utils/ExportToExcelOptions.js";
 import { useCompany } from "../hooks/useCompany.js";
+import { Button } from "primereact/button";
 import { formatDate } from "../../services/utilidades.js";
 import { useServicesFormat } from "../documents-generation/hooks/reports-medical/commissions/useServicesFormat.js";
 import { useOrdersFormat } from "../documents-generation/hooks/reports-medical/commissions/useOrdersFormat.js";
@@ -21,15 +19,13 @@ export const Commissions = () => {
   const [selectedEspecialistas, setSelectedEspecialistas] = useState([]);
   const [dateRange, setDateRange] = useState([fiveDaysAgo, today]);
   const [comissionData, setComissionData] = useState([]);
-  const [servicesData, setServicesData] = useState([]);
-  const [ordersData, setOrdersData] = useState([]);
+  const [treeNodes, setTreeNodes] = useState([]);
+  const [expandedKeys, setExpandedKeys] = useState({});
   const [especialistasOptions, setEspecialistasOptions] = useState([]);
   const [proceduresOptions, setProceduresOptions] = useState([]);
   const [entitiesOptions, setEntitiesOptions] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [tableLoading, setTableLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState("services");
-  const [globalFilter, setGlobalFilter] = useState("");
+  const [activeTab, setActiveTab] = useState("tab-commissions");
   const {
     company,
     setCompany,
@@ -41,10 +37,6 @@ export const Commissions = () => {
   const {
     generateFormatOrders
   } = useOrdersFormat();
-
-  // Pagination state
-  const [first, setFirst] = useState(0);
-  const [rows, setRows] = useState(10);
   useEffect(() => {
     const initializeData = async () => {
       setLoading(true);
@@ -53,7 +45,7 @@ export const Commissions = () => {
         await cargarEspecialistas();
         await createSelectEntities();
         const filterParams = await obtenerFiltros();
-        await handleTabChange("services", filterParams);
+        await handleTabChange("tab-commissions", filterParams);
       } catch (error) {
         console.error("Error initializing data:", error);
       } finally {
@@ -64,31 +56,24 @@ export const Commissions = () => {
   }, []);
   const handleTabChange = async (tabId, filterParams) => {
     setActiveTab(tabId);
-    setTableLoading(true);
+    setLoading(true);
     try {
       switch (tabId) {
-        case "services":
-          if (servicesData.length === 0) {
-            const data = await comissionConfig.comissionReportServices(filterParams);
-            setComissionData(data);
-            const formattedData = formatDataToTable(data, "admissions_by_doctor");
-            setServicesData(formattedData);
-          }
+        case "tab-commissions":
+          const data = await comissionConfig.comissionReportServices(filterParams);
+          setComissionData(data);
+          formatDataToTreeNodes(data, "admissions_by_doctor");
           break;
-        case "orders":
-          if (ordersData.length === 0) {
-            const dataToOrders = await comissionConfig.comissionReportByOrders(filterParams);
-            const formattedData = formatDataToTable(dataToOrders, "admissions_prescriber_doctor");
-            setOrdersData(formattedData);
-          }
-          break;
+        case "tab-orders":
+          const dataToOrders = await comissionConfig.comissionReportByOrders(filterParams);
+          formatDataToTreeNodes(dataToOrders, "admissions_prescriber_doctor");
         default:
           console.warn(`Tab no reconocido: ${tabId}`);
       }
     } catch (error) {
       console.error(`Error cargando datos para ${tabId}:`, error);
     } finally {
-      setTableLoading(false);
+      setLoading(false);
     }
   };
   const cargarServicios = async () => {
@@ -127,66 +112,79 @@ export const Commissions = () => {
   const obtenerDatos = async (filterParams = {}) => {
     await handleTabChange(activeTab, filterParams);
   };
-  const formatDataToTable = (users, nodeKey) => {
-    const flatData = [];
-    users.forEach((user, userIndex) => {
+  const formatDataToTreeNodes = (users, nodeKey) => {
+    const nodes = users.map((user, userIndex) => {
       const nombre = `${user.first_name || ""} ${user.last_name || ""}`.trim();
-
-      // Calcular totales para el profesional
-      let totalMonto = 0;
-      let totalBase = 0;
-      let totalComision = 0;
-      let totalRetencion = 0;
-      let totalNetAmount = 0;
-
-      // Procesar cada admisión del profesional
-      user[nodeKey]?.forEach((admission, admissionIndex) => {
-        const baseCalculation = calculateBase(admission);
-        const commissionCalculation = calculateCommission(baseCalculation, admission);
-        const retention = calculatedRetention(commissionCalculation, admission);
+      const sumAmountTotal = user[nodeKey].reduce((total, admission) => {
+        if (admission?.invoice?.sub_type === "entity") {
+          const amount = parseFloat(admission.entity_authorized_amount) || 0;
+          return total + amount;
+        } else {
+          const details = admission?.invoice?.details || [];
+          const amountByPublic = details.reduce((totalDetail, detail) => {
+            return totalDetail + (parseFloat(detail.amount) || 0);
+          }, 0);
+          return total + amountByPublic;
+        }
+      }, 0);
+      let baseCalculationUser = 0;
+      let commissionCalculatedUser = 0;
+      let retentionCalculatedUser = 0;
+      let netAmount = 0;
+      const children = user[nodeKey]?.flatMap((admission, admissionIndex) => {
+        admission.dataChild = null;
+        const baseCalculation = calculateBase(admission) * admission?.invoice?.commission?.percentage_value / 100 || 0;
+        baseCalculationUser += baseCalculation;
+        const commissionCalculation = calculateCommission(baseCalculation, admission) || 0;
+        commissionCalculatedUser += commissionCalculation;
+        const retention = calculatedRetention(commissionCalculation, admission) || 0;
+        retentionCalculatedUser += retention;
         const netAmountCalculated = commissionCalculation - retention;
-
-        // Acumular totales
-        totalMonto += admission?.invoice?.sub_type == "entity" ? parseFloat(admission.entity_authorized_amount || 0) : parseFloat(admission?.invoice?.total_amount || 0);
-        totalBase += baseCalculation;
-        totalComision += commissionCalculation;
-        totalRetencion += retention;
-        totalNetAmount += netAmountCalculated;
-
-        // Agregar fila de admisión
-        flatData.push({
-          id: `admission_${userIndex}_${admissionIndex}`,
+        netAmount += netAmountCalculated;
+        admission.dataChild = {
+          monto: admission?.invoice?.sub_type == "entity" ? parseInt(admission.entity_authorized_amount) : parseInt(admission?.invoice?.total_amount),
+          base: baseCalculation,
+          comision: commissionCalculation,
+          retencion: retention,
+          netAmount: netAmountCalculated
+        };
+        return {
+          key: `${userIndex}-${admissionIndex}`,
+          data: {
+            totalServices: "",
+            monto: admission?.invoice?.sub_type == "entity" ? admission.entity_authorized_amount : admission?.invoice?.total_amount,
+            base: baseCalculation,
+            comision: commissionCalculation,
+            retencion: retention,
+            netAmount: netAmountCalculated,
+            invoiceCode: admission?.invoice?.invoice_code,
+            type: Number(admission?.entity_authorized_amount) > 0 ? "Entidad" : "Particular",
+            id: admission?.invoice?.id,
+            isLeaf: true
+          }
+        };
+      }) || [];
+      return {
+        key: userIndex.toString(),
+        data: {
           profesional: nombre,
-          monto: parseFloat(admission?.invoice?.sub_type == "entity" ? admission.entity_authorized_amount : admission?.invoice?.total_amount || 0),
-          base: parseFloat(baseCalculation.toFixed(2)),
-          comision: parseFloat(commissionCalculation.toFixed(2)),
-          retencion: parseFloat(retention.toFixed(2)),
-          netAmount: parseFloat(netAmountCalculated.toFixed(2)),
-          invoiceCode: admission?.invoice?.invoice_code || "",
-          invoiceId: admission?.invoice?.id || "",
-          isProfessional: false,
-          rawData: [admission]
-        });
-      });
-
-      // Agregar fila de total del profesional (solo si tiene admisiones)
-      if (user[nodeKey]?.length > 0) {
-        flatData.push({
-          id: `professional_${userIndex}`,
-          profesional: nombre,
-          monto: parseFloat(totalMonto.toFixed(2)),
-          base: parseFloat(totalBase.toFixed(2)),
-          comision: parseFloat(totalComision.toFixed(2)),
-          retencion: parseFloat(totalRetencion.toFixed(2)),
-          netAmount: parseFloat(totalNetAmount.toFixed(2)),
-          invoiceCode: "TOTAL",
-          invoiceId: "",
-          isProfessional: true,
+          monto: parseFloat(sumAmountTotal.toFixed(2)),
+          base: parseFloat(baseCalculationUser.toFixed(2)),
+          comision: parseFloat(commissionCalculatedUser.toFixed(2)),
+          retencion: parseFloat(retentionCalculatedUser.toFixed(2)),
+          netAmount: parseFloat(netAmount.toFixed(2)),
+          isLeaf: false,
           rawData: user[nodeKey]
-        });
-      }
+        },
+        children: children
+      };
     });
-    return flatData;
+    setTreeNodes(nodes);
+    const keys = nodes.reduce((acc, node) => {
+      acc[node.key] = true;
+      return acc;
+    }, {});
+    setExpandedKeys(keys);
   };
   function calculateBase(admission) {
     let resultBase = 0;
@@ -220,14 +218,14 @@ export const Commissions = () => {
   }
   function exportToPDF(data, mainNode) {
     switch (activeTab) {
-      case "services":
+      case "tab-commissions":
         return generateFormatServices(data, mainNode, dateRange, "Impresion");
-      case "orders":
+      case "tab-orders":
         return generateFormatOrders(data, mainNode, dateRange, "Impresion");
     }
   }
-  const exportButtonTemplate = rowData => {
-    if (rowData.isProfessional) {
+  const exportButtonTemplate = node => {
+    if (!node.data.isLeaf) {
       return /*#__PURE__*/React.createElement("div", {
         className: "d-flex gap-2"
       }, /*#__PURE__*/React.createElement(Button, {
@@ -235,10 +233,10 @@ export const Commissions = () => {
         tooltipOptions: {
           position: "top"
         },
-        className: "p-button-success p-button-sm",
+        className: "p-button-success d-flex justify-content-center",
         onClick: e => {
           e.stopPropagation();
-          handleDescargarExcel(rowData.rawData);
+          handleDescargarExcel(node.data.rawData);
         }
       }, /*#__PURE__*/React.createElement("i", {
         className: "fa-solid fa-file-excel"
@@ -247,10 +245,10 @@ export const Commissions = () => {
         tooltipOptions: {
           position: "top"
         },
-        className: "p-button-secondary p-button-sm",
+        className: "p-button-secondary d-flex justify-content-center",
         onClick: e => {
           e.stopPropagation();
-          exportToPDF(rowData.rawData, rowData);
+          exportToPDF(node.data.rawData, node);
         }
       }, /*#__PURE__*/React.createElement("i", {
         className: "fa-solid fa-file-pdf"
@@ -269,12 +267,8 @@ export const Commissions = () => {
     return paramsFilter;
   };
   const handleFilterClick = async () => {
-    // Limpiar datos para forzar recarga
-    setServicesData([]);
-    setOrdersData([]);
     const paramsFilter = await obtenerFiltros();
     await obtenerDatos(paramsFilter);
-    setFirst(0); // Reset to first page when filtering
   };
   const formatCurrency = value => {
     if (isNaN(value)) value = 0;
@@ -307,62 +301,68 @@ export const Commissions = () => {
     });
     return data;
   }
-  const amountTemplate = rowData => formatCurrency(rowData.monto);
-  const invoiceCodeTemplate = rowData => rowData.invoiceCode;
-  const idTemplate = rowData => rowData.invoiceId;
-  const baseTemplate = rowData => formatCurrency(rowData.base);
-  const commissionTemplate = rowData => formatCurrency(rowData.comision);
-  const retentionTemplate = rowData => formatCurrency(rowData.retencion);
-  const netAmountTemplate = rowData => formatCurrency(rowData.netAmount);
-  const profesionalTemplate = rowData => rowData.isProfessional ? /*#__PURE__*/React.createElement("strong", null, rowData.profesional) : /*#__PURE__*/React.createElement("span", {
+  const amountTemplate = node => formatCurrency(node.data.monto);
+  const invoiceCodeTemplate = node => node.data.invoiceCode;
+  const idTemplate = node => node.data.id;
+  const baseTemplate = node => formatCurrency(node.data.base);
+  const commissionTemplate = node => formatCurrency(node.data.comision);
+  const retentionTemplate = node => formatCurrency(node.data.retencion);
+  const netAmountTemplate = node => formatCurrency(node.data.netAmount);
+  const typeTemplate = node => node.data.type;
+  const profesionalTemplate = node => node.data.isLeaf ? /*#__PURE__*/React.createElement("span", {
     style: {
-      paddingLeft: "20px"
+      paddingLeft: "30px"
     }
-  }, rowData.profesional);
-  const onPageChange = event => {
-    setFirst(event.first);
-    setRows(event.rows);
-  };
-  const rowClassName = data => {
-    return data.isProfessional ? 'font-bold bg-blue-50' : '';
-  };
-  const getCurrentData = () => {
-    return activeTab === "services" ? servicesData : ordersData;
-  };
-  const getProfessionalCount = () => {
-    const data = getCurrentData();
-    return data.filter(item => item.isProfessional).length;
-  };
+  }, node.data.profesional) : /*#__PURE__*/React.createElement("strong", null, node.data.profesional);
   return /*#__PURE__*/React.createElement("main", {
     className: "main",
     id: "top"
   }, /*#__PURE__*/React.createElement("div", {
+    className: "content"
+  }, /*#__PURE__*/React.createElement("div", {
     className: "pb-9"
-  }, loading ? /*#__PURE__*/React.createElement("div", {
-    className: "flex justify-content-center align-items-center",
-    style: {
-      height: "50vh",
-      marginLeft: "900px",
-      marginTop: "300px"
-    }
-  }, /*#__PURE__*/React.createElement(ProgressSpinner, null)) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("h2", {
+    className: "mb-4"
+  }, "Comisiones por Profesional"), /*#__PURE__*/React.createElement("div", {
     className: "row g-3 justify-content-between align-items-start mb-4"
   }, /*#__PURE__*/React.createElement("div", {
     className: "col-12"
+  }, /*#__PURE__*/React.createElement("ul", {
+    className: "nav nav-underline fs-9",
+    id: "myTab",
+    role: "tablist"
+  }, /*#__PURE__*/React.createElement("li", {
+    className: "nav-item"
+  }, /*#__PURE__*/React.createElement("a", {
+    className: "nav-link active",
+    id: "range-dates-tab",
+    "data-bs-toggle": "tab",
+    href: "#tab-range-dates",
+    role: "tab",
+    "aria-controls": "tab-range-dates",
+    "aria-selected": "true"
+  }, "Filtros"))), /*#__PURE__*/React.createElement("div", {
+    className: "tab-content mt-3",
+    id: "myTabContent"
   }, /*#__PURE__*/React.createElement("div", {
-    className: "card mb-3 text-body-emphasis rounded-3 p-3 w-100 w-md-100 w-lg-100 mx-auto",
+    className: "tab-pane fade show active",
+    id: "tab-range-dates",
+    role: "tabpanel",
+    "aria-labelledby": "range-dates-tab"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "d-flex"
+  }, /*#__PURE__*/React.createElement("div", {
     style: {
-      minHeight: "400px"
+      width: "100%"
     }
   }, /*#__PURE__*/React.createElement("div", {
-    className: "card-body h-100 w-100 d-flex flex-column",
-    style: {
-      marginTop: "-40px"
-    }
+    className: "row"
   }, /*#__PURE__*/React.createElement("div", {
-    className: "tabs-professional-container mt-4"
-  }, /*#__PURE__*/React.createElement(Accordion, null, /*#__PURE__*/React.createElement(AccordionTab, {
-    header: "Filtros"
+    className: "col-12 mb-3"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "card border border-light"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "card-body"
   }, /*#__PURE__*/React.createElement("div", {
     className: "row"
   }, /*#__PURE__*/React.createElement("div", {
@@ -416,241 +416,195 @@ export const Commissions = () => {
     placeholder: "Seleccione entidades",
     className: "w-100",
     display: "chip"
-  })), /*#__PURE__*/React.createElement("div", {
-    className: "col-12"
-  }, /*#__PURE__*/React.createElement("div", {
+  }))), /*#__PURE__*/React.createElement("div", {
     className: "d-flex justify-content-end m-2"
-  }, /*#__PURE__*/React.createElement(Button, {
-    label: "Filtrar",
-    icon: "pi pi-filter",
-    onClick: handleFilterClick,
-    className: "p-button-primary",
-    loading: loading
-  })))))), /*#__PURE__*/React.createElement("div", {
-    className: "tabs-header"
   }, /*#__PURE__*/React.createElement("button", {
-    className: `tab-item ${activeTab === "services" ? "active" : ""}`,
-    onClick: () => handleTabChange("services", obtenerFiltros())
-  }, /*#__PURE__*/React.createElement("i", {
-    className: "fas fa-stethoscope"
-  }), "Servicios"), /*#__PURE__*/React.createElement("button", {
-    className: `tab-item ${activeTab === "orders" ? "active" : ""}`,
-    onClick: () => handleTabChange("orders", obtenerFiltros())
-  }, /*#__PURE__*/React.createElement("i", {
-    className: "fas fa-prescription"
-  }), "\xD3rdenes")), /*#__PURE__*/React.createElement("div", {
-    className: "tabs-content"
+    type: "button",
+    className: "btn btn-primary",
+    onClick: handleFilterClick,
+    disabled: loading
+  }, loading ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("i", {
+    className: "pi pi-spinner pi-spin me-2"
+  }), "Procesando...") : "Filtrar")))))))))))), /*#__PURE__*/React.createElement("div", {
+    className: "row gy-5"
   }, /*#__PURE__*/React.createElement("div", {
-    className: `tab-panel ${activeTab === "services" ? "active" : ""}`
+    className: "col-12 col-xxl-12"
+  }, /*#__PURE__*/React.createElement("ul", {
+    className: "nav nav-underline fs-9",
+    id: "myTab",
+    role: "tablist"
+  }, /*#__PURE__*/React.createElement("li", {
+    className: "nav-item"
+  }, /*#__PURE__*/React.createElement("a", {
+    className: `nav-link ${activeTab === "tab-commissions" ? "active" : ""}`,
+    id: "commissions-tab",
+    "data-bs-toggle": "tab",
+    href: "#tab-commissions",
+    role: "tab",
+    "aria-controls": "tab-commissions",
+    "aria-selected": activeTab === "tab-commissions",
+    onClick: () => handleTabChange("tab-commissions", obtenerFiltros())
+  }, "Servicios")), /*#__PURE__*/React.createElement("li", {
+    className: "nav-item"
+  }, /*#__PURE__*/React.createElement("a", {
+    className: `nav-link ${activeTab === "tab-orders" ? "active" : ""}`,
+    id: "orders-tab",
+    "data-bs-toggle": "tab",
+    href: "#tab-orders",
+    role: "tab",
+    "aria-controls": "tab-orders",
+    "aria-selected": activeTab === "tab-orders",
+    onClick: () => handleTabChange("tab-orders", obtenerFiltros())
+  }, "\xD3rdenes"))), /*#__PURE__*/React.createElement("div", {
+    className: "col-12 tab-content mt-3",
+    id: "myTabContent"
   }, /*#__PURE__*/React.createElement("div", {
-    className: "d-flex justify-content-between align-items-center mb-4"
-  }, /*#__PURE__*/React.createElement("span", {
-    className: "text-xl font-semibold"
-  }, "Comisiones por Servicios")), /*#__PURE__*/React.createElement("div", {
-    className: "card"
-  }, tableLoading ? /*#__PURE__*/React.createElement("div", {
+    className: `tab-pane fade ${activeTab === "tab-commissions" ? "show active" : ""}`,
+    id: "tab-commissions",
+    role: "tabpanel",
+    "aria-labelledby": "commissions-tab"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "border-top border-translucent"
+  }, loading ? /*#__PURE__*/React.createElement("div", {
     className: "text-center p-5"
-  }, /*#__PURE__*/React.createElement(ProgressSpinner, null), /*#__PURE__*/React.createElement("p", {
-    className: "mt-2"
-  }, "Cargando datos...")) : /*#__PURE__*/React.createElement(DataTable, {
-    value: servicesData,
-    loading: tableLoading,
+  }, /*#__PURE__*/React.createElement("i", {
+    className: "pi pi-spinner pi-spin",
+    style: {
+      fontSize: "2rem"
+    }
+  }), /*#__PURE__*/React.createElement("p", null, "Cargando datos...")) : /*#__PURE__*/React.createElement("div", {
+    id: "purchasersSellersTable"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "card"
+  }, /*#__PURE__*/React.createElement(TreeTable, {
+    value: treeNodes,
+    expandedKeys: expandedKeys,
+    onToggle: e => setExpandedKeys(e.value),
     scrollable: true,
-    scrollHeight: "600px",
-    showGridlines: true,
-    stripedRows: true,
-    size: "small",
-    tableStyle: {
-      minWidth: "100%"
-    },
-    className: "p-datatable-sm",
-    paginator: true,
-    rows: rows,
-    first: first,
-    onPage: onPageChange,
-    rowsPerPageOptions: [5, 10, 25, 50],
-    paginatorTemplate: "FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown",
-    currentPageReportTemplate: "Mostrando {first} a {last} de {totalRecords} registros",
-    globalFilter: globalFilter,
-    rowClassName: rowClassName,
-    sortMode: "multiple"
+    scrollHeight: "600px"
   }, /*#__PURE__*/React.createElement(Column, {
     field: "profesional",
     header: "Profesional",
     body: profesionalTemplate,
-    sortable: true,
-    style: {
-      minWidth: "250px"
-    }
+    expander: true
   }), /*#__PURE__*/React.createElement(Column, {
-    field: "invoiceId",
+    field: "id",
     header: "Id Factura",
-    body: idTemplate,
-    style: {
-      minWidth: "120px"
-    }
+    body: idTemplate
   }), /*#__PURE__*/React.createElement(Column, {
     field: "invoiceCode",
-    header: "C\xF3digo Factura",
-    body: invoiceCodeTemplate,
-    style: {
-      minWidth: "150px"
-    }
+    header: "Codigo Factura",
+    body: invoiceCodeTemplate
   }), /*#__PURE__*/React.createElement(Column, {
     field: "monto",
     header: "Monto",
-    body: amountTemplate,
-    sortable: true,
-    style: {
-      minWidth: "150px"
-    }
+    body: amountTemplate
   }), /*#__PURE__*/React.createElement(Column, {
     field: "base",
     header: "Base C\xE1lculo",
-    body: baseTemplate,
-    sortable: true,
-    style: {
-      minWidth: "150px"
-    }
+    body: baseTemplate
   }), /*#__PURE__*/React.createElement(Column, {
     field: "comision",
     header: "Comisi\xF3n",
-    body: commissionTemplate,
-    sortable: true,
-    style: {
-      minWidth: "150px"
-    }
+    body: commissionTemplate
   }), /*#__PURE__*/React.createElement(Column, {
     field: "retencion",
     header: "Retenci\xF3n",
-    body: retentionTemplate,
-    sortable: true,
-    style: {
-      minWidth: "150px"
-    }
+    body: retentionTemplate
   }), /*#__PURE__*/React.createElement(Column, {
     field: "netAmount",
     header: "Neto a pagar",
-    body: netAmountTemplate,
-    sortable: true,
-    style: {
-      minWidth: "150px"
-    }
+    body: netAmountTemplate
   }), /*#__PURE__*/React.createElement(Column, {
-    body: exportButtonTemplate,
+    field: "Type",
+    header: "Tipo",
+    body: typeTemplate
+  }), /*#__PURE__*/React.createElement(Column, {
+    field: "exportar",
     header: "Exportar",
+    body: exportButtonTemplate,
     style: {
       width: "120px"
     }
-  })), /*#__PURE__*/React.createElement("div", {
-    className: "p-3 border-top"
-  }, /*#__PURE__*/React.createElement("p", {
-    className: "mb-0 fw-semibold text-body"
-  }, "Mostrando ", getProfessionalCount(), " profesionales")))), /*#__PURE__*/React.createElement("div", {
-    className: `tab-panel ${activeTab === "orders" ? "active" : ""}`
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "row align-items-center justify-content-between pe-0 fs-9 mt-3"
   }, /*#__PURE__*/React.createElement("div", {
-    className: "d-flex justify-content-between align-items-center mb-4"
-  }, /*#__PURE__*/React.createElement("span", {
-    className: "text-xl font-semibold"
-  }, "Comisiones por \xD3rdenes")), /*#__PURE__*/React.createElement("div", {
-    className: "card"
-  }, tableLoading ? /*#__PURE__*/React.createElement("div", {
+    className: "col-auto d-flex"
+  }, /*#__PURE__*/React.createElement("p", {
+    className: "mb-0 d-none d-sm-block me-3 fw-semibold text-body"
+  }, "Mostrando ", treeNodes.length, " profesionales")))))), /*#__PURE__*/React.createElement("div", {
+    className: `tab-pane fade ${activeTab === "tab-orders" ? "show active" : ""}`,
+    id: "tab-orders",
+    role: "tabpanel",
+    "aria-labelledby": "orders-tab"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "border-top border-translucent"
+  }, loading ? /*#__PURE__*/React.createElement("div", {
     className: "text-center p-5"
-  }, /*#__PURE__*/React.createElement(ProgressSpinner, null), /*#__PURE__*/React.createElement("p", {
-    className: "mt-2"
-  }, "Cargando datos...")) : /*#__PURE__*/React.createElement(DataTable, {
-    value: ordersData,
-    loading: tableLoading,
+  }, /*#__PURE__*/React.createElement("i", {
+    className: "pi pi-spinner pi-spin",
+    style: {
+      fontSize: "2rem"
+    }
+  }), /*#__PURE__*/React.createElement("p", null, "Cargando datos...")) : /*#__PURE__*/React.createElement("div", {
+    id: "purchasersSellersTable"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "card"
+  }, /*#__PURE__*/React.createElement(TreeTable, {
+    value: treeNodes,
+    expandedKeys: expandedKeys,
+    onToggle: e => setExpandedKeys(e.value),
     scrollable: true,
-    scrollHeight: "600px",
-    showGridlines: true,
-    stripedRows: true,
-    size: "small",
-    tableStyle: {
-      minWidth: "100%"
-    },
-    className: "p-datatable-sm",
-    paginator: true,
-    rows: rows,
-    first: first,
-    onPage: onPageChange,
-    rowsPerPageOptions: [5, 10, 25, 50],
-    paginatorTemplate: "FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown",
-    currentPageReportTemplate: "Mostrando {first} a {last} de {totalRecords} registros",
-    globalFilter: globalFilter,
-    rowClassName: rowClassName,
-    sortMode: "multiple"
+    scrollHeight: "600px"
   }, /*#__PURE__*/React.createElement(Column, {
     field: "profesional",
     header: "Profesional",
     body: profesionalTemplate,
-    sortable: true,
-    style: {
-      minWidth: "250px"
-    }
+    expander: true
   }), /*#__PURE__*/React.createElement(Column, {
-    field: "invoiceId",
+    field: "id",
     header: "Id Factura",
-    body: idTemplate,
-    style: {
-      minWidth: "120px"
-    }
+    body: idTemplate
   }), /*#__PURE__*/React.createElement(Column, {
     field: "invoiceCode",
-    header: "C\xF3digo Factura",
-    body: invoiceCodeTemplate,
-    style: {
-      minWidth: "150px"
-    }
+    header: "Codigo Factura",
+    body: invoiceCodeTemplate
   }), /*#__PURE__*/React.createElement(Column, {
     field: "monto",
     header: "Monto",
-    body: amountTemplate,
-    sortable: true,
-    style: {
-      minWidth: "150px"
-    }
+    body: amountTemplate
   }), /*#__PURE__*/React.createElement(Column, {
     field: "base",
     header: "Base C\xE1lculo",
-    body: baseTemplate,
-    sortable: true,
-    style: {
-      minWidth: "150px"
-    }
+    body: baseTemplate
   }), /*#__PURE__*/React.createElement(Column, {
     field: "comision",
     header: "Comisi\xF3n",
-    body: commissionTemplate,
-    sortable: true,
-    style: {
-      minWidth: "150px"
-    }
+    body: commissionTemplate
   }), /*#__PURE__*/React.createElement(Column, {
     field: "retencion",
     header: "Retenci\xF3n",
-    body: retentionTemplate,
-    sortable: true,
-    style: {
-      minWidth: "150px"
-    }
+    body: retentionTemplate
   }), /*#__PURE__*/React.createElement(Column, {
     field: "netAmount",
     header: "Neto a pagar",
-    body: netAmountTemplate,
-    sortable: true,
-    style: {
-      minWidth: "150px"
-    }
+    body: netAmountTemplate
   }), /*#__PURE__*/React.createElement(Column, {
-    body: exportButtonTemplate,
+    field: "Type",
+    header: "Tipo",
+    body: typeTemplate
+  }), /*#__PURE__*/React.createElement(Column, {
+    field: "exportar",
     header: "Exportar",
+    body: exportButtonTemplate,
     style: {
       width: "120px"
     }
-  })), /*#__PURE__*/React.createElement("div", {
-    className: "p-3 border-top"
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "row align-items-center justify-content-between pe-0 fs-9 mt-3"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "col-auto d-flex"
   }, /*#__PURE__*/React.createElement("p", {
-    className: "mb-0 fw-semibold text-body"
-  }, "Mostrando ", getProfessionalCount(), " profesionales")))))))))))));
+    className: "mb-0 d-none d-sm-block me-3 fw-semibold text-body"
+  }, "Mostrando ", treeNodes.length, " profesionales"))))))))))));
 };

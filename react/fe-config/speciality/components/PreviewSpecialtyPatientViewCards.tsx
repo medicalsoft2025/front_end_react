@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useLoadUserPatientViewCards } from "../hooks/useLoadUserPatientViewCards";
 import { useCallPatient } from "../../../patients/hooks/useCallPatient";
+import UserManager from "../../../../services/userManager";
 
 interface PreviewSpecialtyPatientViewCardsProps {
     patientId?: string;
@@ -184,6 +185,11 @@ export const PreviewSpecialtyPatientViewCards = (
 
     const handleCardClick = (card: any) => {
         switch (card.id) {
+            case "consulta":
+                UserManager.onAuthChange(async (isAuthenticated, user) => {
+                    window.location.href = `consultas-especialidad?patient_id=${patientId}&especialidad=${user.specialty.name}`;
+                });
+                break;
             case "llamar-paciente":
                 if (!patientId) return;
                 llamarPaciente(patientId);

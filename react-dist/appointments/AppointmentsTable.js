@@ -10,7 +10,7 @@ import { appointmentStatesColors, appointmentStateColorsByKey, appointmentStateF
 import { ExamResultsFileForm } from "../exams/components/ExamResultsFileForm.js";
 import { SwalManager } from "../../services/alertManagerImported.js";
 import { RescheduleAppointmentModalV2 } from "./RescheduleAppointmentModalV2.js";
-import { getIndicativeByCountry, getUserLogged } from "../../services/utilidades.js";
+import { getUserLogged } from "../../services/utilidades.js";
 import { useMassMessaging } from "../hooks/useMassMessaging.js";
 import { CustomPRTable } from "../components/CustomPRTable.js";
 import { useTemplateBuilded } from "../hooks/useTemplateBuilded.js";
@@ -51,6 +51,7 @@ export const AppointmentsTable = () => {
       appointmentDate: selectedDate?.filter(date => !!date).map(date => date.toISOString().split("T")[0]).join(",")
     };
     if (selectedAppointmentType) {
+      console.log("🔍 Aplicando filtro de tipo de cita:", selectedAppointmentType);
       const typeNameMap = {
         "1": "Presencial",
         "2": "Virtual",
@@ -61,6 +62,7 @@ export const AppointmentsTable = () => {
         filters.appointmentType = typeName;
       }
     }
+    console.log("Filtros enviados:", filters);
     return filters;
   };
   const {
@@ -164,22 +166,20 @@ export const AppointmentsTable = () => {
       handleCancelAppointmentAction(rowData);
     };
     const handleShareAppointment = async () => {
-      if (rowData.patient.whatsapp_notifications) {
-        const dataTemplate = {
-          tenantId: tenant,
-          belongsTo: "citas-compartir",
-          type: "whatsapp"
-        };
-        const dataFormated = {
-          patient: rowData.patient,
-          assigned_user_availability: rowData.user_availability,
-          appointment_date: rowData.date,
-          appointment_time: rowData.time
-        };
-        const templateAppointments = await fetchTemplate(dataTemplate);
-        const finishTemplate = await switchTemplate(templateAppointments.template, "appointments", dataFormated);
-        await sendMessageWhatsapp(rowData.patient, finishTemplate, null);
-      }
+      const dataTemplate = {
+        tenantId: tenant,
+        belongsTo: "citas-compartir",
+        type: "whatsapp"
+      };
+      const dataFormated = {
+        patient: rowData.patient,
+        assigned_user_availability: rowData.user_availability,
+        appointment_date: rowData.date,
+        appointment_time: rowData.time
+      };
+      const templateAppointments = await fetchTemplate(dataTemplate);
+      const finishTemplate = await switchTemplate(templateAppointments.template, "appointments", dataFormated);
+      await sendMessageWhatsapp(rowData.patient, finishTemplate, null);
     };
     const handlePrintInvoice = () => {
       //@ts-ignore
@@ -197,11 +197,7 @@ export const AppointmentsTable = () => {
       //@ts-ignore
       sendInvoice(rowData.id, rowData.patientId);
     };
-
-    // Construir los items del menú manteniendo la misma lógica condicional
     const menuItems = [];
-
-    // Siempre agregar Generar preadmision
     menuItems.push({
       label: "Generar preadmision",
       icon: /*#__PURE__*/React.createElement("i", {
@@ -209,8 +205,6 @@ export const AppointmentsTable = () => {
       }),
       command: handleGeneratePreadmission
     });
-
-    // Agregar Realizar consulta si cumple condiciones
     if ((rowData.stateKey === "pending_consultation" || rowData.stateKey === "called" || rowData.stateKey === "in_consultation") && rowData.attentionType === "CONSULTATION" && patientId) {
       menuItems.push({
         label: "Realizar consulta",
@@ -220,8 +214,6 @@ export const AppointmentsTable = () => {
         command: handleMakeClinicalRecord
       });
     }
-
-    // Agregar acciones de examen si cumple condiciones
     if ((rowData.stateId === "2" || rowData.stateKey === "pending_consultation" || rowData.stateKey === "called" || rowData.stateKey === "in_consultation") && rowData.attentionType === "PROCEDURE" && patientId) {
       menuItems.push({
         label: "Realizar examen",
@@ -444,17 +436,10 @@ export const AppointmentsTable = () => {
   const handleCancelAppointmentAction = async data => {
     SwalManager.confirmCancel(async () => {
       await appointmentService.changeStatus(Number(data.id), "cancelled");
-      const dataTemplate = {
-        tenantId: tenant,
-        belongsTo: "cita-canelacion",
-        type: "whatsapp"
-      };
-      const templateAppointment = await fetchTemplate(dataTemplate);
-      const finishTemplate = await switchTemplate(templateAppointment.template, "appointments", data);
-      sendMessageWhatsapp(data.patient, finishTemplate, null);
       SwalManager.success({
         text: "Cita cancelada exitosamente"
       });
+      refresh();
     });
   };
   const sendMessageWhatsapp = useCallback(async (patient, templateFormatted, dataToFile) => {

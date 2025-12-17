@@ -109,7 +109,8 @@ export const RetentionConfig = ({
         accounting_account_reverse_id: retention.accounting_account_reverse_id,
         sell_accounting_account_id: retention.sell_accounting_account_id,
         sell_reverse_accounting_account_id: retention.sell_reverse_accounting_account_id,
-        description: retention.description || ""
+        description: retention.description || "",
+        tax_id: retention.tax_id
       };
       setInitialData(data);
     }

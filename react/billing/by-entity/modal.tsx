@@ -22,7 +22,7 @@ import {
   billingService,
   paymentMethodService,
   taxesService,
-  retentionsService
+  retentionsService,
 } from "../../../services/api/index.js";
 
 import { getUserLogged } from "../../../services/utilidades.js";
@@ -140,7 +140,10 @@ export const BillingByEntity: React.FC = () => {
 
   async function loadPaymentMethods() {
     const response = await paymentMethodService.getAll();
-    setPaymentMethods(response);
+    const paymentMethodsFiltered = response.filter(
+      (method: any) => method.payment_type === "sale"
+    );
+    setPaymentMethods(paymentMethodsFiltered);
   }
 
   async function loadTaxCharges() {
@@ -289,6 +292,29 @@ export const BillingByEntity: React.FC = () => {
   async function saveBillingByEntity() {
     let userLogged = getUserLogged();
     const formData: any = getValues();
+    const paymentMethodsLoaded: any[] = await paymentMethodService.getAll();
+    let paymentMethodDefault: any[] = [];
+
+    if (!paymentMethodChecked) {
+      const paymentMethodDefaultFiltered = paymentMethodsLoaded.filter(
+        (method: any) => method.category == "supplier_expiration"
+      )[0];
+      paymentMethodDefault = [
+        {
+          payment_method_id: paymentMethodDefaultFiltered.id,
+          payment_date: new Date().toISOString().slice(0, 10),
+          amount: totals.unitValue,
+        },
+      ];
+    } else {
+      paymentMethodDefault = [
+        {
+          payment_method_id: formData.paymentMethod.id,
+          payment_date: new Date().toISOString().slice(0, 10),
+          amount: totals.unitValue,
+        },
+      ];
+    }
 
     const payload = {
       child_invoice_ids: billingData.map(
@@ -307,10 +333,9 @@ export const BillingByEntity: React.FC = () => {
         discount: totals.copayment,
       },
       invoice_detail: [],
-      payments: [],
+      payments: paymentMethodDefault,
       observations: formData.observations,
     };
-
     try {
       const response = await billingService.storeByEntity(payload);
       AlertManager.success("Facturación creada exitosamente");

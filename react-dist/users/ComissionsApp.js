@@ -60,6 +60,7 @@ export const ComissionApp = () => {
       console.error("Error creating/updating comission config: ", error);
     } finally {
       setShowUserFormModal(false);
+      setCommission(null);
       await fetchCommissions();
     }
   };

@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from "react";
+import React from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { useState } from "react";
 import { CustomModal } from "../components/CustomModal";
@@ -11,9 +11,8 @@ import { Calendar } from "primereact/calendar";
 import { Nullable } from "primereact/ts-helpers";
 import {
     appointmentService,
-    templateService,
     userAvailabilityService,
-    userService
+    userService,
 } from "../../services/api";
 import { RadioButton } from "primereact/radiobutton";
 import { stringToDate } from "../../services/utilidades";
@@ -23,16 +22,8 @@ import {
     typeConsults,
 } from "../../services/commons";
 import { Checkbox } from "primereact/checkbox";
-import { useAppointmentBulkCreate } from "./hooks/useAppointmentBulkCreate";
 import { usePatientExamRecipes } from "../exam-recipes/hooks/usePatientExamRecipes";
 import { useProductsByType } from "../products/hooks/useProductsByType";
-import { useMassMessaging } from "../hooks/useMassMessaging";
-import { useTemplate } from "../hooks/useTemplate";
-import {
-    formatWhatsAppMessage,
-    getIndicativeByCountry,
-    formatDate,
-} from "../../services/utilidades";
 import { useAppointmentUpdate } from "./hooks/useAppointmentUpdate";
 
 export interface AppointmentFormInputs {
@@ -60,14 +51,21 @@ export interface FormAppointment extends AppointmentFormInputs {
     specialty_name: string;
 }
 
-export const RescheduleAppointmentModalV2 = ({ isOpen, onClose, appointmentId, onSuccess }) => {
+export const RescheduleAppointmentModalV2 = ({
+    isOpen,
+    onClose,
+    appointmentId,
+    onSuccess,
+}) => {
+    const [patientName, setPatientName] = useState("");
+    const [currentAppointment, setCurrentAppointment] = useState<any | null>(
+        null
+    );
 
-    const [patientName, setPatientName] = useState('');
-    const [currentAppointment, setCurrentAppointment] =
-        useState<any | null>(null);
-
-    const [appointmentDateDisabled, setAppointmentDateDisabled] = useState(true);
-    const [appointmentTimeDisabled, setAppointmentTimeDisabled] = useState(true);
+    const [appointmentDateDisabled, setAppointmentDateDisabled] =
+        useState(true);
+    const [appointmentTimeDisabled, setAppointmentTimeDisabled] =
+        useState(true);
     const [userAvailabilityDisabled, setUserAvailabilityDisabled] =
         useState(true);
 
@@ -77,9 +75,9 @@ export const RescheduleAppointmentModalV2 = ({ isOpen, onClose, appointmentId, o
     const [appointmentTimeOptions, setAppointmentTimeOptions] = useState<any[]>(
         []
     );
-    const [userAvailabilityOptions, setUserAvailabilityOptions] = useState<any[]>(
-        []
-    );
+    const [userAvailabilityOptions, setUserAvailabilityOptions] = useState<
+        any[]
+    >([]);
     const [assistantAvailabilityOptions, setAssistantAvailabilityOptions] =
         useState<any[]>([]);
 
@@ -89,24 +87,15 @@ export const RescheduleAppointmentModalV2 = ({ isOpen, onClose, appointmentId, o
     const [disabledProductIdField, setDisabledProductIdField] = useState(false);
 
     const { userSpecialties } = useUserSpecialties();
-    const { productsByType: products, fetchProductsByType } = useProductsByType();
+    const { productsByType: products, fetchProductsByType } =
+        useProductsByType();
     //const { createAppointmentBulk } = useAppointmentBulkCreate();
     const { updateAppointment } = useAppointmentUpdate();
-    const { patientExamRecipes, setPatientExamRecipes, fetchPatientExamRecipes } =
-        usePatientExamRecipes();
-    const { sendMessage: sendMessageAppointments, responseMsg, loading, error } = useMassMessaging();
-    const tenant = window.location.hostname.split(".")[0];
-    const dataTemplate = {
-        tenantId: tenant,
-        belongsTo: "citas-reagendamiento",
-        type: "whatsapp",
-    };
-    const { template, setTemplate, fetchTemplate } = useTemplate(dataTemplate);
-    const sendMessageAppointmentsRef = useRef(sendMessageAppointments);
-
-    useEffect(() => {
-        sendMessageAppointmentsRef.current = sendMessageAppointments;
-    }, [sendMessageAppointments]);
+    const {
+        patientExamRecipes,
+        setPatientExamRecipes,
+        fetchPatientExamRecipes,
+    } = usePatientExamRecipes();
 
     const consultationPurposes = Object.entries(purposeConsultations).map(
         ([key, value]) => ({
@@ -129,9 +118,6 @@ export const RescheduleAppointmentModalV2 = ({ isOpen, onClose, appointmentId, o
 
     const {
         control,
-        register,
-        reset,
-        handleSubmit,
         setValue,
         getValues,
         formState: { errors },
@@ -152,8 +138,7 @@ export const RescheduleAppointmentModalV2 = ({ isOpen, onClose, appointmentId, o
         const currentUser = await userService.getLoggedUser();
 
         const assignedUserAvailabilityId =
-            assignedUserAssistantAvailabilityId ||
-            assignedUserAvailability?.id;
+            assignedUserAssistantAvailabilityId || assignedUserAvailability?.id;
         const supervisorUserId = assignedUserAssistantAvailabilityId
             ? assignedUserAvailability?.id
             : null;
@@ -180,56 +165,13 @@ export const RescheduleAppointmentModalV2 = ({ isOpen, onClose, appointmentId, o
         const data = await mapAppointmentToServer();
 
         try {
-            await updateAppointment(
-                appointmentId,
-                data
-            );
-
-            await sendMessageWhatsapp(currentAppointment);
+            await updateAppointment(appointmentId, data);
 
             onSuccess();
         } catch (error) {
             console.error(error);
         }
     };
-
-    const sendMessageWhatsapp = useCallback(
-        async (appointment: any) => {
-
-            const replacements = {
-                NOMBRE_PACIENTE: `${appointment.patient.first_name} ${appointment.patient.middle_name} ${appointment.patient.last_name} ${appointment.patient.second_last_name}`,
-                ESPECIALISTA: `${appointment.user_availability.user.first_name} ${appointment.user_availability.user.middle_name} ${appointment.user_availability.user.last_name} ${appointment.user_availability.user.second_last_name}`,
-                ESPECIALIDAD: `${appointment.user_availability.user.specialty.name}`,
-                FECHA_CITA: `${formatDate(appointment.appointment_date, true)}`,
-                HORA_CITA: `${appointment.appointment_time}`,
-            };
-
-            try {
-                const response = await templateService.getTemplate(dataTemplate);
-
-                const templateFormatted = formatWhatsAppMessage(
-                    response.data.template,
-                    replacements
-                );
-
-                const dataMessage = {
-                    channel: "whatsapp",
-                    message_type: "text",
-                    recipients: [
-                        getIndicativeByCountry(appointment.patient.country_id) +
-                        appointment.patient.whatsapp,
-                    ],
-                    message: templateFormatted,
-                    webhook_url: "https://example.com/webhook",
-                };
-
-                await sendMessageAppointmentsRef.current(dataMessage);
-            } catch (error) {
-                console.error("Error:", error);
-            }
-        },
-        [sendMessageAppointments]
-    );
 
     const userSpecialty = useWatch({
         control,
@@ -269,7 +211,7 @@ export const RescheduleAppointmentModalV2 = ({ isOpen, onClose, appointmentId, o
     const assignedUserAssistantAvailabilityId = useWatch({
         control,
         name: "assigned_user_assistant_availability_id",
-    })
+    });
 
     const examRecipeId = useWatch({
         control,
@@ -277,31 +219,44 @@ export const RescheduleAppointmentModalV2 = ({ isOpen, onClose, appointmentId, o
     });
 
     useEffect(() => {
-
         if (appointmentId) {
-
             const asyncScope = async () => {
-
                 const appointment = await appointmentService.get(appointmentId);
                 const mappedAppointment = {
                     ...appointment,
-                    appointment_date: stringToDate(appointment.appointment_date),
-                    appointment_time: appointment.appointment_time.substring(0, 5),
-                }
+                    appointment_date: stringToDate(
+                        appointment.appointment_date
+                    ),
+                    appointment_time: appointment.appointment_time.substring(
+                        0,
+                        5
+                    ),
+                };
 
                 setCurrentAppointment(mappedAppointment);
-                setPatientName(`${appointment.patient.first_name || ''} ${appointment.patient.middle_name || ''} ${appointment.patient.last_name || ''} ${appointment.patient.second_last_name || ''}`);
+                setPatientName(
+                    `${appointment.patient.first_name || ""} ${
+                        appointment.patient.middle_name || ""
+                    } ${appointment.patient.last_name || ""} ${
+                        appointment.patient.second_last_name || ""
+                    }`
+                );
 
                 const userSpecialty = userSpecialties.find(
-                    (userSpecialty) => userSpecialty.id === appointment.user_availability.user.specialty.id
-                )
+                    (userSpecialty) =>
+                        userSpecialty.id ===
+                        appointment.user_availability.user.specialty.id
+                );
 
-                setValue('patient', appointment.patient);
-                setValue('patient_whatsapp', appointment.patient.whatsapp);
-                setValue('patient_email', appointment.patient.email);
-                setValue('user_specialty', userSpecialty || null);
-                setValue('product_id', appointment.product_id);
-                setValue('appointment_type', appointment.user_availability.appointment_type_id.toString());
+                setValue("patient", appointment.patient);
+                setValue("patient_whatsapp", appointment.patient.whatsapp);
+                setValue("patient_email", appointment.patient.email);
+                setValue("user_specialty", userSpecialty || null);
+                setValue("product_id", appointment.product_id);
+                setValue(
+                    "appointment_type",
+                    appointment.user_availability.appointment_type_id.toString()
+                );
             };
             asyncScope();
         }
@@ -371,7 +326,10 @@ export const RescheduleAppointmentModalV2 = ({ isOpen, onClose, appointmentId, o
 
                 setEnabledDates(availableDates);
 
-                updateAppointmentTimeOptions(availableBlocks, availableDates[0]);
+                updateAppointmentTimeOptions(
+                    availableBlocks,
+                    availableDates[0]
+                );
             };
             asyncScope();
         } else {
@@ -507,17 +465,25 @@ export const RescheduleAppointmentModalV2 = ({ isOpen, onClose, appointmentId, o
                 if (day.date === dateString) {
                     availableDoctors.push({
                         ...item,
-                        full_name: `${item.user.first_name || ""} ${item.user.middle_name || ""} ${item.user.last_name || ""} ${item.user.second_last_name || ""}`,
+                        full_name: `${item.user.first_name || ""} ${
+                            item.user.middle_name || ""
+                        } ${item.user.last_name || ""} ${
+                            item.user.second_last_name || ""
+                        }`,
                         id: item.availability_id,
-                        user_id: item.user.id // Agregamos el user_id para referencia
+                        user_id: item.user.id, // Agregamos el user_id para referencia
                     });
                 }
             });
         });
 
         // Eliminar duplicados
-        const uniqueDoctors = availableDoctors.filter((doctor, index, self) =>
-            index === self.findIndex((d) => d.availability_id === doctor.availability_id)
+        const uniqueDoctors = availableDoctors.filter(
+            (doctor, index, self) =>
+                index ===
+                self.findIndex(
+                    (d) => d.availability_id === doctor.availability_id
+                )
         );
 
         // Actualizar opciones de doctores
@@ -550,7 +516,7 @@ export const RescheduleAppointmentModalV2 = ({ isOpen, onClose, appointmentId, o
 
         // Buscar el doctor seleccionado
         const selectedDoctor = userAvailabilityOptions.find(
-            doc => doc.id === doctorId
+            (doc) => doc.id === doctorId
         );
 
         if (!selectedDoctor || !selectedDoctor.user.assistants) {
@@ -564,18 +530,26 @@ export const RescheduleAppointmentModalV2 = ({ isOpen, onClose, appointmentId, o
 
         availableBlocks.forEach((item) => {
             // Buscar disponibilidades de asistentes del doctor seleccionado
-            if (selectedDoctor.user.assistants.some(
-                (assistant: any) => assistant.id === item.user.id
-            )) {
+            if (
+                selectedDoctor.user.assistants.some(
+                    (assistant: any) => assistant.id === item.user.id
+                )
+            ) {
                 // Verificar que tenga disponibilidad en la fecha
-                const hasAvailability = item.days.some(day => day.date === dateString);
+                const hasAvailability = item.days.some(
+                    (day) => day.date === dateString
+                );
 
                 if (hasAvailability) {
                     availableAssistants.push({
                         ...item,
-                        full_name: `${item.user.first_name || ""} ${item.user.middle_name || ""} ${item.user.last_name || ""} ${item.user.second_last_name || ""}`,
+                        full_name: `${item.user.first_name || ""} ${
+                            item.user.middle_name || ""
+                        } ${item.user.last_name || ""} ${
+                            item.user.second_last_name || ""
+                        }`,
                         id: item.availability_id, // Usamos el ID de disponibilidad
-                        user_id: item.user.id // Guardamos también el user_id
+                        user_id: item.user.id, // Guardamos también el user_id
                     });
                 }
             }
@@ -611,7 +585,11 @@ export const RescheduleAppointmentModalV2 = ({ isOpen, onClose, appointmentId, o
         let options: any[] = [];
 
         blocks.forEach((block) => {
-            const slots = computeTimeSlots(block.start, block.end, block.duration);
+            const slots = computeTimeSlots(
+                block.start,
+                block.end,
+                block.duration
+            );
             options = options.concat(
                 slots.map((slot) => ({
                     label: slot,
@@ -621,14 +599,22 @@ export const RescheduleAppointmentModalV2 = ({ isOpen, onClose, appointmentId, o
         });
 
         // Eliminar duplicados y ordenar
-        let uniqueOptions = options.filter((option, index, self) =>
-            index === self.findIndex((o) => o.value === option.value)
-        ).sort((a, b) => a.value.localeCompare(b.value));
+        let uniqueOptions = options
+            .filter(
+                (option, index, self) =>
+                    index === self.findIndex((o) => o.value === option.value)
+            )
+            .sort((a, b) => a.value.localeCompare(b.value));
 
         // Filtrar horas pasadas si es la fecha actual
         const now = new Date();
-        const todayDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
-        const currentTime = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+        const todayDate = `${now.getFullYear()}-${String(
+            now.getMonth() + 1
+        ).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+        const currentTime = `${String(now.getHours()).padStart(
+            2,
+            "0"
+        )}:${String(now.getMinutes()).padStart(2, "0")}`;
 
         if (dateString === todayDate) {
             uniqueOptions = uniqueOptions.filter(
@@ -641,9 +627,17 @@ export const RescheduleAppointmentModalV2 = ({ isOpen, onClose, appointmentId, o
     };
 
     return (
-        <CustomModal show={isOpen} onHide={onClose} title={`Reagendar cita | ${patientName}`}>
+        <CustomModal
+            show={isOpen}
+            onHide={onClose}
+            title={`Reagendar cita | ${patientName}`}
+        >
             {/* Columna izquierda - Formulario */}
-            <form className="needs-validation row" noValidate onSubmit={onSubmit}>
+            <form
+                className="needs-validation row"
+                noValidate
+                onSubmit={onSubmit}
+            >
                 <div className="col-12 px-3 mb-3">
                     <div className="row">
                         <div className="col-md-12">
@@ -651,10 +645,15 @@ export const RescheduleAppointmentModalV2 = ({ isOpen, onClose, appointmentId, o
                                 <Controller
                                     name="user_specialty"
                                     control={control}
-                                    rules={{ required: "Este campo es requerido" }}
+                                    rules={{
+                                        required: "Este campo es requerido",
+                                    }}
                                     render={({ field }) => (
                                         <>
-                                            <label htmlFor={field.name} className="form-label">
+                                            <label
+                                                htmlFor={field.name}
+                                                className="form-label"
+                                            >
                                                 Especialidad médica *
                                             </label>
                                             <Dropdown
@@ -665,7 +664,8 @@ export const RescheduleAppointmentModalV2 = ({ isOpen, onClose, appointmentId, o
                                                 showClear
                                                 placeholder="Seleccione una especialidad"
                                                 className={classNames("w-100", {
-                                                    "p-invalid": errors.user_specialty,
+                                                    "p-invalid":
+                                                        errors.user_specialty,
                                                 })}
                                                 appendTo={"self"}
                                                 {...field}
@@ -704,20 +704,29 @@ export const RescheduleAppointmentModalV2 = ({ isOpen, onClose, appointmentId, o
                                             control={control}
                                             render={({ field }) => (
                                                 <>
-                                                    <label htmlFor={field.name} className="form-label">
+                                                    <label
+                                                        htmlFor={field.name}
+                                                        className="form-label"
+                                                    >
                                                         Receta de examen
                                                     </label>
                                                     <Dropdown
                                                         inputId={field.name}
-                                                        options={patientExamRecipes}
+                                                        options={
+                                                            patientExamRecipes
+                                                        }
                                                         optionLabel="label"
                                                         optionValue="id"
                                                         filter
                                                         showClear
                                                         placeholder="Seleccione una receta de examen"
-                                                        className={classNames("w-100", {
-                                                            "p-invalid": errors.exam_recipe_id,
-                                                        })}
+                                                        className={classNames(
+                                                            "w-100",
+                                                            {
+                                                                "p-invalid":
+                                                                    errors.exam_recipe_id,
+                                                            }
+                                                        )}
                                                         appendTo={"self"}
                                                         {...field}
                                                     ></Dropdown>
@@ -730,33 +739,57 @@ export const RescheduleAppointmentModalV2 = ({ isOpen, onClose, appointmentId, o
                             )}
 
                             {showUserSpecialtyError && (
-                                <div className="alert alert-danger" role="alert">
-                                    No hay especialistas de: <span>{userSpecialtyError}</span>{" "}
+                                <div
+                                    className="alert alert-danger"
+                                    role="alert"
+                                >
+                                    No hay especialistas de:{" "}
+                                    <span>{userSpecialtyError}</span>{" "}
                                     disponibles en este momento
                                 </div>
                             )}
 
                             <div className="mb-3">
-                                <label className="form-label mb-2">Tipo de cita *</label>
+                                <label className="form-label mb-2">
+                                    Tipo de cita *
+                                </label>
                                 <div className="d-flex flex-wrap gap-3">
                                     <div className="d-flex align-items-center gap-2">
                                         <Controller
                                             name="appointment_type"
                                             control={control}
-                                            rules={{ required: "Este campo es requerido" }}
+                                            rules={{
+                                                required:
+                                                    "Este campo es requerido",
+                                            }}
                                             render={({ field }) => (
                                                 <>
                                                     <RadioButton
-                                                        inputId={field.name + "1"}
-                                                        checked={appointmentType === "1"}
-                                                        className={classNames("", {
-                                                            "p-invalid": errors.appointment_type,
-                                                        })}
+                                                        inputId={
+                                                            field.name + "1"
+                                                        }
+                                                        checked={
+                                                            appointmentType ===
+                                                            "1"
+                                                        }
+                                                        className={classNames(
+                                                            "",
+                                                            {
+                                                                "p-invalid":
+                                                                    errors.appointment_type,
+                                                            }
+                                                        )}
                                                         value="1"
-                                                        onChange={(e) => field.onChange(e.value)}
+                                                        onChange={(e) =>
+                                                            field.onChange(
+                                                                e.value
+                                                            )
+                                                        }
                                                     />
                                                     <label
-                                                        htmlFor={field.name + "1"}
+                                                        htmlFor={
+                                                            field.name + "1"
+                                                        }
                                                         className="ml-2 form-check-label"
                                                     >
                                                         Presencial
@@ -769,20 +802,38 @@ export const RescheduleAppointmentModalV2 = ({ isOpen, onClose, appointmentId, o
                                         <Controller
                                             name="appointment_type"
                                             control={control}
-                                            rules={{ required: "Este campo es requerido" }}
+                                            rules={{
+                                                required:
+                                                    "Este campo es requerido",
+                                            }}
                                             render={({ field }) => (
                                                 <>
                                                     <RadioButton
-                                                        inputId={field.name + "3"}
-                                                        checked={appointmentType === "3"}
-                                                        className={classNames("", {
-                                                            "p-invalid": errors.appointment_type,
-                                                        })}
-                                                        onChange={(e) => field.onChange(e.value)}
+                                                        inputId={
+                                                            field.name + "3"
+                                                        }
+                                                        checked={
+                                                            appointmentType ===
+                                                            "3"
+                                                        }
+                                                        className={classNames(
+                                                            "",
+                                                            {
+                                                                "p-invalid":
+                                                                    errors.appointment_type,
+                                                            }
+                                                        )}
+                                                        onChange={(e) =>
+                                                            field.onChange(
+                                                                e.value
+                                                            )
+                                                        }
                                                         value="3"
                                                     />
                                                     <label
-                                                        htmlFor={field.name + "3"}
+                                                        htmlFor={
+                                                            field.name + "3"
+                                                        }
                                                         className="ml-2 form-check-label"
                                                     >
                                                         Domiciliaria
@@ -795,20 +846,38 @@ export const RescheduleAppointmentModalV2 = ({ isOpen, onClose, appointmentId, o
                                         <Controller
                                             name="appointment_type"
                                             control={control}
-                                            rules={{ required: "Este campo es requerido" }}
+                                            rules={{
+                                                required:
+                                                    "Este campo es requerido",
+                                            }}
                                             render={({ field }) => (
                                                 <>
                                                     <RadioButton
-                                                        inputId={field.name + "2"}
-                                                        checked={appointmentType === "2"}
-                                                        className={classNames("", {
-                                                            "p-invalid": errors.appointment_type,
-                                                        })}
-                                                        onChange={(e) => field.onChange(e.value)}
+                                                        inputId={
+                                                            field.name + "2"
+                                                        }
+                                                        checked={
+                                                            appointmentType ===
+                                                            "2"
+                                                        }
+                                                        className={classNames(
+                                                            "",
+                                                            {
+                                                                "p-invalid":
+                                                                    errors.appointment_type,
+                                                            }
+                                                        )}
+                                                        onChange={(e) =>
+                                                            field.onChange(
+                                                                e.value
+                                                            )
+                                                        }
                                                         value="2"
                                                     />
                                                     <label
-                                                        htmlFor={field.name + "2"}
+                                                        htmlFor={
+                                                            field.name + "2"
+                                                        }
                                                         className="ml-2 form-check-label"
                                                     >
                                                         Virtual
@@ -826,21 +895,31 @@ export const RescheduleAppointmentModalV2 = ({ isOpen, onClose, appointmentId, o
                                 <Controller
                                     name="appointment_date"
                                     control={control}
-                                    rules={{ required: "Este campo es requerido" }}
+                                    rules={{
+                                        required: "Este campo es requerido",
+                                    }}
                                     render={({ field }) => (
                                         <>
-                                            <label htmlFor={field.name} className="form-label">
+                                            <label
+                                                htmlFor={field.name}
+                                                className="form-label"
+                                            >
                                                 Fecha de la consulta *
                                             </label>
                                             <Calendar
                                                 id={field.name}
                                                 value={field.value}
-                                                onChange={(e) => field.onChange(e.value)}
+                                                onChange={(e) =>
+                                                    field.onChange(e.value)
+                                                }
                                                 className={classNames("w-100", {
-                                                    "p-invalid": errors.appointment_date,
+                                                    "p-invalid":
+                                                        errors.appointment_date,
                                                 })}
                                                 appendTo={"self"}
-                                                disabled={appointmentDateDisabled}
+                                                disabled={
+                                                    appointmentDateDisabled
+                                                }
                                                 enabledDates={enabledDates}
                                                 placeholder="Seleccione una fecha"
                                             />
@@ -854,29 +933,41 @@ export const RescheduleAppointmentModalV2 = ({ isOpen, onClose, appointmentId, o
                                 <Controller
                                     name="assigned_user_availability"
                                     control={control}
-                                    rules={{ required: "Este campo es requerido" }}
+                                    rules={{
+                                        required: "Este campo es requerido",
+                                    }}
                                     render={({ field }) => (
                                         <>
-                                            <label htmlFor={field.name} className="form-label">
+                                            <label
+                                                htmlFor={field.name}
+                                                className="form-label"
+                                            >
                                                 Doctor(a) *
                                             </label>
                                             <Dropdown
                                                 inputId={field.name}
-                                                options={userAvailabilityOptions}
+                                                options={
+                                                    userAvailabilityOptions
+                                                }
                                                 optionLabel="full_name"
                                                 filter
                                                 placeholder="Seleccione un usuario"
                                                 className={classNames("w-100", {
-                                                    "p-invalid": errors.assigned_user_availability,
+                                                    "p-invalid":
+                                                        errors.assigned_user_availability,
                                                 })}
                                                 appendTo={"self"}
-                                                disabled={userAvailabilityDisabled}
+                                                disabled={
+                                                    userAvailabilityDisabled
+                                                }
                                                 {...field}
                                             ></Dropdown>
                                         </>
                                     )}
                                 />
-                                {getFormErrorMessage("assigned_user_availability")}
+                                {getFormErrorMessage(
+                                    "assigned_user_availability"
+                                )}
                             </div>
 
                             {assistantAvailabilityOptions.length > 0 && (
@@ -887,23 +978,33 @@ export const RescheduleAppointmentModalV2 = ({ isOpen, onClose, appointmentId, o
                                             control={control}
                                             render={({ field }) => (
                                                 <>
-                                                    <label htmlFor={field.name} className="form-label">
+                                                    <label
+                                                        htmlFor={field.name}
+                                                        className="form-label"
+                                                    >
                                                         Asistente
                                                     </label>
                                                     <Dropdown
                                                         inputId={field.name}
-                                                        options={assistantAvailabilityOptions}
+                                                        options={
+                                                            assistantAvailabilityOptions
+                                                        }
                                                         optionLabel="full_name"
                                                         optionValue="id"
                                                         filter
                                                         showClear
                                                         placeholder="Seleccione un asistente"
-                                                        className={classNames("w-100", {
-                                                            "p-invalid":
-                                                                errors.assigned_user_assistant_availability_id,
-                                                        })}
+                                                        className={classNames(
+                                                            "w-100",
+                                                            {
+                                                                "p-invalid":
+                                                                    errors.assigned_user_assistant_availability_id,
+                                                            }
+                                                        )}
                                                         appendTo={"self"}
-                                                        disabled={userAvailabilityDisabled}
+                                                        disabled={
+                                                            userAvailabilityDisabled
+                                                        }
                                                         {...field}
                                                     ></Dropdown>
                                                 </>
@@ -917,24 +1018,34 @@ export const RescheduleAppointmentModalV2 = ({ isOpen, onClose, appointmentId, o
                                 <Controller
                                     name="appointment_time"
                                     control={control}
-                                    rules={{ required: "Este campo es requerido" }}
+                                    rules={{
+                                        required: "Este campo es requerido",
+                                    }}
                                     render={({ field }) => (
                                         <>
-                                            <label htmlFor={field.name} className="form-label">
+                                            <label
+                                                htmlFor={field.name}
+                                                className="form-label"
+                                            >
                                                 Hora de la consulta *
                                             </label>
                                             <Dropdown
                                                 inputId={field.name}
                                                 options={appointmentTimeOptions}
-                                                virtualScrollerOptions={{ itemSize: 38 }}
+                                                virtualScrollerOptions={{
+                                                    itemSize: 38,
+                                                }}
                                                 optionLabel="label"
                                                 filter
                                                 placeholder="Seleccione una hora"
                                                 className={classNames("w-100", {
-                                                    "p-invalid": errors.appointment_time,
+                                                    "p-invalid":
+                                                        errors.appointment_time,
                                                 })}
                                                 appendTo={"self"}
-                                                disabled={appointmentTimeDisabled}
+                                                disabled={
+                                                    appointmentTimeDisabled
+                                                }
                                                 {...field}
                                             ></Dropdown>
                                         </>
@@ -949,10 +1060,16 @@ export const RescheduleAppointmentModalV2 = ({ isOpen, onClose, appointmentId, o
                                         <Controller
                                             name="product_id"
                                             control={control}
-                                            rules={{ required: "Este campo es requerido" }}
+                                            rules={{
+                                                required:
+                                                    "Este campo es requerido",
+                                            }}
                                             render={({ field }) => (
                                                 <>
-                                                    <label htmlFor={field.name} className="form-label">
+                                                    <label
+                                                        htmlFor={field.name}
+                                                        className="form-label"
+                                                    >
                                                         Procedimiento *
                                                     </label>
                                                     <Dropdown
@@ -960,16 +1077,24 @@ export const RescheduleAppointmentModalV2 = ({ isOpen, onClose, appointmentId, o
                                                         options={products}
                                                         optionLabel="label"
                                                         optionValue="id"
-                                                        virtualScrollerOptions={{ itemSize: 38 }}
+                                                        virtualScrollerOptions={{
+                                                            itemSize: 38,
+                                                        }}
                                                         filter
                                                         showClear
                                                         placeholder="Seleccione un procedimiento"
-                                                        className={classNames("w-100", {
-                                                            "p-invalid": errors.product_id,
-                                                        })}
+                                                        className={classNames(
+                                                            "w-100",
+                                                            {
+                                                                "p-invalid":
+                                                                    errors.product_id,
+                                                            }
+                                                        )}
                                                         appendTo={"self"}
                                                         {...field}
-                                                        disabled={disabledProductIdField}
+                                                        disabled={
+                                                            disabledProductIdField
+                                                        }
                                                     ></Dropdown>
                                                 </>
                                             )}
@@ -980,30 +1105,45 @@ export const RescheduleAppointmentModalV2 = ({ isOpen, onClose, appointmentId, o
                                         <Controller
                                             name="consultation_purpose"
                                             control={control}
-                                            rules={{ required: "Este campo es requerido" }}
+                                            rules={{
+                                                required:
+                                                    "Este campo es requerido",
+                                            }}
                                             render={({ field }) => (
                                                 <>
-                                                    <label htmlFor={field.name} className="form-label">
-                                                        Finalidad de la consulta *
+                                                    <label
+                                                        htmlFor={field.name}
+                                                        className="form-label"
+                                                    >
+                                                        Finalidad de la consulta
+                                                        *
                                                     </label>
                                                     <Dropdown
                                                         inputId={field.name}
-                                                        options={consultationPurposes}
+                                                        options={
+                                                            consultationPurposes
+                                                        }
                                                         optionValue="value"
                                                         optionLabel="label"
                                                         filter
                                                         showClear
                                                         placeholder="Seleccione una finalidad"
-                                                        className={classNames("w-100", {
-                                                            "p-invalid": errors.consultation_purpose,
-                                                        })}
+                                                        className={classNames(
+                                                            "w-100",
+                                                            {
+                                                                "p-invalid":
+                                                                    errors.consultation_purpose,
+                                                            }
+                                                        )}
                                                         appendTo={"self"}
                                                         {...field}
                                                     ></Dropdown>
                                                 </>
                                             )}
                                         />
-                                        {getFormErrorMessage("consultation_purpose")}
+                                        {getFormErrorMessage(
+                                            "consultation_purpose"
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -1014,30 +1154,44 @@ export const RescheduleAppointmentModalV2 = ({ isOpen, onClose, appointmentId, o
                                         <Controller
                                             name="consultation_type"
                                             control={control}
-                                            rules={{ required: "Este campo es requerido" }}
+                                            rules={{
+                                                required:
+                                                    "Este campo es requerido",
+                                            }}
                                             render={({ field }) => (
                                                 <>
-                                                    <label htmlFor={field.name} className="form-label">
+                                                    <label
+                                                        htmlFor={field.name}
+                                                        className="form-label"
+                                                    >
                                                         Tipo de consulta *
                                                     </label>
                                                     <Dropdown
                                                         inputId={field.name}
-                                                        options={consultationTypes}
+                                                        options={
+                                                            consultationTypes
+                                                        }
                                                         optionLabel="label"
                                                         optionValue="value"
                                                         filter
                                                         showClear
                                                         placeholder="Seleccione un tipo de consulta"
-                                                        className={classNames("w-100", {
-                                                            "p-invalid": errors.consultation_type,
-                                                        })}
+                                                        className={classNames(
+                                                            "w-100",
+                                                            {
+                                                                "p-invalid":
+                                                                    errors.consultation_type,
+                                                            }
+                                                        )}
                                                         appendTo={"self"}
                                                         {...field}
                                                     ></Dropdown>
                                                 </>
                                             )}
                                         />
-                                        {getFormErrorMessage("consultation_type")}
+                                        {getFormErrorMessage(
+                                            "consultation_type"
+                                        )}
                                     </div>
                                     <div className="col-md-6">
                                         <Controller
@@ -1045,7 +1199,10 @@ export const RescheduleAppointmentModalV2 = ({ isOpen, onClose, appointmentId, o
                                             control={control}
                                             render={({ field }) => (
                                                 <>
-                                                    <label htmlFor={field.name} className="form-label">
+                                                    <label
+                                                        htmlFor={field.name}
+                                                        className="form-label"
+                                                    >
                                                         Causa externa
                                                     </label>
                                                     <Dropdown
@@ -1056,7 +1213,9 @@ export const RescheduleAppointmentModalV2 = ({ isOpen, onClose, appointmentId, o
                                                         filter
                                                         showClear
                                                         placeholder="Seleccione una causa externa"
-                                                        className={classNames("w-100")}
+                                                        className={classNames(
+                                                            "w-100"
+                                                        )}
                                                         appendTo={"self"}
                                                         {...field}
                                                     ></Dropdown>
@@ -1078,10 +1237,7 @@ export const RescheduleAppointmentModalV2 = ({ isOpen, onClose, appointmentId, o
                     >
                         <i className="fas fa-arrow-left"></i> Cerrar
                     </button>
-                    <button
-                        type="submit"
-                        className="btn btn-primary my-0"
-                    >
+                    <button type="submit" className="btn btn-primary my-0">
                         <i className="fas fa-bookmark"></i> Guardar
                     </button>
                 </div>

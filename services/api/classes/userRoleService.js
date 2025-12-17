@@ -4,6 +4,9 @@ export class UserRoleService extends BaseApiService {
     async storeMenusPermissions(data) {
         return await this.httpClient.post(`${this.microservice}/${this.endpoint}/menus/permissions`, data);
     }
+    async updatePermissions(id, data) {
+        return await this.httpClient.post(`${this.microservice}/${this.endpoint}/permissions/${id}`, data);
+    }
     async updateMenusPermissions(id, data) {
         return await this.httpClient.put(`${this.microservice}/${this.endpoint}/menus/permissions/${id}`, data);
     }

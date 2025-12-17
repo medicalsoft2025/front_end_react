@@ -1,5 +1,5 @@
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
-import React, { useCallback, useRef } from "react";
+import React from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { useState } from "react";
 import { CustomModal } from "../components/CustomModal.js";
@@ -8,16 +8,13 @@ import { Dropdown } from "primereact/dropdown";
 import { useUserSpecialties } from "../user-specialties/hooks/useUserSpecialties.js";
 import { useEffect } from "react";
 import { Calendar } from "primereact/calendar";
-import { appointmentService, templateService, userAvailabilityService, userService } from "../../services/api/index.js";
+import { appointmentService, userAvailabilityService, userService } from "../../services/api/index.js";
 import { RadioButton } from "primereact/radiobutton";
 import { stringToDate } from "../../services/utilidades.js";
 import { externalCauses as commonExternalCauses, purposeConsultations, typeConsults } from "../../services/commons.js";
 import { Checkbox } from "primereact/checkbox";
 import { usePatientExamRecipes } from "../exam-recipes/hooks/usePatientExamRecipes.js";
 import { useProductsByType } from "../products/hooks/useProductsByType.js";
-import { useMassMessaging } from "../hooks/useMassMessaging.js";
-import { useTemplate } from "../hooks/useTemplate.js";
-import { formatWhatsAppMessage, getIndicativeByCountry, formatDate } from "../../services/utilidades.js";
 import { useAppointmentUpdate } from "./hooks/useAppointmentUpdate.js";
 export const RescheduleAppointmentModalV2 = ({
   isOpen,
@@ -25,7 +22,7 @@ export const RescheduleAppointmentModalV2 = ({
   appointmentId,
   onSuccess
 }) => {
-  const [patientName, setPatientName] = useState('');
+  const [patientName, setPatientName] = useState("");
   const [currentAppointment, setCurrentAppointment] = useState(null);
   const [appointmentDateDisabled, setAppointmentDateDisabled] = useState(true);
   const [appointmentTimeDisabled, setAppointmentTimeDisabled] = useState(true);
@@ -54,27 +51,6 @@ export const RescheduleAppointmentModalV2 = ({
     setPatientExamRecipes,
     fetchPatientExamRecipes
   } = usePatientExamRecipes();
-  const {
-    sendMessage: sendMessageAppointments,
-    responseMsg,
-    loading,
-    error
-  } = useMassMessaging();
-  const tenant = window.location.hostname.split(".")[0];
-  const dataTemplate = {
-    tenantId: tenant,
-    belongsTo: "citas-reagendamiento",
-    type: "whatsapp"
-  };
-  const {
-    template,
-    setTemplate,
-    fetchTemplate
-  } = useTemplate(dataTemplate);
-  const sendMessageAppointmentsRef = useRef(sendMessageAppointments);
-  useEffect(() => {
-    sendMessageAppointmentsRef.current = sendMessageAppointments;
-  }, [sendMessageAppointments]);
   const consultationPurposes = Object.entries(purposeConsultations).map(([key, value]) => ({
     value: key,
     label: value
@@ -89,9 +65,6 @@ export const RescheduleAppointmentModalV2 = ({
   }));
   const {
     control,
-    register,
-    reset,
-    handleSubmit,
     setValue,
     getValues,
     formState: {
@@ -133,35 +106,11 @@ export const RescheduleAppointmentModalV2 = ({
     const data = await mapAppointmentToServer();
     try {
       await updateAppointment(appointmentId, data);
-      await sendMessageWhatsapp(currentAppointment);
       onSuccess();
     } catch (error) {
       console.error(error);
     }
   };
-  const sendMessageWhatsapp = useCallback(async appointment => {
-    const replacements = {
-      NOMBRE_PACIENTE: `${appointment.patient.first_name} ${appointment.patient.middle_name} ${appointment.patient.last_name} ${appointment.patient.second_last_name}`,
-      ESPECIALISTA: `${appointment.user_availability.user.first_name} ${appointment.user_availability.user.middle_name} ${appointment.user_availability.user.last_name} ${appointment.user_availability.user.second_last_name}`,
-      ESPECIALIDAD: `${appointment.user_availability.user.specialty.name}`,
-      FECHA_CITA: `${formatDate(appointment.appointment_date, true)}`,
-      HORA_CITA: `${appointment.appointment_time}`
-    };
-    try {
-      const response = await templateService.getTemplate(dataTemplate);
-      const templateFormatted = formatWhatsAppMessage(response.data.template, replacements);
-      const dataMessage = {
-        channel: "whatsapp",
-        message_type: "text",
-        recipients: [getIndicativeByCountry(appointment.patient.country_id) + appointment.patient.whatsapp],
-        message: templateFormatted,
-        webhook_url: "https://example.com/webhook"
-      };
-      await sendMessageAppointmentsRef.current(dataMessage);
-    } catch (error) {
-      console.error("Error:", error);
-    }
-  }, [sendMessageAppointments]);
   const userSpecialty = useWatch({
     control,
     name: "user_specialty"
@@ -208,14 +157,14 @@ export const RescheduleAppointmentModalV2 = ({
           appointment_time: appointment.appointment_time.substring(0, 5)
         };
         setCurrentAppointment(mappedAppointment);
-        setPatientName(`${appointment.patient.first_name || ''} ${appointment.patient.middle_name || ''} ${appointment.patient.last_name || ''} ${appointment.patient.second_last_name || ''}`);
+        setPatientName(`${appointment.patient.first_name || ""} ${appointment.patient.middle_name || ""} ${appointment.patient.last_name || ""} ${appointment.patient.second_last_name || ""}`);
         const userSpecialty = userSpecialties.find(userSpecialty => userSpecialty.id === appointment.user_availability.user.specialty.id);
-        setValue('patient', appointment.patient);
-        setValue('patient_whatsapp', appointment.patient.whatsapp);
-        setValue('patient_email', appointment.patient.email);
-        setValue('user_specialty', userSpecialty || null);
-        setValue('product_id', appointment.product_id);
-        setValue('appointment_type', appointment.user_availability.appointment_type_id.toString());
+        setValue("patient", appointment.patient);
+        setValue("patient_whatsapp", appointment.patient.whatsapp);
+        setValue("patient_email", appointment.patient.email);
+        setValue("user_specialty", userSpecialty || null);
+        setValue("product_id", appointment.product_id);
+        setValue("appointment_type", appointment.user_availability.appointment_type_id.toString());
       };
       asyncScope();
     }
@@ -544,7 +493,7 @@ export const RescheduleAppointmentModalV2 = ({
   }), getFormErrorMessage("exam_recipe_id"))), showUserSpecialtyError && /*#__PURE__*/React.createElement("div", {
     className: "alert alert-danger",
     role: "alert"
-  }, "No hay especialistas de: ", /*#__PURE__*/React.createElement("span", null, userSpecialtyError), " ", "disponibles en este momento"), /*#__PURE__*/React.createElement("div", {
+  }, "No hay especialistas de:", " ", /*#__PURE__*/React.createElement("span", null, userSpecialtyError), " ", "disponibles en este momento"), /*#__PURE__*/React.createElement("div", {
     className: "mb-3"
   }, /*#__PURE__*/React.createElement("label", {
     className: "form-label mb-2"

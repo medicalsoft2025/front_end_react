@@ -1,23 +1,24 @@
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
-import React, { useState, useEffect } from 'react';
-import { useForm, Controller } from 'react-hook-form';
-import { InputText } from 'primereact/inputtext';
-import { Dropdown } from 'primereact/dropdown';
+import React, { useState, useEffect } from "react";
+import { useForm, Controller } from "react-hook-form";
+import { InputText } from "primereact/inputtext";
+import { Dropdown } from "primereact/dropdown";
 import { menuService, permissionService } from "../../../services/api/index.js";
-import { PrimeReactProvider } from 'primereact/api';
-import { Button } from 'primereact/button';
+import { PrimeReactProvider } from "primereact/api";
+import { ButtonGroup } from "primereact/buttongroup";
+import { Button } from "primereact/button";
 const roleGroupOptions = [{
-  label: 'Médico',
-  value: 'DOCTOR'
+  label: "Médico",
+  value: "DOCTOR"
 }, {
-  label: 'Administrativo',
-  value: 'ADMIN'
+  label: "Administrativo",
+  value: "ADMIN"
 }, {
-  label: 'Asistente médico',
-  value: 'DOCTOR_ASSISTANT'
+  label: "Asistente médico",
+  value: "DOCTOR_ASSISTANT"
 }, {
-  label: 'Auxiliar',
-  value: 'ASSISTANT'
+  label: "Auxiliar",
+  value: "ASSISTANT"
 }];
 
 // Componente de acordeón recursivo - TODOS los niveles con el mismo diseño
@@ -84,8 +85,8 @@ const MenuAccordion = ({
       htmlFor: `menu-${menu.id}`,
       onClick: () => hasChildren(menu) && toggleItem(menu.id),
       style: {
-        cursor: hasChildren(menu) ? 'pointer' : 'default',
-        color: '#2c3e50'
+        cursor: hasChildren(menu) ? "pointer" : "default",
+        color: "#2c3e50"
       }
     }, menu.label, hasChildren(menu) && /*#__PURE__*/React.createElement("span", {
       className: "badge bg-primary ms-2"
@@ -120,7 +121,7 @@ const MenuAccordion = ({
       }
     }, /*#__PURE__*/React.createElement("i", {
       className: "fas fa-check me-1"
-    }), " Todos"), /*#__PURE__*/React.createElement("button", {
+    }), " ", "Todos"), /*#__PURE__*/React.createElement("button", {
       type: "button",
       className: "btn btn-outline-danger btn-sm",
       onClick: () => {
@@ -132,7 +133,7 @@ const MenuAccordion = ({
       }
     }, /*#__PURE__*/React.createElement("i", {
       className: "fas fa-times me-1"
-    }), " Ninguno")))));
+    }), " ", "Ninguno")))));
   }));
 };
 export const UserRoleForm = ({
@@ -214,8 +215,8 @@ export const UserRoleForm = ({
           setSelectedPermissions(initialData.permissions || []);
         } else {
           reset({
-            name: '',
-            group: ''
+            name: "",
+            group: ""
           });
           setSelectedPermissions([]);
           setSelectedMenuIds([]);
@@ -229,7 +230,7 @@ export const UserRoleForm = ({
           setPermissionCategories([]);
         }
       } catch (error) {
-        console.error('Error fetching data:', error);
+        console.error("Error fetching data:", error);
       } finally {
         setLoading(false);
       }
@@ -271,7 +272,7 @@ export const UserRoleForm = ({
   }
   return /*#__PURE__*/React.createElement(PrimeReactProvider, {
     value: {
-      appendTo: 'self',
+      appendTo: "self",
       zIndex: {
         overlay: 100000
       }
@@ -287,10 +288,10 @@ export const UserRoleForm = ({
     htmlFor: "name"
   }, "Nombre del Rol"), /*#__PURE__*/React.createElement(InputText, _extends({
     id: "name"
-  }, register('name', {
-    required: 'Nombre es requerido'
+  }, register("name", {
+    required: "Nombre es requerido"
   }), {
-    className: `form-control ${errors.name ? 'is-invalid' : ''}`
+    className: `form-control ${errors.name ? "is-invalid" : ""}`
   })), errors.name && /*#__PURE__*/React.createElement("div", {
     className: "invalid-feedback"
   }, errors.name.message)), /*#__PURE__*/React.createElement("div", {
@@ -302,14 +303,14 @@ export const UserRoleForm = ({
     name: "group",
     control: control,
     rules: {
-      required: 'Grupo de rol es requerido'
+      required: "Grupo de rol es requerido"
     },
     render: ({
       field
     }) => /*#__PURE__*/React.createElement(Dropdown, _extends({}, field, {
       options: roleGroupOptions,
       placeholder: "Seleccione grupo",
-      className: `w-100 ${errors.group ? 'is-invalid' : ''}`
+      className: `w-100 ${errors.group ? "is-invalid" : ""}`
     }))
   }), errors.group && /*#__PURE__*/React.createElement("div", {
     className: "invalid-feedback"
@@ -325,11 +326,11 @@ export const UserRoleForm = ({
     className: "mb-0"
   }, "Men\xFAs"), /*#__PURE__*/React.createElement("small", {
     className: "text-muted"
-  }, selectedMenuIds.length, " de ", getAllMenuIdsFromTree(allMenus).length, " seleccionados"))), /*#__PURE__*/React.createElement("div", {
+  }, selectedMenuIds.length, " de", " ", getAllMenuIdsFromTree(allMenus).length, " ", "seleccionados"))), /*#__PURE__*/React.createElement("div", {
     className: "card-body",
     style: {
-      maxHeight: '600px',
-      overflowY: 'auto'
+      maxHeight: "600px",
+      overflowY: "auto"
     }
   }, allMenus.length === 0 ? /*#__PURE__*/React.createElement("div", {
     className: "alert alert-warning text-center"
@@ -343,9 +344,7 @@ export const UserRoleForm = ({
     className: "d-flex justify-content-between align-items-center"
   }, /*#__PURE__*/React.createElement("small", {
     className: "text-muted"
-  }, "Selecci\xF3n global:"), /*#__PURE__*/React.createElement("div", {
-    className: "d-flex gap-2 align-items-center"
-  }, /*#__PURE__*/React.createElement(Button, {
+  }, "Selecci\xF3n global:"), /*#__PURE__*/React.createElement(ButtonGroup, null, /*#__PURE__*/React.createElement(Button, {
     type: "button",
     className: "p-button-success",
     onClick: () => {
@@ -375,10 +374,30 @@ export const UserRoleForm = ({
   }, "Permisos")), /*#__PURE__*/React.createElement("div", {
     className: "card-body",
     style: {
-      maxHeight: '600px',
-      overflowY: 'auto'
+      maxHeight: "600px",
+      overflowY: "auto"
     }
-  }, permissionCategories.length === 0 ? /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "mb-4"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "form-check form-switch mb-3"
+  }, /*#__PURE__*/React.createElement("input", {
+    className: "form-check-input",
+    type: "checkbox",
+    id: "allPermissions",
+    checked: permissionCategories.every(category => category.permissions.every(permission => selectedPermissions.includes(permission.key_))),
+    onChange: e => {
+      if (e.target.checked) {
+        const allPermissions = permissionCategories.flatMap(category => category.permissions.map(permission => permission.key_));
+        setSelectedPermissions(allPermissions);
+      } else {
+        setSelectedPermissions([]);
+      }
+    }
+  }), /*#__PURE__*/React.createElement("label", {
+    className: "form-check-label",
+    htmlFor: "allPermissions"
+  }, "Todos los permisos"))), permissionCategories.length === 0 ? /*#__PURE__*/React.createElement("div", {
     className: "text-center text-muted py-3"
   }, "No hay categor\xEDas de permisos cargadas") : permissionCategories.map((category, index) => /*#__PURE__*/React.createElement("div", {
     key: index,

@@ -28,6 +28,7 @@ interface PrintInvoiceProps {
 export const SaleInvoicesFormat: React.FC<PrintInvoiceProps> = ({
   invoice,
 }) => {
+  console.log("invoice", invoice);
   // Función para formatear currency (igual que en el primer componente)
   const formatCurrency = (value: number) => {
     const formatted = new Intl.NumberFormat("es-DO", {
@@ -383,7 +384,7 @@ export const SaleInvoicesFormat: React.FC<PrintInvoiceProps> = ({
                     textAlign: "right",
                   }}
                 >
-                  {formatCurrency((detail.unit_price * detail.quantity) * detail.tax_product)}
+                  {formatCurrency(((detail.unit_price * detail.quantity) * detail.tax_product) / 100)}
                 </td>
                 <td
                   style={{

@@ -9,13 +9,17 @@ import { Button } from "primereact/button";
 import { Calendar } from "primereact/calendar";
 import { ProgressSpinner } from "primereact/progressspinner";
 import { Tag } from "primereact/tag";
-import { CustomPRTable, CustomPRTableColumnProps } from "../components/CustomPRTable";
+import {
+  CustomPRTable,
+  CustomPRTableColumnProps,
+} from "../components/CustomPRTable";
 import { formatDate } from "../../services/utilidades";
 import { exportToExcel } from "../accounting/utils/ExportToExcelOptions";
 import { generatePDFFromHTMLV2 } from "../../funciones/funcionesJS/exportPDFV2";
 import { useCompany } from "../hooks/useCompany";
 import { invoiceService } from "../../services/api";
 import { generarFormatoContable } from "../../funciones/funcionesJS/generarPDFContable";
+import { useByEntityFormat } from "../documents-generation/hooks/billing/invoices/notes/useByEntityFormat";
 
 type Nota = {
   id: string;
@@ -59,6 +63,13 @@ export const DebitCreditNotes = () => {
   const [first, setFirst] = useState(0);
   const [rows, setRows] = useState(10);
   const [globalFilter, setGlobalFilter] = useState("");
+  const { generateFormatByEntity } = useByEntityFormat();
+
+  const generateFormatByEntityRef = useRef(generateFormatByEntity);
+
+  useEffect(() => {
+    generateFormatByEntityRef.current = generateFormatByEntity;
+  }, [generateFormatByEntity]);
 
   const [filtros, setFiltros] = useState<Filtros>({
     numeroNota: "",
@@ -195,12 +206,14 @@ export const DebitCreditNotes = () => {
   };
 
   const formatCurrency = (value: number) => {
-    return value?.toLocaleString("es-DO", {
-      style: "currency",
-      currency: "DOP",
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }) || "$0.00";
+    return (
+      value?.toLocaleString("es-DO", {
+        style: "currency",
+        currency: "DOP",
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }) || "$0.00"
+    );
   };
 
   const getTipoNotaSeverity = (tipo: string) => {
@@ -231,72 +244,27 @@ export const DebitCreditNotes = () => {
     showToast("success", "Éxito", "Excel descargado correctamente");
   }
 
-  function exportToPDF(data: any[]) {
-    const table = `
-          <style>
-          table { 
-            width: 100%; 
-            border-collapse: collapse; 
-            margin-top: 25px;
-            font-size: 12px;
-          }
-          th { 
-            background-color: rgb(66, 74, 81); 
-            color: white; 
-            padding: 10px; 
-            text-align: left;
-            font-weight: normal;
-          }
-          td { 
-            padding: 10px 8px; 
-            border-bottom: 1px solid #eee;
-          }
-          </style>
-      
-          <table>
-            <thead>
-              <tr>
-                <th>No. nota</th>
-                <th>Tipo nota</th>
-                <th>Cliente</th>
-                <th>Factura</th>
-                <th>Fecha nota</th>
-                <th>Valor nota</th>
-                <th>Motivo</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${data.reduce(
-      (acc: string, item: any) =>
-        acc +
-        `
-                <tr>
-                  <td>${item.id}</td>
-                  <td>${item.tipo ?? ""}</td>
-                  <td>${item.cliente ?? ""}</td>
-                  <td>${item.invoice.invoice_code ?? ""}</td>
-                  <td>${formatDate(item.created_at) ?? ""}</td>
-                  <td>${formatCurrency(item.amount) ?? ""}</td>
-                  <td>${item.reason ?? ""}</td>
-                </tr>
-              `,
-      ""
-    )}
-            </tbody>
-          </table>`;
-    const configPDF = {
-      name: "Notes",
-      isDownload:true
-    };
-    generatePDFFromHTMLV2(table, company, configPDF);
-    showToast("success", "Éxito", "PDF descargado correctamente");
-  }
+  const exportToPDF = useCallback(
+    async (data: any[]) => {
+      if (data[0].invoice.type == "entity") {
+        generateFormatByEntityRef.current(data[0], "Descargar");
+      } else {
+        generarFormatoContable("NotaDebitoCredito", data[0], "Descargar");
+      }
+      showToast("success", "Éxito", "PDF descargado correctamente");
+    },
+    [generateFormatByEntity]
+  );
 
   const printInvoice = useCallback(
     async (nota: any) => {
-      generarFormatoContable("NotaDebitoCredito", nota, "Impresion");
+      if (nota.invoice.type == "entity") {
+        generateFormatByEntityRef.current(nota, "Impresion");
+      } else {
+        generarFormatoContable("NotaDebitoCredito", nota, "Impresion");
+      }
     },
-    []
+    [generateFormatByEntity]
   );
 
   const TableMenu: React.FC<{
@@ -331,7 +299,7 @@ export const DebitCreditNotes = () => {
         label: "Imprimir",
         icon: <i className="fas fa-print me-2"></i>,
         command: handlePrintInvoice,
-      }
+      },
     ];
 
     return (
@@ -368,7 +336,11 @@ export const DebitCreditNotes = () => {
     );
   };
 
-  const showToast = (severity: "success" | "error" | "info" | "warn", summary: string, detail: string) => {
+  const showToast = (
+    severity: "success" | "error" | "info" | "warn",
+    summary: string,
+    detail: string
+  ) => {
     toast.current?.show({ severity, summary, detail, life: 3000 });
   };
 
@@ -389,7 +361,7 @@ export const DebitCreditNotes = () => {
     exportToPDF(notas);
   };
 
-  const tableItems = notas.map(nota => ({
+  const tableItems = notas.map((nota) => ({
     id: nota.id,
     tipo: nota.tipo,
     cliente: nota.cliente,
@@ -398,60 +370,60 @@ export const DebitCreditNotes = () => {
     amount: nota.amount,
     reason: nota.reason,
     type: nota.type,
-    actions: nota
+    actions: nota,
   }));
 
   const columns: CustomPRTableColumnProps[] = [
     {
-      field: 'id',
-      header: 'No. Nota',
-      sortable: true
+      field: "id",
+      header: "No. Nota",
+      sortable: true,
     },
     {
-      field: 'tipo',
-      header: 'Tipo nota',
+      field: "tipo",
+      header: "Tipo nota",
       sortable: true,
       body: (rowData: any) => (
         <Tag
           value={rowData.tipo}
           severity={getTipoNotaSeverity(rowData.type)}
         />
-      )
+      ),
     },
     {
-      field: 'cliente',
-      header: 'Cliente',
-      sortable: true
-    },
-    {
-      field: 'invoice_code',
-      header: 'Factura',
-      sortable: true
-    },
-    {
-      field: 'date',
-      header: 'Fecha nota',
+      field: "cliente",
+      header: "Cliente",
       sortable: true,
-      body: (rowData: any) => formatDate(rowData.date)
     },
     {
-      field: 'amount',
-      header: 'Valor nota',
+      field: "invoice_code",
+      header: "Factura",
       sortable: true,
-      body: (rowData: any) => formatCurrency(rowData.amount)
     },
     {
-      field: 'reason',
-      header: 'Motivo',
-      sortable: true
+      field: "date",
+      header: "Fecha nota",
+      sortable: true,
+      body: (rowData: any) => formatDate(rowData.date),
     },
     {
-      field: 'actions',
-      header: 'Acciones',
+      field: "amount",
+      header: "Valor nota",
+      sortable: true,
+      body: (rowData: any) => formatCurrency(rowData.amount),
+    },
+    {
+      field: "reason",
+      header: "Motivo",
+      sortable: true,
+    },
+    {
+      field: "actions",
+      header: "Acciones",
       body: (rowData: any) => actionBodyTemplate(rowData.actions),
       exportable: false,
-      width: "120px"
-    }
+      width: "120px",
+    },
   ];
 
   return (
@@ -471,7 +443,10 @@ export const DebitCreditNotes = () => {
         </div>
       ) : (
         <div className="w-100">
-          <div className="h-100 w-100 d-flex flex-column" style={{ marginTop: "-30px" }}>
+          <div
+            className="h-100 w-100 d-flex flex-column"
+            style={{ marginTop: "-30px" }}
+          >
             <div className="text-end pt-3 mb-2">
               <Button
                 className="p-button-primary"
@@ -489,7 +464,9 @@ export const DebitCreditNotes = () => {
                     <label className="form-label">Número de nota</label>
                     <InputText
                       value={filtros.numeroNota}
-                      onChange={(e) => handleFilterChange("numeroNota", e.target.value)}
+                      onChange={(e) =>
+                        handleFilterChange("numeroNota", e.target.value)
+                      }
                       placeholder="ND-001-0000001"
                       className="w-100"
                     />
@@ -499,7 +476,9 @@ export const DebitCreditNotes = () => {
                     <label className="form-label">Cliente</label>
                     <InputText
                       value={filtros.cliente}
-                      onChange={(e) => handleFilterChange("cliente", e.target.value)}
+                      onChange={(e) =>
+                        handleFilterChange("cliente", e.target.value)
+                      }
                       placeholder="Nombre del cliente"
                       className="w-100"
                     />
@@ -509,7 +488,9 @@ export const DebitCreditNotes = () => {
                     <label className="form-label">Identificación</label>
                     <InputText
                       value={filtros.identificacion}
-                      onChange={(e) => handleFilterChange("identificacion", e.target.value)}
+                      onChange={(e) =>
+                        handleFilterChange("identificacion", e.target.value)
+                      }
                       placeholder="RNC/Cédula del cliente"
                       className="w-100"
                     />
@@ -531,7 +512,9 @@ export const DebitCreditNotes = () => {
                     <label className="form-label">Rango de fechas</label>
                     <Calendar
                       value={filtros.rangoFechas}
-                      onChange={(e) => handleFilterChange("rangoFechas", e.value)}
+                      onChange={(e) =>
+                        handleFilterChange("rangoFechas", e.value)
+                      }
                       selectionMode="range"
                       readOnlyInput
                       dateFormat="dd/mm/yy"

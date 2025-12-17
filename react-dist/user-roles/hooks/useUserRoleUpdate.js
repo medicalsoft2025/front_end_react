@@ -61,6 +61,9 @@ export const useUserRoleUpdate = () => {
       console.log(`Ejemplos - Menú 30 (Administración): ${data.menuIds.includes(30)}`);
       console.log("Payload final:", JSON.stringify(payload, null, 2));
       await userRolesService.saveRoleMenus(id, payload.menus);
+      await userRolesService.updatePermissions(id, {
+        permissions: data.permissions
+      });
       SwalManager.success();
     } catch (error) {
       ErrorHandler.generic(error);

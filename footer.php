@@ -178,7 +178,7 @@
     navbarVertical.setAttribute('data-navbar-appearance', 'darker');
   }
 </script>
-<div class="support-chat-container">
+<!-- <div class="support-chat-container">
   <div class="container-fluid support-chat" style="left: 3rem; margin-left: 0; transform-origin: bottom left;">
     <div class="card bg-body-emphasis">
       <div class="card-header d-flex flex-between-center px-4 py-3 border-bottom border-translucent">
@@ -207,10 +207,6 @@
               <img class="rounded-circle border border-3 border-light-subtle" src="assets/img/team/30.webp" alt="" />
             </div>
             <h5 class="mt-2 mb-3">MediBot AI</h5>
-            <!-- <p class="text-center text-body-emphasis mb-0">
-              Pregúntenos cualquier cosa - nos pondremos en contacto con usted aquí o por correo electrónico dentro de
-              las 24 horas.
-            </p> -->
           </div>
         </div>
       </div>
@@ -240,7 +236,7 @@
     <span class="fa-solid fa-headset text-primary fs-8 d-sm-none"></span>
     <span class="fa-solid fa-chevron-down text-primary fs-7"></span>
   </button>
-</div>
+</div> -->
 <div id="chat-bubble-react"></div>
 </main>
 <!-- ===============================================-->
@@ -1126,7 +1122,7 @@
   });
 </script> -->
 
-<script type="module">
+<!-- <script type="module">
   // ==========================================================================
   // Script Chat con Historial de Sesión y Preparación para Adjuntos
   // ==========================================================================
@@ -1497,7 +1493,7 @@
     console.warn("Recordatorio MUY IMPORTANTE: La funcionalidad de adjuntar archivos depende de la configuración correcta del webhook en n8n para recibir 'multipart/form-data'.");
 
   }); // Fin de DOMContentLoaded
-</script>
+</script> -->
 
 <!-- PARA HACER UN GUARDADO RAPIDO -->
 
@@ -1508,7 +1504,7 @@ M. Castro c:
 ===============================================-->
 
 <!-- para texto enriquecido -->
-<script type="module">
+<!-- <script type="module">
   import React from "react";
   import ReactDOMClient from "react-dom/client";
   import {
@@ -1526,9 +1522,9 @@ M. Castro c:
       );
     });
   });
-</script>
+</script> -->
 
-<script>
+<!-- <script>
   // Cargar datos desde localStorage al iniciar
   let entidadesArray = JSON.parse(localStorage.getItem("entidades")) || [];
 
@@ -1536,7 +1532,7 @@ M. Castro c:
   function guardarEntidades() {
     localStorage.setItem("entidades", JSON.stringify(entidadesArray));
   }
-</script>
+</script> -->
 
 <!-- crear impresiones -->
 <script src="PlantillasImpresion/FuncionExtra.js"></script>
@@ -1561,7 +1557,7 @@ M. Castro c:
 <script src="funciones/funcionesJS/eventos_mensajes/EventosExamenes.js"></script>
 
 <!-- encriptar info -->
-<script src="funciones/funcionesEncrypt/encriptar.js"></script>
+<!-- <script src="funciones/funcionesEncrypt/encriptar.js"></script> -->
 
 <!-- funciones plantillas -->
 <script src="Configuracion/js/plantillasMensajes.js"></script>
@@ -1588,14 +1584,11 @@ M. Castro c:
 
 
 <!-- Crud Consetimintos -->
-<script src="Documentos/js/CrudConsentimientos.js"></script>
-<script src="Documentos/js/UtilsConsentimientos.js"></script>
+<!-- <script src="Documentos/js/CrudConsentimientos.js"></script>
+<script src="Documentos/js/UtilsConsentimientos.js"></script> -->
 
 <script src="funciones/funcionesJS/utils.js"></script>
 
-<script>
-  document.addEventListener("DOMContentLoaded", async function() {});
-</script>
 <!--
 hasta aca construyo
 M. Castro c:

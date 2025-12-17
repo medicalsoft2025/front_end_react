@@ -47,9 +47,11 @@ const RetentionModalConfig = ({
     visible: showConfirm,
     onHide: () => setShowConfirm(false),
     header: "Confirmar",
-    footer: /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(Button, {
+    footer: /*#__PURE__*/React.createElement("div", {
+      className: "d-flex gap-2 justify-content-end"
+    }, /*#__PURE__*/React.createElement(Button, {
       label: "No",
-      className: "p-button-text",
+      className: "p-button-primary",
       onClick: () => setShowConfirm(false)
     }), /*#__PURE__*/React.createElement(Button, {
       label: "S\xED, descartar",

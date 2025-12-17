@@ -3,6 +3,7 @@ import { statusInvoices } from "../../../../../services/commons.js";
 export const SaleInvoicesFormat = ({
   invoice
 }) => {
+  console.log("invoice", invoice);
   // Función para formatear currency (igual que en el primer componente)
   const formatCurrency = value => {
     const formatted = new Intl.NumberFormat("es-DO", {
@@ -299,7 +300,7 @@ export const SaleInvoicesFormat = ({
       border: "1px solid #dee2e6",
       textAlign: "right"
     }
-  }, formatCurrency(detail.unit_price * detail.quantity * detail.tax_product)), /*#__PURE__*/React.createElement("td", {
+  }, formatCurrency(detail.unit_price * detail.quantity * detail.tax_product / 100)), /*#__PURE__*/React.createElement("td", {
     style: {
       padding: "10px 8px",
       border: "1px solid #dee2e6",

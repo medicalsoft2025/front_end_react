@@ -181,7 +181,12 @@ export const ToDenyForm = ({
         reason: data.reason,
         fiscal_receipt: data.tax_receipt,
         invoice_number: data.invoice_number,
-        billing: billing
+        billing: billing,
+        payments: [{
+          payment_method_id: 9,
+          payment_date: "2025-12-11T15:02:27.895Z",
+          amount: 4800
+        }]
       }
     };
     console.log("Datos a enviar:", submitData);

@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { useForm, Controller, SubmitHandler } from 'react-hook-form';
-import { InputText } from 'primereact/inputtext';
-import { Dropdown } from 'primereact/dropdown';
-import { menuService, permissionService } from '../../../services/api';
-import { PrimeReactProvider } from 'primereact/api';
-import { ButtonGroup } from 'primereact/buttongroup';
-import { Button } from 'primereact/button';
+import React, { useState, useEffect } from "react";
+import { useForm, Controller, SubmitHandler } from "react-hook-form";
+import { InputText } from "primereact/inputtext";
+import { Dropdown } from "primereact/dropdown";
+import { menuService, permissionService } from "../../../services/api";
+import { PrimeReactProvider } from "primereact/api";
+import { ButtonGroup } from "primereact/buttongroup";
+import { Button } from "primereact/button";
 
 interface Menu {
     id: number;
@@ -29,7 +29,7 @@ interface Permission {
 }
 
 interface UserRoleFormProps {
-    formId: string
+    formId: string;
     onHandleSubmit: (data: UserRoleFormInputs) => void;
     initialData?: UserRoleFormInputs;
     roleId?: number;
@@ -44,10 +44,10 @@ export interface UserRoleFormInputs {
 }
 
 const roleGroupOptions = [
-    { label: 'Médico', value: 'DOCTOR' },
-    { label: 'Administrativo', value: 'ADMIN' },
-    { label: 'Asistente médico', value: 'DOCTOR_ASSISTANT' },
-    { label: 'Auxiliar', value: 'ASSISTANT' },
+    { label: "Médico", value: "DOCTOR" },
+    { label: "Administrativo", value: "ADMIN" },
+    { label: "Asistente médico", value: "DOCTOR_ASSISTANT" },
+    { label: "Auxiliar", value: "ASSISTANT" },
 ];
 
 // Componente de acordeón recursivo - TODOS los niveles con el mismo diseño
@@ -60,9 +60,9 @@ const MenuAccordion: React.FC<{
     const [expandedItems, setExpandedItems] = useState<number[]>([]);
 
     const toggleItem = (menuId: number) => {
-        setExpandedItems(prev =>
+        setExpandedItems((prev) =>
             prev.includes(menuId)
-                ? prev.filter(id => id !== menuId)
+                ? prev.filter((id) => id !== menuId)
                 : [...prev, menuId]
         );
     };
@@ -74,7 +74,7 @@ const MenuAccordion: React.FC<{
 
         if (hasChildren(menu)) {
             const selectAllChildren = (childMenus: Menu[]) => {
-                childMenus.forEach(child => {
+                childMenus.forEach((child) => {
                     onMenuChange(child.id, checked);
                     if (child.items && child.items.length > 0) {
                         selectAllChildren(child.items);
@@ -87,17 +87,17 @@ const MenuAccordion: React.FC<{
 
     const areAllChildrenSelected = (menu: Menu): boolean => {
         if (!hasChildren(menu)) return false;
-        return menu.items!.every(child => selectedMenuIds.includes(child.id));
+        return menu.items!.every((child) => selectedMenuIds.includes(child.id));
     };
 
     const areSomeChildrenSelected = (menu: Menu): boolean => {
         if (!hasChildren(menu)) return false;
-        return menu.items!.some(child => selectedMenuIds.includes(child.id));
+        return menu.items!.some((child) => selectedMenuIds.includes(child.id));
     };
 
     return (
         <div className="accordion">
-            {menus.map(menu => {
+            {menus.map((menu) => {
                 const isExpanded = expandedItems.includes(menu.id);
                 const children = menu.items || [];
                 const allChildrenSelected = areAllChildrenSelected(menu);
@@ -112,21 +112,38 @@ const MenuAccordion: React.FC<{
                                     className="form-check-input me-3"
                                     type="checkbox"
                                     id={`menu-${menu.id}`}
-                                    checked={selectedMenuIds.includes(menu.id) || allChildrenSelected}
-                                    ref={input => {
+                                    checked={
+                                        selectedMenuIds.includes(menu.id) ||
+                                        allChildrenSelected
+                                    }
+                                    ref={(input) => {
                                         if (input) {
-                                            input.indeterminate = someChildrenSelected && !allChildrenSelected && !selectedMenuIds.includes(menu.id);
+                                            input.indeterminate =
+                                                someChildrenSelected &&
+                                                !allChildrenSelected &&
+                                                !selectedMenuIds.includes(
+                                                    menu.id
+                                                );
                                         }
                                     }}
-                                    onChange={(e) => handleMenuChangeWithChildren(menu, e.target.checked)}
+                                    onChange={(e) =>
+                                        handleMenuChangeWithChildren(
+                                            menu,
+                                            e.target.checked
+                                        )
+                                    }
                                 />
                                 <label
                                     className="form-check-label flex-grow-1 fw-bold cursor-pointer"
                                     htmlFor={`menu-${menu.id}`}
-                                    onClick={() => hasChildren(menu) && toggleItem(menu.id)}
+                                    onClick={() =>
+                                        hasChildren(menu) && toggleItem(menu.id)
+                                    }
                                     style={{
-                                        cursor: hasChildren(menu) ? 'pointer' : 'default',
-                                        color: '#2c3e50'
+                                        cursor: hasChildren(menu)
+                                            ? "pointer"
+                                            : "default",
+                                        color: "#2c3e50",
                                     }}
                                 >
                                     {menu.label}
@@ -170,27 +187,47 @@ const MenuAccordion: React.FC<{
                                                 type="button"
                                                 className="btn btn-outline-success btn-sm"
                                                 onClick={() => {
-                                                    children.forEach(child => {
-                                                        if (!selectedMenuIds.includes(child.id)) {
-                                                            handleMenuChangeWithChildren(child, true);
+                                                    children.forEach(
+                                                        (child) => {
+                                                            if (
+                                                                !selectedMenuIds.includes(
+                                                                    child.id
+                                                                )
+                                                            ) {
+                                                                handleMenuChangeWithChildren(
+                                                                    child,
+                                                                    true
+                                                                );
+                                                            }
                                                         }
-                                                    });
+                                                    );
                                                 }}
                                             >
-                                                <i className="fas fa-check me-1"></i> Todos
+                                                <i className="fas fa-check me-1"></i>{" "}
+                                                Todos
                                             </button>
                                             <button
                                                 type="button"
                                                 className="btn btn-outline-danger btn-sm"
                                                 onClick={() => {
-                                                    children.forEach(child => {
-                                                        if (selectedMenuIds.includes(child.id)) {
-                                                            onMenuChange(child.id, false);
+                                                    children.forEach(
+                                                        (child) => {
+                                                            if (
+                                                                selectedMenuIds.includes(
+                                                                    child.id
+                                                                )
+                                                            ) {
+                                                                onMenuChange(
+                                                                    child.id,
+                                                                    false
+                                                                );
+                                                            }
                                                         }
-                                                    });
+                                                    );
                                                 }}
                                             >
-                                                <i className="fas fa-times me-1"></i> Ninguno
+                                                <i className="fas fa-times me-1"></i>{" "}
+                                                Ninguno
                                             </button>
                                         </div>
                                     </div>
@@ -208,14 +245,14 @@ export const UserRoleForm: React.FC<UserRoleFormProps> = ({
     formId,
     onHandleSubmit,
     initialData,
-    roleId
+    roleId,
 }) => {
     const {
         register,
         handleSubmit,
         control,
         reset,
-        formState: { errors }
+        formState: { errors },
     } = useForm<UserRoleFormInputs>();
 
     const onSubmit: SubmitHandler<UserRoleFormInputs> = (data) => {
@@ -223,14 +260,18 @@ export const UserRoleForm: React.FC<UserRoleFormProps> = ({
             ...data,
             menus: allMenus,
             menuIds: selectedMenuIds,
-            permissions: selectedPermissions
+            permissions: selectedPermissions,
         };
         onHandleSubmit(submissionData);
-    }
+    };
 
     const [allMenus, setAllMenus] = useState<Menu[]>([]);
-    const [permissionCategories, setPermissionCategories] = useState<PermissionCategory[]>([]);
-    const [selectedPermissions, setSelectedPermissions] = useState<string[]>([]);
+    const [permissionCategories, setPermissionCategories] = useState<
+        PermissionCategory[]
+    >([]);
+    const [selectedPermissions, setSelectedPermissions] = useState<string[]>(
+        []
+    );
     const [selectedMenuIds, setSelectedMenuIds] = useState<number[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -242,7 +283,7 @@ export const UserRoleForm: React.FC<UserRoleFormProps> = ({
         const activeIds: number[] = [];
 
         const traverse = (menuList: Menu[]) => {
-            menuList.forEach(menu => {
+            menuList.forEach((menu) => {
                 // Si el menú está activo, agregar su ID
                 if (menu.is_active) {
                     activeIds.push(menu.id);
@@ -265,7 +306,8 @@ export const UserRoleForm: React.FC<UserRoleFormProps> = ({
 
                 // SOLO cargar menús si estamos en modo edición
                 if (roleId) {
-                    const menusData: Menu[] = await menuService.getAllMenuByRolePermissions(roleId);
+                    const menusData: Menu[] =
+                        await menuService.getAllMenuByRolePermissions(roleId);
 
                     // Extraer los IDs de menús activos
                     const activeMenuIds = extractActiveMenuIds(menusData);
@@ -287,8 +329,8 @@ export const UserRoleForm: React.FC<UserRoleFormProps> = ({
                     setSelectedPermissions(initialData.permissions || []);
                 } else {
                     reset({
-                        name: '',
-                        group: '',
+                        name: "",
+                        group: "",
                     });
                     setSelectedPermissions([]);
                     setSelectedMenuIds([]);
@@ -296,14 +338,14 @@ export const UserRoleForm: React.FC<UserRoleFormProps> = ({
 
                 // SOLO cargar permisos si estamos en modo edición
                 if (roleId) {
-                    const permissionsData: PermissionCategory[] = await permissionService.getAll();
+                    const permissionsData: PermissionCategory[] =
+                        await permissionService.getAll();
                     setPermissionCategories(permissionsData);
                 } else {
                     setPermissionCategories([]);
                 }
-
             } catch (error) {
-                console.error('Error fetching data:', error);
+                console.error("Error fetching data:", error);
             } finally {
                 setLoading(false);
             }
@@ -312,21 +354,26 @@ export const UserRoleForm: React.FC<UserRoleFormProps> = ({
     }, [roleId, initialData, reset]);
 
     const handleMenuChange = (menuId: number, checked: boolean) => {
-        setSelectedMenuIds(prev =>
-            checked ? [...prev, menuId] : prev.filter(id => id !== menuId)
+        setSelectedMenuIds((prev) =>
+            checked ? [...prev, menuId] : prev.filter((id) => id !== menuId)
         );
     };
 
-    const handlePermissionChange = (permissionKey: string, checked: boolean) => {
-        setSelectedPermissions(prev =>
-            checked ? [...prev, permissionKey] : prev.filter(key => key !== permissionKey)
+    const handlePermissionChange = (
+        permissionKey: string,
+        checked: boolean
+    ) => {
+        setSelectedPermissions((prev) =>
+            checked
+                ? [...prev, permissionKey]
+                : prev.filter((key) => key !== permissionKey)
         );
     };
 
     const getAllMenuIdsFromTree = (menus: Menu[]): number[] => {
         const ids: number[] = [];
         const traverse = (menuList: Menu[]) => {
-            menuList.forEach(menu => {
+            menuList.forEach((menu) => {
                 ids.push(menu.id);
                 if (menu.items && menu.items.length > 0) {
                     traverse(menu.items);
@@ -351,38 +398,62 @@ export const UserRoleForm: React.FC<UserRoleFormProps> = ({
     }
 
     return (
-        <PrimeReactProvider value={{
-            appendTo: 'self',
-            zIndex: {
-                overlay: 100000
-            }
-        }}>
-            <form id={formId} onSubmit={handleSubmit(onSubmit)} className="container-fluid p-3">
+        <PrimeReactProvider
+            value={{
+                appendTo: "self",
+                zIndex: {
+                    overlay: 100000,
+                },
+            }}
+        >
+            <form
+                id={formId}
+                onSubmit={handleSubmit(onSubmit)}
+                className="container-fluid p-3"
+            >
                 <div className="form-group mb-3">
-                    <label className='form-label' htmlFor="name">Nombre del Rol</label>
+                    <label className="form-label" htmlFor="name">
+                        Nombre del Rol
+                    </label>
                     <InputText
                         id="name"
-                        {...register('name', { required: 'Nombre es requerido' })}
-                        className={`form-control ${errors.name ? 'is-invalid' : ''}`}
+                        {...register("name", {
+                            required: "Nombre es requerido",
+                        })}
+                        className={`form-control ${
+                            errors.name ? "is-invalid" : ""
+                        }`}
                     />
-                    {errors.name && <div className="invalid-feedback">{errors.name.message}</div>}
+                    {errors.name && (
+                        <div className="invalid-feedback">
+                            {errors.name.message}
+                        </div>
+                    )}
                 </div>
                 <div className="form-group mb-3">
-                    <label className="form-label" htmlFor="group">Grupo del Rol</label>
+                    <label className="form-label" htmlFor="group">
+                        Grupo del Rol
+                    </label>
                     <Controller
                         name="group"
                         control={control}
-                        rules={{ required: 'Grupo de rol es requerido' }}
+                        rules={{ required: "Grupo de rol es requerido" }}
                         render={({ field }) => (
                             <Dropdown
                                 {...field}
                                 options={roleGroupOptions}
                                 placeholder="Seleccione grupo"
-                                className={`w-100 ${errors.group ? 'is-invalid' : ''}`}
+                                className={`w-100 ${
+                                    errors.group ? "is-invalid" : ""
+                                }`}
                             />
                         )}
                     />
-                    {errors.group && <div className="invalid-feedback">{errors.group.message}</div>}
+                    {errors.group && (
+                        <div className="invalid-feedback">
+                            {errors.group.message}
+                        </div>
+                    )}
                 </div>
 
                 {/* SOLO MOSTRAR MENÚS Y PERMISOS EN MODO EDICIÓN */}
@@ -394,11 +465,22 @@ export const UserRoleForm: React.FC<UserRoleFormProps> = ({
                                     <div>
                                         <h5 className="mb-0">Menús</h5>
                                         <small className="text-muted">
-                                            {selectedMenuIds.length} de {getAllMenuIdsFromTree(allMenus).length} seleccionados
+                                            {selectedMenuIds.length} de{" "}
+                                            {
+                                                getAllMenuIdsFromTree(allMenus)
+                                                    .length
+                                            }{" "}
+                                            seleccionados
                                         </small>
                                     </div>
                                 </div>
-                                <div className="card-body" style={{ maxHeight: '600px', overflowY: 'auto' }}>
+                                <div
+                                    className="card-body"
+                                    style={{
+                                        maxHeight: "600px",
+                                        overflowY: "auto",
+                                    }}
+                                >
                                     {allMenus.length === 0 ? (
                                         <div className="alert alert-warning text-center">
                                             No hay menús disponibles
@@ -413,23 +495,36 @@ export const UserRoleForm: React.FC<UserRoleFormProps> = ({
 
                                     <div className="mt-4 border-top pt-3">
                                         <div className="d-flex justify-content-between align-items-center">
-                                            <small className="text-muted">Selección global:</small>
+                                            <small className="text-muted">
+                                                Selección global:
+                                            </small>
                                             <ButtonGroup>
                                                 <Button
                                                     type="button"
                                                     className="p-button-success"
                                                     onClick={() => {
-                                                        const allIds = getAllMenuIdsFromTree(allMenus);
-                                                        setSelectedMenuIds(allIds);
+                                                        const allIds =
+                                                            getAllMenuIdsFromTree(
+                                                                allMenus
+                                                            );
+                                                        setSelectedMenuIds(
+                                                            allIds
+                                                        );
                                                     }}
-                                                    icon={<i className="fas fa-check-double me-1"></i>}
+                                                    icon={
+                                                        <i className="fas fa-check-double me-1"></i>
+                                                    }
                                                     label="Todos"
                                                 />
                                                 <Button
                                                     type="button"
                                                     className="p-button-danger"
-                                                    onClick={() => setSelectedMenuIds([])}
-                                                    icon={<i className="fas fa-times me-1"></i>}
+                                                    onClick={() =>
+                                                        setSelectedMenuIds([])
+                                                    }
+                                                    icon={
+                                                        <i className="fas fa-times me-1"></i>
+                                                    }
                                                     label="Ninguno"
                                                 />
                                             </ButtonGroup>
@@ -444,37 +539,122 @@ export const UserRoleForm: React.FC<UserRoleFormProps> = ({
                                 <div className="card-header">
                                     <h5 className="mb-0">Permisos</h5>
                                 </div>
-                                <div className="card-body" style={{ maxHeight: '600px', overflowY: 'auto' }}>
+                                <div
+                                    className="card-body"
+                                    style={{
+                                        maxHeight: "600px",
+                                        overflowY: "auto",
+                                    }}
+                                >
+                                    <div className="mb-4">
+                                        <div className="form-check form-switch mb-3">
+                                            <input
+                                                className="form-check-input"
+                                                type="checkbox"
+                                                id="allPermissions"
+                                                checked={permissionCategories.every(
+                                                    (category) =>
+                                                        category.permissions.every(
+                                                            (permission) =>
+                                                                selectedPermissions.includes(
+                                                                    permission.key_
+                                                                )
+                                                        )
+                                                )}
+                                                onChange={(e) => {
+                                                    if (e.target.checked) {
+                                                        const allPermissions =
+                                                            permissionCategories.flatMap(
+                                                                (category) =>
+                                                                    category.permissions.map(
+                                                                        (
+                                                                            permission
+                                                                        ) =>
+                                                                            permission.key_
+                                                                    )
+                                                            );
+                                                        setSelectedPermissions(
+                                                            allPermissions
+                                                        );
+                                                    } else {
+                                                        setSelectedPermissions(
+                                                            []
+                                                        );
+                                                    }
+                                                }}
+                                            />
+                                            <label
+                                                className="form-check-label"
+                                                htmlFor="allPermissions"
+                                            >
+                                                Todos los permisos
+                                            </label>
+                                        </div>
+                                    </div>
+
                                     {permissionCategories.length === 0 ? (
                                         <div className="text-center text-muted py-3">
-                                            No hay categorías de permisos cargadas
+                                            No hay categorías de permisos
+                                            cargadas
                                         </div>
                                     ) : (
-                                        permissionCategories.map((category, index) => (
-                                            <div key={index} className="mb-4">
-                                                <h6 className="fw-bold text-primary border-bottom pb-2">
-                                                    <i className="fas fa-shield-alt me-2"></i>
-                                                    {category.name}
-                                                </h6>
-                                                {category.permissions.map(permission => (
-                                                    <div key={permission.key_} className="form-check form-switch mb-3">
-                                                        <input
-                                                            className="form-check-input"
-                                                            type="checkbox"
-                                                            id={permission.key_}
-                                                            checked={selectedPermissions.includes(permission.key_)}
-                                                            onChange={(e) =>
-                                                                handlePermissionChange(permission.key_, e.target.checked)
-                                                            }
-                                                        />
-                                                        <label className="form-check-label" htmlFor={permission.key_}>
-                                                            {permission.name}
-                                                        </label>
-                                                    </div>
-                                                ))}
-                                                {index < permissionCategories.length - 1 && <hr />}
-                                            </div>
-                                        ))
+                                        permissionCategories.map(
+                                            (category, index) => (
+                                                <div
+                                                    key={index}
+                                                    className="mb-4"
+                                                >
+                                                    <h6 className="fw-bold text-primary border-bottom pb-2">
+                                                        <i className="fas fa-shield-alt me-2"></i>
+                                                        {category.name}
+                                                    </h6>
+                                                    {category.permissions.map(
+                                                        (permission) => (
+                                                            <div
+                                                                key={
+                                                                    permission.key_
+                                                                }
+                                                                className="form-check form-switch mb-3"
+                                                            >
+                                                                <input
+                                                                    className="form-check-input"
+                                                                    type="checkbox"
+                                                                    id={
+                                                                        permission.key_
+                                                                    }
+                                                                    checked={selectedPermissions.includes(
+                                                                        permission.key_
+                                                                    )}
+                                                                    onChange={(
+                                                                        e
+                                                                    ) =>
+                                                                        handlePermissionChange(
+                                                                            permission.key_,
+                                                                            e
+                                                                                .target
+                                                                                .checked
+                                                                        )
+                                                                    }
+                                                                />
+                                                                <label
+                                                                    className="form-check-label"
+                                                                    htmlFor={
+                                                                        permission.key_
+                                                                    }
+                                                                >
+                                                                    {
+                                                                        permission.name
+                                                                    }
+                                                                </label>
+                                                            </div>
+                                                        )
+                                                    )}
+                                                    {index <
+                                                        permissionCategories.length -
+                                                            1 && <hr />}
+                                                </div>
+                                            )
+                                        )
                                     )}
                                 </div>
                             </div>
@@ -484,7 +664,8 @@ export const UserRoleForm: React.FC<UserRoleFormProps> = ({
                     // MENSAJE INFORMATIVO PARA MODO CREACIÓN
                     <div className="alert alert-info mt-3">
                         <i className="fas fa-info-circle me-2"></i>
-                        <strong>Información:</strong> Podrás editar los permisos y menús después de crear el rol.
+                        <strong>Información:</strong> Podrás editar los permisos
+                        y menús después de crear el rol.
                     </div>
                 )}
             </form>

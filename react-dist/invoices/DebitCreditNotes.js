@@ -11,10 +11,10 @@ import { Tag } from "primereact/tag";
 import { CustomPRTable } from "../components/CustomPRTable.js";
 import { formatDate } from "../../services/utilidades.js";
 import { exportToExcel } from "../accounting/utils/ExportToExcelOptions.js";
-import { generatePDFFromHTMLV2 } from "../../funciones/funcionesJS/exportPDFV2.js";
 import { useCompany } from "../hooks/useCompany.js";
 import { invoiceService } from "../../services/api/index.js";
 import { generarFormatoContable } from "../../funciones/funcionesJS/generarPDFContable.js";
+import { useByEntityFormat } from "../documents-generation/hooks/billing/invoices/notes/useByEntityFormat.js";
 export const DebitCreditNotes = () => {
   const [notas, setNotas] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -30,6 +30,13 @@ export const DebitCreditNotes = () => {
   const [first, setFirst] = useState(0);
   const [rows, setRows] = useState(10);
   const [globalFilter, setGlobalFilter] = useState("");
+  const {
+    generateFormatByEntity
+  } = useByEntityFormat();
+  const generateFormatByEntityRef = useRef(generateFormatByEntity);
+  useEffect(() => {
+    generateFormatByEntityRef.current = generateFormatByEntity;
+  }, [generateFormatByEntity]);
   const [filtros, setFiltros] = useState({
     numeroNota: "",
     cliente: "",
@@ -173,64 +180,21 @@ export const DebitCreditNotes = () => {
     });
     showToast("success", "Éxito", "Excel descargado correctamente");
   }
-  function exportToPDF(data) {
-    const table = `
-          <style>
-          table { 
-            width: 100%; 
-            border-collapse: collapse; 
-            margin-top: 25px;
-            font-size: 12px;
-          }
-          th { 
-            background-color: rgb(66, 74, 81); 
-            color: white; 
-            padding: 10px; 
-            text-align: left;
-            font-weight: normal;
-          }
-          td { 
-            padding: 10px 8px; 
-            border-bottom: 1px solid #eee;
-          }
-          </style>
-      
-          <table>
-            <thead>
-              <tr>
-                <th>No. nota</th>
-                <th>Tipo nota</th>
-                <th>Cliente</th>
-                <th>Factura</th>
-                <th>Fecha nota</th>
-                <th>Valor nota</th>
-                <th>Motivo</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${data.reduce((acc, item) => acc + `
-                <tr>
-                  <td>${item.id}</td>
-                  <td>${item.tipo ?? ""}</td>
-                  <td>${item.cliente ?? ""}</td>
-                  <td>${item.invoice.invoice_code ?? ""}</td>
-                  <td>${formatDate(item.created_at) ?? ""}</td>
-                  <td>${formatCurrency(item.amount) ?? ""}</td>
-                  <td>${item.reason ?? ""}</td>
-                </tr>
-              `, "")}
-            </tbody>
-          </table>`;
-    const configPDF = {
-      name: "Notes",
-      isDownload: true
-    };
-    generatePDFFromHTMLV2(table, company, configPDF);
+  const exportToPDF = useCallback(async data => {
+    if (data[0].invoice.type == "entity") {
+      generateFormatByEntityRef.current(data[0], "Descargar");
+    } else {
+      generarFormatoContable("NotaDebitoCredito", data[0], "Descargar");
+    }
     showToast("success", "Éxito", "PDF descargado correctamente");
-  }
+  }, [generateFormatByEntity]);
   const printInvoice = useCallback(async nota => {
-    generarFormatoContable("NotaDebitoCredito", nota, "Impresion");
-  }, []);
+    if (nota.invoice.type == "entity") {
+      generateFormatByEntityRef.current(nota, "Impresion");
+    } else {
+      generarFormatoContable("NotaDebitoCredito", nota, "Impresion");
+    }
+  }, [generateFormatByEntity]);
   const TableMenu = ({
     rowData
   }) => {
@@ -329,42 +293,42 @@ export const DebitCreditNotes = () => {
     actions: nota
   }));
   const columns = [{
-    field: 'id',
-    header: 'No. Nota',
+    field: "id",
+    header: "No. Nota",
     sortable: true
   }, {
-    field: 'tipo',
-    header: 'Tipo nota',
+    field: "tipo",
+    header: "Tipo nota",
     sortable: true,
     body: rowData => /*#__PURE__*/React.createElement(Tag, {
       value: rowData.tipo,
       severity: getTipoNotaSeverity(rowData.type)
     })
   }, {
-    field: 'cliente',
-    header: 'Cliente',
+    field: "cliente",
+    header: "Cliente",
     sortable: true
   }, {
-    field: 'invoice_code',
-    header: 'Factura',
+    field: "invoice_code",
+    header: "Factura",
     sortable: true
   }, {
-    field: 'date',
-    header: 'Fecha nota',
+    field: "date",
+    header: "Fecha nota",
     sortable: true,
     body: rowData => formatDate(rowData.date)
   }, {
-    field: 'amount',
-    header: 'Valor nota',
+    field: "amount",
+    header: "Valor nota",
     sortable: true,
     body: rowData => formatCurrency(rowData.amount)
   }, {
-    field: 'reason',
-    header: 'Motivo',
+    field: "reason",
+    header: "Motivo",
     sortable: true
   }, {
-    field: 'actions',
-    header: 'Acciones',
+    field: "actions",
+    header: "Acciones",
     body: rowData => actionBodyTemplate(rowData.actions),
     exportable: false,
     width: "120px"

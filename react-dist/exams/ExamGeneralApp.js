@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import { ExamForm } from "./components/ExamForm.js";
 import { CustomFormModal } from "../components/CustomFormModal.js";
 import { useExamsGeneral } from "./hooks/useExamsGeneral.js";
@@ -16,12 +16,12 @@ const ExamGeneralApp = () => {
     window.location.href = `cargarResultadosExamen?patient_id=${examTableItem.patientId}&exam_id=${examTableItem.id}&appointment_id=${examTableItem.appointmentId}`;
   };
   const handleViewExamResults = async (examTableItem, minioUrl) => {
-    if (minioUrl) {
-      //@ts-ignore
-      const url = await getUrlImage(minioUrl);
-      window.open(url, '_blank');
-    } else {
+    if (examTableItem.original.exam_result.length) {
       window.location.href = `verResultadosExamen?patient_id=${examTableItem.patientId}&exam_id=${examTableItem.id}`;
+    } else {
+      //@ts-ignore
+      const url = await getUrlImage(examTableItem.original.minio_url);
+      window.open(url, "_blank");
     }
   };
   const handleReload = () => {
@@ -41,7 +41,7 @@ const ExamGeneralApp = () => {
     onViewExamResults: handleViewExamResults,
     onReload: handleReload
   }), /*#__PURE__*/React.createElement(CustomFormModal, {
-    formId: 'createExam',
+    formId: "createExam",
     show: showFormModal,
     onHide: handleHideFormModal,
     title: "Crear Ex\xE1menes"
