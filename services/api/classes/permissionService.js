@@ -9,7 +9,7 @@ export class PermissionService extends BaseApiService {
                 permissions: [
                     { name: 'Ver pacientes', key_: 'patient_view' },
                     { name: 'Crear pacientes', key_: 'patient_create' },
-                    { name: 'Editar pacientes', key_: 'patient_edit' },
+                    { name: 'Editar pacientes', key_: 'patient_update' },
                     { name: 'Eliminar pacientes', key_: 'patient_delete' },
                     { name: 'Ver información sensible de pacientes', key_: 'patient_view_sensitive' },
                 ]
@@ -20,7 +20,7 @@ export class PermissionService extends BaseApiService {
                 permissions: [
                     { name: 'Ver citas', key_: 'appointment_view' },
                     { name: 'Crear citas', key_: 'appointment_create' },
-                    { name: 'Editar citas', key_: 'appointment_edit' },
+                    { name: 'Editar citas', key_: 'appointment_update' },
                     { name: 'Eliminar citas', key_: 'appointment_delete' },
                 ]
             },
@@ -30,7 +30,7 @@ export class PermissionService extends BaseApiService {
                 permissions: [
                     { name: 'Ver facturas', key_: 'invoice_view' },
                     { name: 'Crear facturas', key_: 'invoice_create' },
-                    { name: 'Editar facturas', key_: 'invoice_edit' },
+                    { name: 'Editar facturas', key_: 'invoice_update' },
                     { name: 'Eliminar facturas', key_: 'invoice_delete' },
                 ]
             },
@@ -38,7 +38,7 @@ export class PermissionService extends BaseApiService {
                 name: 'Gestión de configuración',
                 key_: 'settings_management',
                 permissions: [
-                    { name: 'Editar configuración', key_: 'settings_edit' },
+                    { name: 'Editar configuración', key_: 'settings_update' },
                 ]
             },
             {
@@ -54,7 +54,7 @@ export class PermissionService extends BaseApiService {
                 permissions: [
                     { name: 'Ver usuarios', key_: 'user_view' },
                     { name: 'Crear usuarios', key_: 'user_create' },
-                    { name: 'Editar usuarios', key_: 'user_edit' },
+                    { name: 'Editar usuarios', key_: 'user_update' },
                     { name: 'Eliminar usuarios', key_: 'user_delete' },
                 ]
             },
@@ -64,7 +64,7 @@ export class PermissionService extends BaseApiService {
                 permissions: [
                     { name: 'Ver roles', key_: 'user_role_view' },
                     { name: 'Crear roles', key_: 'user_role_create' },
-                    { name: 'Editar roles', key_: 'user_role_edit' },
+                    { name: 'Editar roles', key_: 'user_role_update' },
                     { name: 'Eliminar roles', key_: 'user_role_delete' },
                 ]
             },
