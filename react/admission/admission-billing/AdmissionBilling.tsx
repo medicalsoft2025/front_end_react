@@ -277,11 +277,6 @@ const AdmissionBilling: React.FC<AdmissionBillingProps> = ({
                 life: 5000,
             });
 
-            if (response && response.data) {
-                setResponseAdmission(response);
-                await sendMessageWhatsapp(response);
-            }
-
             if (isMounted.current) {
                 setIsSuccess(true);
             }

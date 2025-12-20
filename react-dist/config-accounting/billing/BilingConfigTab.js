@@ -314,7 +314,8 @@ const BillingConfigTab = ({
     const cuentasFiltradas = filtrarCuentas();
     const accountingAccount = watch("accounting_account");
     const accountingAccountReverse = watch("accounting_account_reverse_id");
-    const showReverseAccount = ["fiscal", "consumidor", "gubernamental", "notaCredito", "notaDebito", "compra"].includes(tipo);
+    const showReverseAccount = ["fiscal", "consumidor", "gubernamental"].includes(tipo);
+    const showAccountingAccount = ["fiscal", "consumidor", "gubernamental"].includes(tipo);
     const tipoConfig = tiposFacturacion.find(t => t.id === tipo);
     const isSaved = tipoConfig && savedConfigs.has(tipoConfig.apiType);
     return /*#__PURE__*/React.createElement("form", {
@@ -329,7 +330,7 @@ const BillingConfigTab = ({
     }, /*#__PURE__*/React.createElement("label", {
       htmlFor: `dian_prefix_${tipo}`,
       className: "font-medium block mb-2"
-    }, "Prefijo DGII", " ", /*#__PURE__*/React.createElement("span", {
+    }, "Prefijo DGII ", /*#__PURE__*/React.createElement("span", {
       className: "text-danger"
     }, "*")), /*#__PURE__*/React.createElement(InputText, _extends({
       id: `dian_prefix_${tipo}`
@@ -340,12 +341,12 @@ const BillingConfigTab = ({
       placeholder: "Ej: ABC"
     })), errors?.dian_prefix && /*#__PURE__*/React.createElement("small", {
       className: "p-error"
-    }, "Favor ingrese el prefijo DGII.")), /*#__PURE__*/React.createElement("div", {
+    }, "Favor ingrese el prefijo DGII.")), showAccountingAccount && /*#__PURE__*/React.createElement("div", {
       className: "field mb-4"
     }, /*#__PURE__*/React.createElement("label", {
       htmlFor: `accounting_account_${tipo}`,
       className: "font-medium block mb-2"
-    }, "Cuenta Contable", " ", /*#__PURE__*/React.createElement("span", {
+    }, "Cuenta Contable ", /*#__PURE__*/React.createElement("span", {
       className: "text-danger"
     }, "*")), /*#__PURE__*/React.createElement(Dropdown, {
       id: `accounting_account_${tipo}`,
@@ -372,7 +373,7 @@ const BillingConfigTab = ({
     }, /*#__PURE__*/React.createElement("label", {
       htmlFor: `accounting_account_reverse_${tipo}`,
       className: "font-medium block mb-2"
-    }, "Cuenta Contable Reversa", " ", /*#__PURE__*/React.createElement("span", {
+    }, "Cuenta Contable Reversa ", /*#__PURE__*/React.createElement("span", {
       className: "text-danger"
     }, "*")), /*#__PURE__*/React.createElement(Dropdown, {
       id: `accounting_account_reverse_${tipo}`,
@@ -399,7 +400,7 @@ const BillingConfigTab = ({
     }, /*#__PURE__*/React.createElement("label", {
       htmlFor: `resolution_number_${tipo}`,
       className: "font-medium block mb-2"
-    }, "N\xFAmero Resoluci\xF3n", " ", /*#__PURE__*/React.createElement("span", {
+    }, "N\xFAmero Resoluci\xF3n ", /*#__PURE__*/React.createElement("span", {
       className: "text-danger"
     }, "*")), /*#__PURE__*/React.createElement(InputText, _extends({
       id: `resolution_number_${tipo}`
@@ -417,7 +418,7 @@ const BillingConfigTab = ({
     }, /*#__PURE__*/React.createElement("label", {
       htmlFor: `invoice_from_${tipo}`,
       className: "font-medium block mb-2"
-    }, "Facturas Desde", " ", /*#__PURE__*/React.createElement("span", {
+    }, "Facturas Desde ", /*#__PURE__*/React.createElement("span", {
       className: "text-danger"
     }, "*")), /*#__PURE__*/React.createElement(InputNumber, {
       id: `invoice_from_${tipo}`,
@@ -437,7 +438,7 @@ const BillingConfigTab = ({
     }, /*#__PURE__*/React.createElement("label", {
       htmlFor: `invoice_to_${tipo}`,
       className: "font-medium block mb-2"
-    }, "Facturas Hasta", " ", /*#__PURE__*/React.createElement("span", {
+    }, "Facturas Hasta ", /*#__PURE__*/React.createElement("span", {
       className: "text-danger"
     }, "*")), /*#__PURE__*/React.createElement(InputNumber, {
       id: `invoice_to_${tipo}`,
@@ -457,7 +458,7 @@ const BillingConfigTab = ({
     }, /*#__PURE__*/React.createElement("label", {
       htmlFor: `resolution_date_${tipo}`,
       className: "font-medium block mb-2"
-    }, "Fecha Resoluci\xF3n", " ", /*#__PURE__*/React.createElement("span", {
+    }, "Fecha Resoluci\xF3n ", /*#__PURE__*/React.createElement("span", {
       className: "text-danger"
     }, "*")), /*#__PURE__*/React.createElement(Calendar, {
       id: `resolution_date_${tipo}`,
@@ -478,7 +479,7 @@ const BillingConfigTab = ({
     }, /*#__PURE__*/React.createElement("label", {
       htmlFor: `expiration_date_${tipo}`,
       className: "font-medium block mb-2"
-    }, "Fecha Vencimiento", " ", /*#__PURE__*/React.createElement("span", {
+    }, "Fecha Vencimiento ", /*#__PURE__*/React.createElement("span", {
       className: "text-danger"
     }, "*")), /*#__PURE__*/React.createElement(Calendar, {
       id: `expiration_date_${tipo}`,

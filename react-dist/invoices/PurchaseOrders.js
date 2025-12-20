@@ -110,9 +110,9 @@ export const PurchaseOrders = ({
     if (filtros.createdAt && filtros.createdAt.length > 0) {
       const validDates = filtros.createdAt.filter(date => !!date);
       if (validDates.length > 0) {
-        filters.start_date = validDates[0].toISOString().split('T')[0];
+        filters.start_date = validDates[0].toISOString().split("T")[0];
         if (validDates.length > 1) {
-          filters.end_date = validDates[1].toISOString().split('T')[0];
+          filters.end_date = validDates[1].toISOString().split("T")[0];
         }
       }
     }
@@ -529,7 +529,7 @@ export const PurchaseOrders = ({
     loading: tableLoading || loadingPurchaseOrders,
     onSearch: handleSearchChangeCustom,
     onReload: handleRefresh,
-    paginator: true,
+    lazy: true,
     rows: rows,
     first: first,
     onPage: onPageChange,
@@ -544,9 +544,9 @@ export const PurchaseOrders = ({
     maximizable: true,
     modal: true,
     style: {
-      width: '90vw',
-      height: '80vh',
-      overflow: 'auto'
+      width: "90vw",
+      height: "80vh",
+      overflow: "auto"
     }
   }, /*#__PURE__*/React.createElement(PurchaseOrderPayments, {
     purchaseOrderId: selectedPurchaseOrder?.orderNumber?.toString() || "0"

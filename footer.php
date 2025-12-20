@@ -1504,7 +1504,7 @@ M. Castro c:
 ===============================================-->
 
 <!-- para texto enriquecido -->
-<!-- <script type="module">
+<script type="module">
   import React from "react";
   import ReactDOMClient from "react-dom/client";
   import {
@@ -1522,7 +1522,7 @@ M. Castro c:
       );
     });
   });
-</script> -->
+</script>
 
 <!-- <script>
   // Cargar datos desde localStorage al iniciar

@@ -10,8 +10,8 @@ import { Calendar } from "primereact/calendar";
 import { ProgressSpinner } from "primereact/progressspinner";
 import { Tag } from "primereact/tag";
 import {
-  CustomPRTable,
-  CustomPRTableColumnProps,
+    CustomPRTable,
+    CustomPRTableColumnProps,
 } from "../components/CustomPRTable";
 import { formatDate } from "../../services/utilidades";
 import { exportToExcel } from "../accounting/utils/ExportToExcelOptions";
@@ -22,548 +22,586 @@ import { generarFormatoContable } from "../../funciones/funcionesJS/generarPDFCo
 import { useByEntityFormat } from "../documents-generation/hooks/billing/invoices/notes/useByEntityFormat";
 
 type Nota = {
-  id: string;
-  numeroNota: string;
-  tipoNota: string;
-  cliente: string;
-  identificacion: string;
-  fechaNota: Date;
-  valorNota: number;
-  motivo: string;
-  type: string;
-  invoice: {
-    invoice_code: string;
-    third_party: {
-      name: string;
-    } | null;
-  };
-  created_at: string;
-  amount: number;
-  reason: string;
-  date: string;
-  tipo: string;
+    id: string;
+    numeroNota: string;
+    tipoNota: string;
+    cliente: string;
+    identificacion: string;
+    fechaNota: Date;
+    valorNota: number;
+    motivo: string;
+    type: string;
+    invoice: {
+        invoice_code: string;
+        third_party: {
+            name: string;
+        } | null;
+    };
+    created_at: string;
+    amount: number;
+    reason: string;
+    date: string;
+    tipo: string;
 };
 
 type Filtros = {
-  numeroNota: string;
-  cliente: string;
-  identificacion: string;
-  rangoFechas: Date[] | null;
-  tipoNota: string | null;
+    numeroNota: string;
+    cliente: string;
+    identificacion: string;
+    rangoFechas: Date[] | null;
+    tipoNota: string | null;
 };
 
 export const DebitCreditNotes = () => {
-  const [notas, setNotas] = useState<Nota[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [tableLoading, setTableLoading] = useState(false);
-  const [totalRecords, setTotalRecords] = useState(0);
-  const { company, setCompany, fetchCompany } = useCompany();
+    const [notas, setNotas] = useState<Nota[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [tableLoading, setTableLoading] = useState(false);
+    const [totalRecords, setTotalRecords] = useState(0);
+    const { company, setCompany, fetchCompany } = useCompany();
 
-  // Pagination state
-  const [first, setFirst] = useState(0);
-  const [rows, setRows] = useState(10);
-  const [globalFilter, setGlobalFilter] = useState("");
-  const { generateFormatByEntity } = useByEntityFormat();
+    // Pagination state
+    const [first, setFirst] = useState(0);
+    const [rows, setRows] = useState(10);
+    const [globalFilter, setGlobalFilter] = useState("");
+    const { generateFormatByEntity } = useByEntityFormat();
 
-  const generateFormatByEntityRef = useRef(generateFormatByEntity);
+    const generateFormatByEntityRef = useRef(generateFormatByEntity);
 
-  useEffect(() => {
-    generateFormatByEntityRef.current = generateFormatByEntity;
-  }, [generateFormatByEntity]);
+    useEffect(() => {
+        generateFormatByEntityRef.current = generateFormatByEntity;
+    }, [generateFormatByEntity]);
 
-  const [filtros, setFiltros] = useState<Filtros>({
-    numeroNota: "",
-    cliente: "",
-    identificacion: "",
-    rangoFechas: null,
-    tipoNota: null,
-  });
-
-  const tiposNota = [
-    { label: "Débito", value: "Débito" },
-    { label: "Crédito", value: "Crédito" },
-  ];
-
-  const toast = useRef<Toast>(null);
-
-  useEffect(() => {
-    loadNotes(1, rows);
-  }, []);
-
-  const onPageChange = (event: any) => {
-    setFirst(event.first);
-    setRows(event.rows);
-    aplicarFiltros(event.page + 1, event.rows);
-  };
-
-  async function loadNotes(page = 1, per_page = 10) {
-    setTableLoading(true);
-    try {
-      const responseNotes = await invoiceService.getNotes();
-      const dataMapped = handleDataMapped(responseNotes.data);
-
-      const startIndex = (page - 1) * per_page;
-      const endIndex = startIndex + per_page;
-      const paginatedData = dataMapped.slice(startIndex, endIndex);
-
-      setNotas(paginatedData);
-      setTotalRecords(dataMapped.length);
-    } catch (error) {
-      console.error("Error cargando notas:", error);
-      showToast("error", "Error", "No se pudieron cargar las notas");
-      setNotas([]);
-      setTotalRecords(0);
-    } finally {
-      setTableLoading(false);
-    }
-  }
-
-  function handleDataMapped(data: any[]) {
-    const dataMapped = data.map((note) => {
-      return {
-        ...note,
-        cliente: note.invoice.third_party
-          ? note.invoice.third_party.name
-          : "Sin cliente",
-        tipo: note.type === "debit" ? "Débito" : "Crédito",
-      };
+    const [filtros, setFiltros] = useState<Filtros>({
+        numeroNota: "",
+        cliente: "",
+        identificacion: "",
+        rangoFechas: null,
+        tipoNota: null,
     });
-    return dataMapped;
-  }
 
-  const handleFilterChange = (field: keyof Filtros, value: any) => {
-    setFiltros((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
+    const tiposNota = [
+        { label: "Débito", value: "Débito" },
+        { label: "Crédito", value: "Crédito" },
+    ];
 
-  const aplicarFiltros = async (page = 1, per_page = 10) => {
-    setTableLoading(true);
-    try {
-      const responseNotes = await invoiceService.getNotes();
-      let filteredData = handleDataMapped(responseNotes.data);
+    const toast = useRef<Toast>(null);
 
-      // Aplicar filtros
-      if (filtros.numeroNota) {
-        filteredData = filteredData.filter((nota) =>
-          nota.id.toLowerCase().includes(filtros.numeroNota.toLowerCase())
-        );
-      }
+    useEffect(() => {
+        loadNotes(1, rows);
+    }, []);
 
-      if (filtros.cliente) {
-        filteredData = filteredData.filter((nota) =>
-          nota.cliente.toLowerCase().includes(filtros.cliente.toLowerCase())
-        );
-      }
+    const onPageChange = (event: any) => {
+        setFirst(event.first);
+        setRows(event.rows);
+        aplicarFiltros(event.page + 1, event.rows);
+    };
 
-      if (filtros.identificacion) {
-        filteredData = filteredData.filter((nota) =>
-          nota.identificacion?.includes(filtros.identificacion)
-        );
-      }
+    async function loadNotes(page = 1, per_page = 10) {
+        setTableLoading(true);
+        try {
+            const responseNotes = await invoiceService.getNotes();
+            const dataMapped = handleDataMapped(responseNotes.data);
 
-      if (filtros.tipoNota) {
-        filteredData = filteredData.filter(
-          (nota) => nota.tipo === filtros.tipoNota
-        );
-      }
+            const startIndex = (page - 1) * per_page;
+            const endIndex = startIndex + per_page;
+            const paginatedData = dataMapped.slice(startIndex, endIndex);
 
-      if (filtros.rangoFechas && filtros.rangoFechas.length === 2) {
-        const [inicio, fin] = filtros.rangoFechas;
-        filteredData = filteredData.filter((nota) => {
-          const fechaNota = new Date(nota.created_at);
-          return fechaNota >= inicio && fechaNota <= fin;
+            setNotas(paginatedData);
+            setTotalRecords(dataMapped.length);
+        } catch (error) {
+            console.error("Error cargando notas:", error);
+            showToast("error", "Error", "No se pudieron cargar las notas");
+            setNotas([]);
+            setTotalRecords(0);
+        } finally {
+            setTableLoading(false);
+        }
+    }
+
+    function handleDataMapped(data: any[]) {
+        const dataMapped = data.map((note) => {
+            return {
+                ...note,
+                cliente: note.invoice.third_party
+                    ? note.invoice.third_party.name
+                    : "Sin cliente",
+                tipo: note.type === "debit" ? "Débito" : "Crédito",
+            };
         });
-      }
-
-      // Paginación
-      const startIndex = (page - 1) * per_page;
-      const endIndex = startIndex + per_page;
-      const paginatedData = filteredData.slice(startIndex, endIndex);
-
-      setNotas(paginatedData);
-      setTotalRecords(filteredData.length);
-    } catch (error) {
-      console.error("Error aplicando filtros:", error);
-      showToast("error", "Error", "No se pudieron aplicar los filtros");
-      setNotas([]);
-      setTotalRecords(0);
-    } finally {
-      setTableLoading(false);
+        return dataMapped;
     }
-  };
 
-  const limpiarFiltros = () => {
-    setFiltros({
-      numeroNota: "",
-      cliente: "",
-      identificacion: "",
-      rangoFechas: null,
-      tipoNota: null,
-    });
-    loadNotes(1, rows);
-  };
+    const handleFilterChange = (field: keyof Filtros, value: any) => {
+        setFiltros((prev) => ({
+            ...prev,
+            [field]: value,
+        }));
+    };
 
-  const formatCurrency = (value: number) => {
-    return (
-      value?.toLocaleString("es-DO", {
-        style: "currency",
-        currency: "DOP",
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      }) || "$0.00"
+    const aplicarFiltros = async (page = 1, per_page = 10) => {
+        setTableLoading(true);
+        try {
+            const responseNotes = await invoiceService.getNotes();
+            let filteredData = handleDataMapped(responseNotes.data);
+
+            // Aplicar filtros
+            if (filtros.numeroNota) {
+                filteredData = filteredData.filter((nota) =>
+                    nota.id
+                        .toLowerCase()
+                        .includes(filtros.numeroNota.toLowerCase())
+                );
+            }
+
+            if (filtros.cliente) {
+                filteredData = filteredData.filter((nota) =>
+                    nota.cliente
+                        .toLowerCase()
+                        .includes(filtros.cliente.toLowerCase())
+                );
+            }
+
+            if (filtros.identificacion) {
+                filteredData = filteredData.filter((nota) =>
+                    nota.identificacion?.includes(filtros.identificacion)
+                );
+            }
+
+            if (filtros.tipoNota) {
+                filteredData = filteredData.filter(
+                    (nota) => nota.tipo === filtros.tipoNota
+                );
+            }
+
+            if (filtros.rangoFechas && filtros.rangoFechas.length === 2) {
+                const [inicio, fin] = filtros.rangoFechas;
+                filteredData = filteredData.filter((nota) => {
+                    const fechaNota = new Date(nota.created_at);
+                    return fechaNota >= inicio && fechaNota <= fin;
+                });
+            }
+
+            // Paginación
+            const startIndex = (page - 1) * per_page;
+            const endIndex = startIndex + per_page;
+            const paginatedData = filteredData.slice(startIndex, endIndex);
+
+            setNotas(paginatedData);
+            setTotalRecords(filteredData.length);
+        } catch (error) {
+            console.error("Error aplicando filtros:", error);
+            showToast("error", "Error", "No se pudieron aplicar los filtros");
+            setNotas([]);
+            setTotalRecords(0);
+        } finally {
+            setTableLoading(false);
+        }
+    };
+
+    const limpiarFiltros = () => {
+        setFiltros({
+            numeroNota: "",
+            cliente: "",
+            identificacion: "",
+            rangoFechas: null,
+            tipoNota: null,
+        });
+        loadNotes(1, rows);
+    };
+
+    const formatCurrency = (value: number) => {
+        return (
+            value?.toLocaleString("es-DO", {
+                style: "currency",
+                currency: "DOP",
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+            }) || "$0.00"
+        );
+    };
+
+    const getTipoNotaSeverity = (tipo: string) => {
+        return tipo === "debit" ? "danger" : "success";
+    };
+
+    function handleDataMappedToExport(dataToExport: any) {
+        const dataFormatted = dataToExport.map((item: any) => {
+            return {
+                "no. nota": item.id,
+                "tipo nota": item.tipo,
+                cliente: item.cliente,
+                factura: item.invoice.invoice_code,
+                fecha_nota: formatDate(item.created_at),
+                valor_nota: formatCurrency(item.amount),
+                motivo: item.reason,
+            };
+        });
+        return dataFormatted;
+    }
+
+    function handleDescargarExcel(data: any) {
+        const formatedData = handleDataMappedToExport(data);
+        exportToExcel({
+            data: formatedData,
+            fileName: `notas`,
+        });
+        showToast("success", "Éxito", "Excel descargado correctamente");
+    }
+
+    const exportToPDF = useCallback(
+        async (data: any[]) => {
+            if (data[0].invoice.type == "entity") {
+                generateFormatByEntityRef.current(data[0], "Descargar");
+            } else {
+                generarFormatoContable(
+                    "NotaDebitoCredito",
+                    data[0],
+                    "Descargar"
+                );
+            }
+            showToast("success", "Éxito", "PDF descargado correctamente");
+        },
+        [generateFormatByEntity]
     );
-  };
 
-  const getTipoNotaSeverity = (tipo: string) => {
-    return tipo === "debit" ? "danger" : "success";
-  };
+    const printInvoice = useCallback(
+        async (nota: any) => {
+            if (nota.invoice.type == "entity") {
+                generateFormatByEntityRef.current(nota, "Impresion");
+            } else {
+                generarFormatoContable("NotaDebitoCredito", nota, "Impresion");
+            }
+        },
+        [generateFormatByEntity]
+    );
 
-  function handleDataMappedToExport(dataToExport: any) {
-    const dataFormatted = dataToExport.map((item: any) => {
-      return {
-        "no. nota": item.id,
-        "tipo nota": item.tipo,
-        cliente: item.cliente,
-        factura: item.invoice.invoice_code,
-        fecha_nota: formatDate(item.created_at),
-        valor_nota: formatCurrency(item.amount),
-        motivo: item.reason,
-      };
-    });
-    return dataFormatted;
-  }
+    const TableMenu: React.FC<{
+        rowData: Nota;
+    }> = ({ rowData }) => {
+        const menu = useRef<Menu>(null);
 
-  function handleDescargarExcel(data: any) {
-    const formatedData = handleDataMappedToExport(data);
-    exportToExcel({
-      data: formatedData,
-      fileName: `notas`,
-    });
-    showToast("success", "Éxito", "Excel descargado correctamente");
-  }
+        const handleDownloadExcel = () => {
+            handleDescargarExcel([rowData]);
+        };
 
-  const exportToPDF = useCallback(
-    async (data: any[]) => {
-      if (data[0].invoice.type == "entity") {
-        generateFormatByEntityRef.current(data[0], "Descargar");
-      } else {
-        generarFormatoContable("NotaDebitoCredito", data[0], "Descargar");
-      }
-      showToast("success", "Éxito", "PDF descargado correctamente");
-    },
-    [generateFormatByEntity]
-  );
+        const handleDownloadPdf = () => {
+            exportToPDF([rowData]);
+        };
 
-  const printInvoice = useCallback(
-    async (nota: any) => {
-      if (nota.invoice.type == "entity") {
-        generateFormatByEntityRef.current(nota, "Impresion");
-      } else {
-        generarFormatoContable("NotaDebitoCredito", nota, "Impresion");
-      }
-    },
-    [generateFormatByEntity]
-  );
+        const handlePrintInvoice = () => {
+            printInvoice(rowData);
+        };
 
-  const TableMenu: React.FC<{
-    rowData: Nota;
-  }> = ({ rowData }) => {
-    const menu = useRef<Menu>(null);
+        const menuItems = [
+            {
+                label: "Descargar Excel",
+                icon: <i className="fas fa-file-excel me-2"></i>,
+                command: handleDownloadExcel,
+            },
+            {
+                label: "Descargar PDF",
+                icon: <i className="fas fa-file-pdf me-2"></i>,
+                command: handleDownloadPdf,
+            },
+            {
+                label: "Imprimir",
+                icon: <i className="fas fa-print me-2"></i>,
+                command: handlePrintInvoice,
+            },
+        ];
 
-    const handleDownloadExcel = () => {
-      handleDescargarExcel([rowData]);
+        return (
+            <div style={{ position: "relative" }}>
+                <Button
+                    className="p-button-primary flex items-center gap-2"
+                    onClick={(e) => menu.current?.toggle(e)}
+                    aria-controls={`popup_menu_${rowData.id}`}
+                    aria-haspopup
+                >
+                    Acciones
+                    <i className="fas fa-cog ml-2"></i>
+                </Button>
+                <Menu
+                    model={menuItems}
+                    popup
+                    ref={menu}
+                    id={`popup_menu_${rowData.id}`}
+                    appendTo={document.body}
+                    style={{ zIndex: 9999 }}
+                />
+            </div>
+        );
     };
 
-    const handleDownloadPdf = () => {
-      exportToPDF([rowData]);
+    const actionBodyTemplate = (rowData: Nota) => {
+        return (
+            <div
+                className="flex align-items-center justify-content-center"
+                style={{ gap: "0.5rem", minWidth: "120px" }}
+            >
+                <TableMenu rowData={rowData} />
+            </div>
+        );
     };
 
-    const handlePrintInvoice = () => {
-      printInvoice(rowData);
+    const showToast = (
+        severity: "success" | "error" | "info" | "warn",
+        summary: string,
+        detail: string
+    ) => {
+        toast.current?.show({ severity, summary, detail, life: 3000 });
     };
 
-    const menuItems = [
-      {
-        label: "Descargar Excel",
-        icon: <i className="fas fa-file-excel me-2"></i>,
-        command: handleDownloadExcel,
-      },
-      {
-        label: "Descargar PDF",
-        icon: <i className="fas fa-file-pdf me-2"></i>,
-        command: handleDownloadPdf,
-      },
-      {
-        label: "Imprimir",
-        icon: <i className="fas fa-print me-2"></i>,
-        command: handlePrintInvoice,
-      },
+    const handleSearchChange = (searchValue: string) => {
+        setGlobalFilter(searchValue);
+    };
+
+    const handleRefresh = async () => {
+        limpiarFiltros();
+        await loadNotes(1, rows);
+    };
+
+    const handleExportAllExcel = () => {
+        handleDescargarExcel(notas);
+    };
+
+    const handleExportAllPDF = () => {
+        exportToPDF(notas);
+    };
+
+    const tableItems = notas.map((nota) => ({
+        id: nota.id,
+        tipo: nota.tipo,
+        cliente: nota.cliente,
+        invoice_code: nota.invoice.invoice_code,
+        date: nota.created_at,
+        amount: nota.amount,
+        reason: nota.reason,
+        type: nota.type,
+        actions: nota,
+    }));
+
+    const columns: CustomPRTableColumnProps[] = [
+        {
+            field: "id",
+            header: "No. Nota",
+            sortable: true,
+        },
+        {
+            field: "tipo",
+            header: "Tipo nota",
+            sortable: true,
+            body: (rowData: any) => (
+                <Tag
+                    value={rowData.tipo}
+                    severity={getTipoNotaSeverity(rowData.type)}
+                />
+            ),
+        },
+        {
+            field: "cliente",
+            header: "Cliente",
+            sortable: true,
+        },
+        {
+            field: "invoice_code",
+            header: "Factura",
+            sortable: true,
+        },
+        {
+            field: "date",
+            header: "Fecha nota",
+            sortable: true,
+            body: (rowData: any) => formatDate(rowData.date),
+        },
+        {
+            field: "amount",
+            header: "Valor nota",
+            sortable: true,
+            body: (rowData: any) => formatCurrency(rowData.amount),
+        },
+        {
+            field: "reason",
+            header: "Motivo",
+            sortable: true,
+        },
+        {
+            field: "actions",
+            header: "Acciones",
+            body: (rowData: any) => actionBodyTemplate(rowData.actions),
+            exportable: false,
+            width: "120px",
+        },
     ];
 
     return (
-      <div style={{ position: "relative" }}>
-        <Button
-          className="p-button-primary flex items-center gap-2"
-          onClick={(e) => menu.current?.toggle(e)}
-          aria-controls={`popup_menu_${rowData.id}`}
-          aria-haspopup
-        >
-          Acciones
-          <i className="fas fa-cog ml-2"></i>
-        </Button>
-        <Menu
-          model={menuItems}
-          popup
-          ref={menu}
-          id={`popup_menu_${rowData.id}`}
-          appendTo={document.body}
-          style={{ zIndex: 9999 }}
-        />
-      </div>
-    );
-  };
+        <main className="main w-100" id="top">
+            <Toast ref={toast} />
 
-  const actionBodyTemplate = (rowData: Nota) => {
-    return (
-      <div
-        className="flex align-items-center justify-content-center"
-        style={{ gap: "0.5rem", minWidth: "120px" }}
-      >
-        <TableMenu rowData={rowData} />
-      </div>
-    );
-  };
-
-  const showToast = (
-    severity: "success" | "error" | "info" | "warn",
-    summary: string,
-    detail: string
-  ) => {
-    toast.current?.show({ severity, summary, detail, life: 3000 });
-  };
-
-  const handleSearchChange = (searchValue: string) => {
-    setGlobalFilter(searchValue);
-  };
-
-  const handleRefresh = async () => {
-    limpiarFiltros();
-    await loadNotes(1, rows);
-  };
-
-  const handleExportAllExcel = () => {
-    handleDescargarExcel(notas);
-  };
-
-  const handleExportAllPDF = () => {
-    exportToPDF(notas);
-  };
-
-  const tableItems = notas.map((nota) => ({
-    id: nota.id,
-    tipo: nota.tipo,
-    cliente: nota.cliente,
-    invoice_code: nota.invoice.invoice_code,
-    date: nota.created_at,
-    amount: nota.amount,
-    reason: nota.reason,
-    type: nota.type,
-    actions: nota,
-  }));
-
-  const columns: CustomPRTableColumnProps[] = [
-    {
-      field: "id",
-      header: "No. Nota",
-      sortable: true,
-    },
-    {
-      field: "tipo",
-      header: "Tipo nota",
-      sortable: true,
-      body: (rowData: any) => (
-        <Tag
-          value={rowData.tipo}
-          severity={getTipoNotaSeverity(rowData.type)}
-        />
-      ),
-    },
-    {
-      field: "cliente",
-      header: "Cliente",
-      sortable: true,
-    },
-    {
-      field: "invoice_code",
-      header: "Factura",
-      sortable: true,
-    },
-    {
-      field: "date",
-      header: "Fecha nota",
-      sortable: true,
-      body: (rowData: any) => formatDate(rowData.date),
-    },
-    {
-      field: "amount",
-      header: "Valor nota",
-      sortable: true,
-      body: (rowData: any) => formatCurrency(rowData.amount),
-    },
-    {
-      field: "reason",
-      header: "Motivo",
-      sortable: true,
-    },
-    {
-      field: "actions",
-      header: "Acciones",
-      body: (rowData: any) => actionBodyTemplate(rowData.actions),
-      exportable: false,
-      width: "120px",
-    },
-  ];
-
-  return (
-    <main className="main w-100" id="top">
-      <Toast ref={toast} />
-
-      {loading ? (
-        <div
-          className="flex justify-content-center align-items-center"
-          style={{
-            height: "50vh",
-            marginLeft: "900px",
-            marginTop: "300px",
-          }}
-        >
-          <ProgressSpinner />
-        </div>
-      ) : (
-        <div className="w-100">
-          <div
-            className="h-100 w-100 d-flex flex-column"
-            style={{ marginTop: "-30px" }}
-          >
-            <div className="text-end pt-3 mb-2">
-              <Button
-                className="p-button-primary"
-                onClick={() => (window.location.href = "NotasDebitoCredito")}
-              >
-                <i className="fas fa-file-edit me-2"></i>
-                Nueva Nota Débito/Crédito
-              </Button>
-            </div>
-
-            <Accordion>
-              <AccordionTab header="Filtros de Búsqueda">
-                <div className="row">
-                  <div className="col-12 col-md-6 mb-3">
-                    <label className="form-label">Número de nota</label>
-                    <InputText
-                      value={filtros.numeroNota}
-                      onChange={(e) =>
-                        handleFilterChange("numeroNota", e.target.value)
-                      }
-                      placeholder="ND-001-0000001"
-                      className="w-100"
-                    />
-                  </div>
-
-                  <div className="col-12 col-md-6 mb-3">
-                    <label className="form-label">Cliente</label>
-                    <InputText
-                      value={filtros.cliente}
-                      onChange={(e) =>
-                        handleFilterChange("cliente", e.target.value)
-                      }
-                      placeholder="Nombre del cliente"
-                      className="w-100"
-                    />
-                  </div>
-
-                  <div className="col-12 col-md-6 mb-3">
-                    <label className="form-label">Identificación</label>
-                    <InputText
-                      value={filtros.identificacion}
-                      onChange={(e) =>
-                        handleFilterChange("identificacion", e.target.value)
-                      }
-                      placeholder="RNC/Cédula del cliente"
-                      className="w-100"
-                    />
-                  </div>
-
-                  <div className="col-12 col-md-6 mb-3">
-                    <label className="form-label">Tipo de nota</label>
-                    <Dropdown
-                      value={filtros.tipoNota}
-                      options={tiposNota}
-                      onChange={(e) => handleFilterChange("tipoNota", e.value)}
-                      optionLabel="label"
-                      placeholder="Seleccione tipo"
-                      className="w-100"
-                    />
-                  </div>
-
-                  <div className="col-12 col-md-6 mb-3">
-                    <label className="form-label">Rango de fechas</label>
-                    <Calendar
-                      value={filtros.rangoFechas}
-                      onChange={(e) =>
-                        handleFilterChange("rangoFechas", e.value)
-                      }
-                      selectionMode="range"
-                      readOnlyInput
-                      dateFormat="dd/mm/yy"
-                      placeholder="Seleccione rango de fechas"
-                      className="w-100"
-                      showIcon
-                    />
-                  </div>
-
-                  <div className="col-12 d-flex justify-content-end gap-2">
-                    <Button
-                      label="Limpiar"
-                      icon="pi pi-trash"
-                      className="p-button-secondary"
-                      onClick={limpiarFiltros}
-                    />
-                    <Button
-                      label="Aplicar Filtros"
-                      icon="pi pi-filter"
-                      className="p-button-primary"
-                      onClick={() => aplicarFiltros()}
-                      loading={tableLoading}
-                    />
-                  </div>
+            {loading ? (
+                <div
+                    className="flex justify-content-center align-items-center"
+                    style={{
+                        height: "50vh",
+                        marginLeft: "900px",
+                        marginTop: "300px",
+                    }}
+                >
+                    <ProgressSpinner />
                 </div>
-              </AccordionTab>
-            </Accordion>
+            ) : (
+                <div className="w-100">
+                    <div
+                        className="h-100 w-100 d-flex flex-column"
+                        style={{ marginTop: "-30px" }}
+                    >
+                        <div className="text-end pt-3 mb-2">
+                            <Button
+                                className="p-button-primary"
+                                onClick={() =>
+                                    (window.location.href =
+                                        "NotasDebitoCredito")
+                                }
+                            >
+                                <i className="fas fa-file-edit me-2"></i>
+                                Nueva Nota Débito/Crédito
+                            </Button>
+                        </div>
 
-            <CustomPRTable
-              columns={columns}
-              data={tableItems}
-              loading={tableLoading}
-              onSearch={handleSearchChange}
-              onReload={handleRefresh}
-              paginator
-              rows={rows}
-              first={first}
-              onPage={onPageChange}
-              totalRecords={totalRecords}
-              rowsPerPageOptions={[5, 10, 25, 50]}
-              currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} notas"
-              emptyMessage="No se encontraron notas"
-              exportExcel={handleExportAllExcel}
-              exportPdf={handleExportAllPDF}
-              showExportButtons={true}
-            />
-          </div>
-        </div>
-      )}
-    </main>
-  );
+                        <Accordion>
+                            <AccordionTab header="Filtros de Búsqueda">
+                                <div className="row">
+                                    <div className="col-12 col-md-6 mb-3">
+                                        <label className="form-label">
+                                            Número de nota
+                                        </label>
+                                        <InputText
+                                            value={filtros.numeroNota}
+                                            onChange={(e) =>
+                                                handleFilterChange(
+                                                    "numeroNota",
+                                                    e.target.value
+                                                )
+                                            }
+                                            placeholder="ND-001-0000001"
+                                            className="w-100"
+                                        />
+                                    </div>
+
+                                    <div className="col-12 col-md-6 mb-3">
+                                        <label className="form-label">
+                                            Cliente
+                                        </label>
+                                        <InputText
+                                            value={filtros.cliente}
+                                            onChange={(e) =>
+                                                handleFilterChange(
+                                                    "cliente",
+                                                    e.target.value
+                                                )
+                                            }
+                                            placeholder="Nombre del cliente"
+                                            className="w-100"
+                                        />
+                                    </div>
+
+                                    <div className="col-12 col-md-6 mb-3">
+                                        <label className="form-label">
+                                            Identificación
+                                        </label>
+                                        <InputText
+                                            value={filtros.identificacion}
+                                            onChange={(e) =>
+                                                handleFilterChange(
+                                                    "identificacion",
+                                                    e.target.value
+                                                )
+                                            }
+                                            placeholder="RNC/Cédula del cliente"
+                                            className="w-100"
+                                        />
+                                    </div>
+
+                                    <div className="col-12 col-md-6 mb-3">
+                                        <label className="form-label">
+                                            Tipo de nota
+                                        </label>
+                                        <Dropdown
+                                            value={filtros.tipoNota}
+                                            options={tiposNota}
+                                            onChange={(e) =>
+                                                handleFilterChange(
+                                                    "tipoNota",
+                                                    e.value
+                                                )
+                                            }
+                                            optionLabel="label"
+                                            placeholder="Seleccione tipo"
+                                            className="w-100"
+                                        />
+                                    </div>
+
+                                    <div className="col-12 col-md-6 mb-3">
+                                        <label className="form-label">
+                                            Rango de fechas
+                                        </label>
+                                        <Calendar
+                                            value={filtros.rangoFechas}
+                                            onChange={(e) =>
+                                                handleFilterChange(
+                                                    "rangoFechas",
+                                                    e.value
+                                                )
+                                            }
+                                            selectionMode="range"
+                                            readOnlyInput
+                                            dateFormat="dd/mm/yy"
+                                            placeholder="Seleccione rango de fechas"
+                                            className="w-100"
+                                            showIcon
+                                        />
+                                    </div>
+
+                                    <div className="col-12 d-flex justify-content-end gap-2">
+                                        <Button
+                                            label="Limpiar"
+                                            icon="pi pi-trash"
+                                            className="p-button-secondary"
+                                            onClick={limpiarFiltros}
+                                        />
+                                        <Button
+                                            label="Aplicar Filtros"
+                                            icon="pi pi-filter"
+                                            className="p-button-primary"
+                                            onClick={() => aplicarFiltros()}
+                                            loading={tableLoading}
+                                        />
+                                    </div>
+                                </div>
+                            </AccordionTab>
+                        </Accordion>
+
+                        <CustomPRTable
+                            columns={columns}
+                            data={tableItems}
+                            loading={tableLoading}
+                            onSearch={handleSearchChange}
+                            onReload={handleRefresh}
+                            lazy
+                            rows={rows}
+                            first={first}
+                            onPage={onPageChange}
+                            totalRecords={totalRecords}
+                            rowsPerPageOptions={[5, 10, 25, 50]}
+                            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} notas"
+                            emptyMessage="No se encontraron notas"
+                            exportExcel={handleExportAllExcel}
+                            exportPdf={handleExportAllPDF}
+                            showExportButtons={true}
+                        />
+                    </div>
+                </div>
+            )}
+        </main>
+    );
 };

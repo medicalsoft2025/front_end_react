@@ -29,6 +29,7 @@ export const AdmissionApp = () => {
       ...filters,
       sort: "-createdAt"
     });
+    console.log("result", result);
 
     // Retornar en el formato que espera useDataPagination
     return {
@@ -91,6 +92,9 @@ export const AdmissionApp = () => {
     };
     refresh(newFilters);
   };
+  const handleRefresh = () => {
+    refresh();
+  };
   return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(PrimeReactProvider, {
     value: {
       appendTo: "self",
@@ -107,8 +111,9 @@ export const AdmissionApp = () => {
     loading: loadingPaginator,
     onPage: handlePageChange,
     onSearch: handleSearchChange,
-    onReload: refresh,
-    handleFilter: handleFilter
+    onReload: handleRefresh,
+    handleFilter: handleFilter,
+    lazy: true
   })), /*#__PURE__*/React.createElement(CustomFormModal, {
     show: showCancellationModal,
     onHide: () => setShowCancellationModal(false),

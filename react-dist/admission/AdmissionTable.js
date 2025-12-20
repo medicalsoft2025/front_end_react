@@ -5,9 +5,9 @@ import { Menu } from "primereact/menu";
 import { Button } from "primereact/button";
 import { Dropdown } from "primereact/dropdown";
 import { Calendar } from "primereact/calendar";
-import { MultiSelect } from 'primereact/multiselect';
+import { MultiSelect } from "primereact/multiselect";
 import { AutoComplete } from "primereact/autocomplete";
-import { Accordion, AccordionTab } from 'primereact/accordion';
+import { Accordion, AccordionTab } from "primereact/accordion";
 import { CustomPRTable } from "../components/CustomPRTable.js";
 import { CustomFormModal } from "../components/CustomFormModal.js";
 import { CustomModal } from "../components/CustomModal.js";
@@ -436,13 +436,7 @@ export const AdmissionTable = ({
     }
   }, /*#__PURE__*/React.createElement("i", {
     className: "fa-solid fa-file-excel me-2"
-  }), "Exportar a Excel"), /*#__PURE__*/React.createElement(Button, {
-    className: "p-button-secondary",
-    onClick: onReload,
-    disabled: loading
-  }, /*#__PURE__*/React.createElement("i", {
-    className: "fa-solid fa-refresh me-2"
-  }), "Recargar")), /*#__PURE__*/React.createElement(Accordion, null, /*#__PURE__*/React.createElement(AccordionTab, {
+  }), "Exportar a Excel")), /*#__PURE__*/React.createElement(Accordion, null, /*#__PURE__*/React.createElement(AccordionTab, {
     header: "Filtrar admisiones"
   }, /*#__PURE__*/React.createElement("div", {
     className: "d-flex gap-2"

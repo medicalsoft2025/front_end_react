@@ -70,6 +70,7 @@ export const FormDebitCreditNotes = ({
   const noteType = watch("noteType");
   useEffect(() => {
     if (invoices.length && initialData) {
+      console.log("initialData", initialData);
       loadPaymentMethods();
       const invoice = invoices.filter(invoice => invoice.id === Number(initialData.id))[0];
       if (invoice) {

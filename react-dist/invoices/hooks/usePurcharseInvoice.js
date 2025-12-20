@@ -39,7 +39,8 @@ const mapInvoiceData = response => {
           tax: tax,
           total: parseFloat(total.toFixed(2))
         };
-      })
+      }),
+      original: item
     };
     return mappedItem;
   });

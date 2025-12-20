@@ -3,8 +3,8 @@ import { PrimeReactProvider } from "primereact/api";
 import { useSpecializables } from "../specializables/hooks/useSpecializables";
 import { useEffect } from "react";
 import {
-  ClinicalRecordTypeDto,
-  PatientClinicalRecordDto,
+    ClinicalRecordTypeDto,
+    PatientClinicalRecordDto,
 } from "../models/models";
 import { useState } from "react";
 import { useClinicalRecordTypes } from "../clinical-record-types/hooks/useClinicalRecordTypes";
@@ -14,190 +14,192 @@ import UserManager from "../../services/userManager";
 import { generarFormato } from "../../funciones/funcionesJS/generarPDF";
 import { SeePatientInfoButton } from "../patients/SeePatientInfoButton";
 import { Button } from "primereact/button";
+import { usePatient } from "../patients/hooks/usePatient";
 
-interface PatientClinicalRecordAppProps { }
+interface PatientClinicalRecordAppProps {}
 
 const specialtyId = new URLSearchParams(window.location.search).get(
-  "especialidad"
+    "especialidad"
 );
 const patientId =
-  new URLSearchParams(window.location.search).get("patient_id") ||
-  new URLSearchParams(window.location.search).get("id") ||
-  "";
+    new URLSearchParams(window.location.search).get("patient_id") ||
+    new URLSearchParams(window.location.search).get("id") ||
+    "";
 const appointmentId =
-  new URLSearchParams(window.location.search).get("appointment_id") || "";
+    new URLSearchParams(window.location.search).get("appointment_id") || "";
 
 export const PatientClinicalRecordApp: React.FC<
-  PatientClinicalRecordAppProps
+    PatientClinicalRecordAppProps
 > = () => {
-  const { specializables } = useSpecializables();
-  const { clinicalRecordTypes } = useClinicalRecordTypes();
-  const { clinicalRecords } = useClinicalRecords(patientId);
-  const [tableClinicalRecords, setTableClinicalRecords] = useState<
-    PatientClinicalRecordDto[]
-  >([]);
-  const [specialtyClinicalRecords, setSpecialtyClinicalRecords] = useState<
-    ClinicalRecordTypeDto[]
-  >([]);
+    const { specializables } = useSpecializables();
+    const { clinicalRecordTypes } = useClinicalRecordTypes();
+    const { clinicalRecords } = useClinicalRecords(patientId);
+    const { patient } = usePatient(patientId);
+    const [tableClinicalRecords, setTableClinicalRecords] = useState<
+        PatientClinicalRecordDto[]
+    >([]);
+    const [specialtyClinicalRecords, setSpecialtyClinicalRecords] = useState<
+        ClinicalRecordTypeDto[]
+    >([]);
 
-  useEffect(() => {
-    if (specializables && clinicalRecordTypes) {
+    useEffect(() => {
+        if (specializables && clinicalRecordTypes) {
+            const specialtyClinicalRecordIds = specializables
+                .filter(
+                    (record) =>
+                        record.specialty_id === specialtyId &&
+                        ["Historia Clínica", "clinical_record"].includes(
+                            record.specializable_type
+                        )
+                )
+                .map((record) => record.specializable_id.toString());
 
-      const specialtyClinicalRecordIds = specializables
-        .filter(
-          (record) =>
-            record.specialty_id === specialtyId &&
-            ["Historia Clínica", "clinical_record"].includes(
-              record.specializable_type
-            )
-        )
-        .map((record) => record.specializable_id.toString());
+            const filteredClinicalRecords = clinicalRecordTypes.filter(
+                (record) =>
+                    specialtyClinicalRecordIds.includes(record.id.toString())
+            );
 
-      const filteredClinicalRecords = clinicalRecordTypes.filter((record) =>
-        specialtyClinicalRecordIds.includes(record.id.toString())
-      );
+            setSpecialtyClinicalRecords(filteredClinicalRecords);
+            setTableClinicalRecords(
+                clinicalRecords.filter((record) =>
+                    specialtyClinicalRecordIds.includes(
+                        record.clinical_record_type_id.toString()
+                    )
+                )
+            );
+        }
+    }, [specializables, clinicalRecordTypes, clinicalRecords]);
 
-      console.log('specialtyClinicalRecordIds', specialtyClinicalRecordIds);
-      console.log('clinicalRecords', clinicalRecords);
-      console.log('filteredClinicalRecords', filteredClinicalRecords);
-      console.log('tableClinicalRecords', clinicalRecords.filter((record) =>
-        specialtyClinicalRecordIds.includes(
-          record.clinical_record_type_id.toString()
-        )
-      ));
+    useEffect(() => {
+        if (specializables) {
+            const specialtyClinicalRecordIds = specializables
+                .filter(
+                    (record) =>
+                        record.specialty_id === specialtyId &&
+                        record.specializable_type === "Historia Clínica"
+                )
+                .map((record) => record.specializable_id.toString());
 
+            setTableClinicalRecords(
+                clinicalRecords.filter((record) =>
+                    specialtyClinicalRecordIds.includes(
+                        record.clinical_record_type_id.toString()
+                    )
+                )
+            );
+        }
+    }, [specializables, clinicalRecords]);
 
+    useEffect(() => {
+        console.log("Paciente: ", patient);
+    }, [patient]);
 
-      setSpecialtyClinicalRecords(filteredClinicalRecords);
-      setTableClinicalRecords(
-        clinicalRecords.filter((record) =>
-          specialtyClinicalRecordIds.includes(
-            record.clinical_record_type_id.toString()
-          )
-        )
-      );
-    }
-  }, [specializables, clinicalRecordTypes, clinicalRecords]);
-
-  useEffect(() => {
-
-    if (specializables) {
-      const specialtyClinicalRecordIds = specializables
-        .filter(
-          (record) =>
-            record.specialty_id === specialtyId &&
-            record.specializable_type === "Historia Clínica"
-        )
-        .map((record) => record.specializable_id.toString());
-
-      setTableClinicalRecords(
-        clinicalRecords.filter((record) =>
-          specialtyClinicalRecordIds.includes(
-            record.clinical_record_type_id.toString()
-          )
-        )
-      );
-    }
-  }, [specializables, clinicalRecords]);
-
-  const printClinicalRecord = (id: string, title: string) => {
-    //@ts-ignore
-    generarFormato("Consulta", id, "Impresion");
-    // crearDocumento(id, "Impresion", "Consulta", "Completa", title);
-  };
-
-  const downloadClinicalRecord = (id: string, title: string) => {
-    //@ts-ignore
-    generarFormato("Consulta", id, "Descarga");
-    // crearDocumento(id, "Descarga", "Consulta", "Completa", title);
-  };
-
-  const shareClinicalRecord = (
-    id: string,
-    type: string,
-    title: string,
-    patient_id: string
-  ) => {
-    switch (type) {
-      case "whatsapp":
+    const printClinicalRecord = (id: string, title: string) => {
         //@ts-ignore
-        enviarDocumento(
-          id,
-          "Descarga",
-          "Consulta",
-          "Completa",
-          patient_id,
-          UserManager.getUser().id,
-          title
-        );
-        break;
+        generarFormato("Consulta", id, "Impresion");
+        // crearDocumento(id, "Impresion", "Consulta", "Completa", title);
+    };
 
-      default:
-        break;
-    }
-  };
+    const downloadClinicalRecord = (id: string, title: string) => {
+        //@ts-ignore
+        generarFormato("Consulta", id, "Descarga");
+        // crearDocumento(id, "Descarga", "Consulta", "Completa", title);
+    };
 
-  const seeDetail = (id: string, clinicalRecordType: string) => {
-    window.location.href = `detalleConsulta?clinicalRecordId=${id}&patient_id=${patientId}&tipo_historia=${clinicalRecordType}&especialidad=${specialtyId}`;
-  };
+    const shareClinicalRecord = (
+        id: string,
+        type: string,
+        title: string,
+        patient_id: string
+    ) => {
+        switch (type) {
+            case "whatsapp":
+                //@ts-ignore
+                enviarDocumento(
+                    id,
+                    "Descarga",
+                    "Consulta",
+                    "Completa",
+                    patient_id,
+                    UserManager.getUser().id,
+                    title
+                );
+                break;
 
-  const nombreEspecialidad = new URLSearchParams(window.location.search).get(
-    "especialidad"
-  );
+            default:
+                break;
+        }
+    };
 
-  return (
-    <PrimeReactProvider>
-      <div className="row">
-        <div className="col-12">
-          <div className="d-flex justify-content-between align-items-center">
-            <div>
-              <h2 className="mb-0">
-                Historias Clínicas - {nombreEspecialidad}
-              </h2>
+    const seeDetail = (id: string, clinicalRecordType: string) => {
+        window.location.href = `detalleConsulta?clinicalRecordId=${id}&patient_id=${patientId}&tipo_historia=${clinicalRecordType}&especialidad=${specialtyId}`;
+    };
+
+    const nombreEspecialidad = new URLSearchParams(window.location.search).get(
+        "especialidad"
+    );
+
+    return (
+        <PrimeReactProvider>
+            <div className="row">
+                <div className="col-12">
+                    <div className="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 className="mb-0">
+                                Historias Clínicas - {nombreEspecialidad}
+                            </h2>
+                        </div>
+                        <div className="d-flex align-items-center gap-2 justify-content-end">
+                            <SeePatientInfoButton patientId={patientId} />
+
+                            {patient && patient.current_appointment && (
+                                <>
+                                    <div className="dropdown">
+                                        <Button
+                                            label="Crear Historia Clínica"
+                                            className="p-button-primary"
+                                            type="button"
+                                            id="dropdownMenuButton"
+                                            data-bs-toggle="dropdown"
+                                            aria-expanded="false"
+                                        ></Button>
+                                        <ul
+                                            className="dropdown-menu "
+                                            aria-labelledby="dropdownMenuButton"
+                                        >
+                                            {specialtyClinicalRecords.map(
+                                                (record) => (
+                                                    <li key={record.id}>
+                                                        <a
+                                                            className="dropdown-item"
+                                                            href={`consultas?patient_id=${patientId}&especialidad=${specialtyId}&tipo_historia=${record.key_}&appointment_id=${appointmentId}`}
+                                                        >
+                                                            <strong>
+                                                                Crear{" "}
+                                                                {record.name}
+                                                            </strong>
+                                                        </a>
+                                                    </li>
+                                                )
+                                            )}
+                                        </ul>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div className="d-flex align-items-center gap-2 justify-content-end">
-              <SeePatientInfoButton patientId={patientId} />
 
-              <div className="dropdown">
-                <Button
-                  label="Crear Historia Clínica"
-                  className="p-button-primary"
-                  type="button"
-                  id="dropdownMenuButton"
-                  data-bs-toggle="dropdown"
-                  aria-expanded="false"
-                >
-                </Button>
-                <ul
-                  className="dropdown-menu "
-                  aria-labelledby="dropdownMenuButton"
-                >
-                  {specialtyClinicalRecords.map((record) => (
-                    <li key={record.id}>
-                      <a
-                        className="dropdown-item"
-                        href={`consultas?patient_id=${patientId}&especialidad=${specialtyId}&tipo_historia=${record.key_}&appointment_id=${appointmentId}`}
-                      >
-                        <strong>Crear {record.name}</strong>
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+            <div className="row mt-4">
+                <PatientClinicalRecordsTable
+                    records={tableClinicalRecords}
+                    onSeeDetail={seeDetail}
+                    onPrintItem={printClinicalRecord}
+                    onDownloadItem={downloadClinicalRecord}
+                    onShareItem={shareClinicalRecord}
+                />
             </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="row mt-4">
-        <PatientClinicalRecordsTable
-          records={tableClinicalRecords}
-          onSeeDetail={seeDetail}
-          onPrintItem={printClinicalRecord}
-          onDownloadItem={downloadClinicalRecord}
-          onShareItem={shareClinicalRecord}
-        />
-      </div>
-    </PrimeReactProvider>
-  );
+        </PrimeReactProvider>
+    );
 };

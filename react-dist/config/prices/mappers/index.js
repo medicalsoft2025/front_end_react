@@ -23,8 +23,8 @@ export const ProductMapperCreate = data => {
       return {
         entity_id: entity.entity_id,
         price: entity.price.toString(),
-        tax_charge_id: entity.tax_type,
-        withholding_tax_id: entity.retention_type,
+        tax_charge_id: entity.tax_charge_id,
+        withholding_tax_id: entity.withholding_tax_id,
         negotation_type: entity.negotation_type
       };
     }) : []
@@ -55,8 +55,8 @@ export const ProductMapperUpdate = data => {
       return {
         entity_id: +entity.entity_id,
         price: entity.price.toString(),
-        tax_charge_id: entity.tax_type,
-        withholding_tax_id: entity.retention_type,
+        tax_charge_id: entity.tax_charge_id,
+        withholding_tax_id: entity.withholding_tax_id,
         negotation_type: entity.negotation_type
       };
     }) : []

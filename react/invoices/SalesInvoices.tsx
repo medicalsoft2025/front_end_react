@@ -686,7 +686,7 @@ export const SalesInvoices = () => {
                             loading={tableLoading}
                             onSearch={handleSearchChange}
                             onReload={handleRefresh}
-                            paginator
+                            lazy
                             rows={rows}
                             first={first}
                             onPage={onPageChange}

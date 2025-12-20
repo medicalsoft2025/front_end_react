@@ -490,7 +490,7 @@ const ProductAccordion = /*#__PURE__*/React.memo(({
     className: "badge bg-primary me-2"
   }, "Cantidad: ", product.quantity), /*#__PURE__*/React.createElement("span", {
     className: "badge bg-success"
-  }, "Total: ", (product.quantity * product.price).toFixed(2), " DOP"))), product.isExpanded && /*#__PURE__*/React.createElement("div", {
+  }, "Total:", " ", (product.quantity * product.price).toFixed(2), " DOP"))), product.isExpanded && /*#__PURE__*/React.createElement("div", {
     className: "card-body"
   }, /*#__PURE__*/React.createElement(DataTable, {
     value: [product],
@@ -1456,8 +1456,9 @@ export const PurchaseBilling = ({
       }],
       placeholder: "Seleccione tipo",
       className: "w-100 dropdown-billing",
-      appendTo: "self",
-      disabled: disabledInputs,
+      appendTo: "self"
+      //disabled={disabledInputs}
+      ,
       showClear: true
     }))
   }))), /*#__PURE__*/React.createElement("div", {
@@ -1473,8 +1474,8 @@ export const PurchaseBilling = ({
       field
     }) => /*#__PURE__*/React.createElement(InputText, _extends({}, field, {
       placeholder: "N\xFAmero de comprobante fiscal",
-      className: "w-100 input-billing",
-      disabled: disabledInputs
+      className: "w-100 input-billing"
+      //disabled={disabledInputs}
     }))
   }))), /*#__PURE__*/React.createElement("div", {
     className: "col-12 col-md-4"
@@ -1537,14 +1538,14 @@ export const PurchaseBilling = ({
       appendTo: "self",
       disabled: disabledInputs,
       showClear: true
-    })), /*#__PURE__*/React.createElement(Button, {
+    })), !disabledInputs && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Button, {
       type: "button",
       onClick: openThirdPartyModal,
       icon: /*#__PURE__*/React.createElement("i", {
         className: "fa-solid fa-plus"
       }),
       className: "p-button-primary p-button-billing"
-    }))
+    })))
   }))), /*#__PURE__*/React.createElement("div", {
     className: "col-12 col-md-4"
   }, /*#__PURE__*/React.createElement("div", {

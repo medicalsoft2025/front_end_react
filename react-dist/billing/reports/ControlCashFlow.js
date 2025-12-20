@@ -317,6 +317,9 @@ export const ControlCashFlow = () => {
       });
     }
   };
+  const handleRefresh = () => {
+    refresh();
+  };
 
   // Definición de columnas para CustomPRTable
   const columns = [{
@@ -530,7 +533,7 @@ export const ControlCashFlow = () => {
     loading: tableLoading,
     onPage: handlePageChange,
     onSearch: handleSearchChange,
-    onReload: refresh,
+    onReload: handleRefresh,
     footerGroup: footerGroup(reportData)
   }))))))))));
 };

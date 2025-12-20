@@ -21,11 +21,11 @@ import { useAccountingAccounts } from "../../../accounting/hooks/useAccountingAc
 // Definición de tipos
 
 type TransactionTypeOption = "debit" | "credit";
-type ThirdPartyTypeOption = "provider" | "client";
+type ThirdPartyTypeOption = "provider" | "client" | "entity";
 type ThirdPartyOption = {
   id: number;
   name: string;
-  type: "provider" | "client"; // Añadimos el tipo según la respuesta del servicio
+  type: "provider" | "client" | "entity"; // Añadimos el tipo según la respuesta del servicio
 };
 
 export type Transaction = {
@@ -45,12 +45,17 @@ type FormAccountingVouchersProps = {
   onUpdate?: () => void;
 };
 
-export const FormAccoutingVouchers: React.FC<FormAccountingVouchersProps> = ({ voucherId = undefined, initialData = null, editTransactions = [], onUpdate }) => {
+export const FormAccoutingVouchers: React.FC<FormAccountingVouchersProps> = ({
+  voucherId = undefined,
+  initialData = null,
+  editTransactions = [],
+  onUpdate,
+}) => {
   const {
     control,
     handleSubmit,
     formState: { errors },
-    reset
+    reset,
   } = useForm();
   const toast = useRef<Toast>(null);
   const [numberOfVoucher, setNumberOfVoucher] = useState<any>(null);
@@ -72,6 +77,7 @@ export const FormAccoutingVouchers: React.FC<FormAccountingVouchersProps> = ({ v
   const thirdPartyTypeOptions = [
     { label: "Proveedor", value: "provider" },
     { label: "Cliente", value: "client" },
+    { label: "Entidad", value: "entity" },
   ];
 
   async function loadLastAccountingEntry() {
@@ -84,17 +90,15 @@ export const FormAccoutingVouchers: React.FC<FormAccountingVouchersProps> = ({ v
   }, []);
 
   useEffect(() => {
-    console.log("initialData: ", initialData);
     reset(
       initialData || {
-        date: null
+        date: null,
       }
     );
   }, [initialData, reset]);
 
   useEffect(() => {
     if (editTransactions.length > 0) {
-      console.log("editTransactions: ", editTransactions);
       setTransactions(editTransactions);
     }
   }, [initialData, editTransactions]);
@@ -178,7 +182,9 @@ export const FormAccoutingVouchers: React.FC<FormAccountingVouchersProps> = ({ v
       seat_date: formData.date
         ? formatDate(formData.date)
         : formatDate(new Date()),
-      seat_number: `AS-${formatDate(new Date())}${initialData?.id || numberOfVoucher}`,
+      seat_number: `AS-${formatDate(new Date())}${
+        initialData?.id || numberOfVoucher
+      }`,
       status: "approved",
       total_should_be: calculateTotalDebit(),
       total_is: calculateTotalCredit(),
@@ -190,10 +196,9 @@ export const FormAccoutingVouchers: React.FC<FormAccountingVouchersProps> = ({ v
         description: transaction.description || "",
         third_party_id: transaction.thirdParty || 0,
       })),
-    }
+    };
 
     if (voucherId) {
-
       formattedData = {
         description: formData.observations || "Sin observaciones",
         seat_date: formData.date
@@ -208,8 +213,8 @@ export const FormAccoutingVouchers: React.FC<FormAccountingVouchersProps> = ({ v
           type: transaction.type?.toLowerCase() || "", // "DEBITO" -> "debit", "CREDITO" -> "credit"
           description: transaction.description || "",
           third_party_id: transaction.thirdParty || 0,
-        }))
-      }
+        })),
+      };
 
       await accountingVouchersService
         .updateAccountingVouchers(voucherId, formattedData)
@@ -241,7 +246,7 @@ export const FormAccoutingVouchers: React.FC<FormAccountingVouchersProps> = ({ v
             life: 3000,
           });
           setTimeout(() => {
-            window.location.href = 'ComprobantesContables';
+            window.location.href = "ComprobantesContables";
           }, 2000);
         })
         .catch((error) => {
@@ -274,7 +279,9 @@ export const FormAccoutingVouchers: React.FC<FormAccountingVouchersProps> = ({ v
       seat_date: formData.date
         ? formatDate(formData.date)
         : formatDate(new Date()),
-      seat_number: `AS-${formatDate(new Date())}${initialData?.id || numberOfVoucher}`,
+      seat_number: `AS-${formatDate(new Date())}${
+        initialData?.id || numberOfVoucher
+      }`,
       status: "approved",
       total_should_be: calculateTotalDebit(),
       total_is: calculateTotalCredit(),
@@ -324,7 +331,9 @@ export const FormAccoutingVouchers: React.FC<FormAccountingVouchersProps> = ({ v
       body: (rowData: Transaction) => (
         <AccountingAccountField
           rowData={rowData}
-          onChange={(value) => handleTransactionChange(rowData.id, "account", value)}
+          onChange={(value) =>
+            handleTransactionChange(rowData.id, "account", value)
+          }
         />
       ),
     },
@@ -365,7 +374,9 @@ export const FormAccoutingVouchers: React.FC<FormAccountingVouchersProps> = ({ v
       body: (rowData: Transaction) => (
         <ThirdPartyField
           rowData={rowData}
-          onChange={(value) => handleTransactionChange(rowData.id, "thirdParty", value)}
+          onChange={(value) => {
+            handleTransactionChange(rowData.id, "thirdParty", value);
+          }}
         />
       ),
     },
@@ -501,7 +512,7 @@ export const FormAccoutingVouchers: React.FC<FormAccountingVouchersProps> = ({ v
                 />
               </div>
               <div className="card-body p-0">
-                <div className="table-responsive" style={{ overflowX: 'auto' }}>
+                <div className="table-responsive" style={{ overflowX: "auto" }}>
                   <DataTable
                     value={transactions}
                     responsiveLayout="scroll"
@@ -511,7 +522,7 @@ export const FormAccoutingVouchers: React.FC<FormAccountingVouchersProps> = ({ v
                     stripedRows
                     scrollable
                     scrollHeight="flex"
-                    style={{ minWidth: '100%', width: '100%' }}
+                    style={{ minWidth: "100%", width: "100%" }}
                   >
                     {transactionColumns.map((col, i) => (
                       <Column
@@ -634,7 +645,7 @@ export const FormAccoutingVouchers: React.FC<FormAccountingVouchersProps> = ({ v
 
 const AccountingAccountField = ({
   rowData,
-  onChange
+  onChange,
 }: {
   rowData: Transaction;
   onChange: (value: string) => void;
@@ -657,38 +668,40 @@ useEffect(() => {
   loadAccountingAcounts();
 }, []);
 */
-  return <>
-    <Dropdown
-      value={rowData.account}
-      options={accounts}
-      optionLabel="account_label"
-      optionValue="id"
-      placeholder="Seleccione cuenta"
-      onChange={(e) => onChange(e.value)}
-      filter
-      showClear
-      className="w-100"
-      style={{ width: "100vw" }}
-      appendTo={document.body}
-    />
-  </>
-}
+  return (
+    <>
+      <Dropdown
+        value={rowData.account}
+        options={accounts}
+        optionLabel="account_label"
+        optionValue="id"
+        placeholder="Seleccione cuenta"
+        onChange={(e) => onChange(e.value)}
+        filter
+        showClear
+        className="w-100"
+        style={{ width: "100vw" }}
+        appendTo={document.body}
+      />
+    </>
+  );
+};
 
 const ThirdPartyField = ({
   rowData,
-  onChange
+  onChange,
 }: {
   rowData: Transaction;
   onChange: (value: string) => void;
 }) => {
-
-  const [allThirdParties, setAllThirdParties] = useState<ThirdPartyOption[]>([]); // Todos los terceros
+  const [allThirdParties, setAllThirdParties] = useState<ThirdPartyOption[]>(
+    []
+  ); // Todos los terceros
   const toast = useRef<Toast>(null);
 
   const loadThirdParties = async () => {
     try {
       const response = await resourcesAdminService.getThirdParties();
-      console.log("Terceros: ", response.data);
 
       setAllThirdParties(response.data); // Guardamos todos los terceros
     } catch (error) {
@@ -700,7 +713,7 @@ const ThirdPartyField = ({
         life: 3000,
       });
     }
-  }
+  };
 
   const getFilteredThirdParties = (
     thirdPartyType: ThirdPartyTypeOption | null
@@ -708,12 +721,16 @@ const ThirdPartyField = ({
     if (!thirdPartyType) return [];
 
     return allThirdParties.filter((thirdParty) => {
-      if (thirdPartyType === "provider") {
-        return thirdParty.type === "provider";
-      } else if (thirdPartyType === "client") {
-        return thirdParty.type === "client";
+      switch (thirdPartyType) {
+        case "provider":
+          return thirdParty.type === "provider";
+        case "client":
+          return thirdParty.type === "client";
+        case "entity":
+          return thirdParty.type === "entity";
+        default:
+          return false;
       }
-      return false;
     });
   };
 
@@ -721,18 +738,20 @@ const ThirdPartyField = ({
     loadThirdParties();
   }, []);
 
-  return <>
-    <Dropdown
-      value={rowData.thirdParty}
-      options={getFilteredThirdParties(rowData.thirdPartyType)}
-      optionLabel="name"
-      optionValue="id"
-      placeholder="Seleccione tercero"
-      onChange={(e) => onChange(e.value)}
-      filter
-      showClear
-      className="w-100 dropdown-accounting-voucher"
-      appendTo={document.body}
-    />
-  </>
-}
+  return (
+    <>
+      <Dropdown
+        value={rowData.thirdParty}
+        options={getFilteredThirdParties(rowData.thirdPartyType)}
+        optionLabel="name"
+        optionValue="id"
+        placeholder="Seleccione tercero"
+        onChange={(e) => onChange(e.value)}
+        filter
+        showClear
+        className="w-100 dropdown-accounting-voucher"
+        appendTo={document.body}
+      />
+    </>
+  );
+};

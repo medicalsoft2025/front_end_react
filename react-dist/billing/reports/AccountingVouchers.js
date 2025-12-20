@@ -67,8 +67,6 @@ export const AccountingVouchers = () => {
       if (filters.codigoContable) {
         params.codigo_contable = filters.codigoContable;
       }
-      console.log("Parámetros de búsqueda:", params); // Para debug
-
       const response = await accountingVouchersService.getAccountingVouchers(params);
       const dataMapped = response.data.map(voucher => ({
         ...voucher,
@@ -163,9 +161,9 @@ export const AccountingVouchers = () => {
     let totalCredit = 0;
     const rows = voucher.details.reduce((acc, rowData) => {
       if (rowData.type === "debit") {
-        totalDebit += rowData.amount;
+        totalDebit += Number(rowData.amount);
       } else if (rowData.type === "credit") {
-        totalCredit += rowData.amount;
+        totalCredit += Number(rowData.amount);
       }
       return acc + `
                 <tr>

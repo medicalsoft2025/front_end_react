@@ -10,6 +10,7 @@ import UserManager from "../../services/userManager.js";
 import { generarFormato } from "../../funciones/funcionesJS/generarPDF.js";
 import { SeePatientInfoButton } from "../patients/SeePatientInfoButton.js";
 import { Button } from "primereact/button";
+import { usePatient } from "../patients/hooks/usePatient.js";
 const specialtyId = new URLSearchParams(window.location.search).get("especialidad");
 const patientId = new URLSearchParams(window.location.search).get("patient_id") || new URLSearchParams(window.location.search).get("id") || "";
 const appointmentId = new URLSearchParams(window.location.search).get("appointment_id") || "";
@@ -23,16 +24,15 @@ export const PatientClinicalRecordApp = () => {
   const {
     clinicalRecords
   } = useClinicalRecords(patientId);
+  const {
+    patient
+  } = usePatient(patientId);
   const [tableClinicalRecords, setTableClinicalRecords] = useState([]);
   const [specialtyClinicalRecords, setSpecialtyClinicalRecords] = useState([]);
   useEffect(() => {
     if (specializables && clinicalRecordTypes) {
       const specialtyClinicalRecordIds = specializables.filter(record => record.specialty_id === specialtyId && ["Historia Clínica", "clinical_record"].includes(record.specializable_type)).map(record => record.specializable_id.toString());
       const filteredClinicalRecords = clinicalRecordTypes.filter(record => specialtyClinicalRecordIds.includes(record.id.toString()));
-      console.log('specialtyClinicalRecordIds', specialtyClinicalRecordIds);
-      console.log('clinicalRecords', clinicalRecords);
-      console.log('filteredClinicalRecords', filteredClinicalRecords);
-      console.log('tableClinicalRecords', clinicalRecords.filter(record => specialtyClinicalRecordIds.includes(record.clinical_record_type_id.toString())));
       setSpecialtyClinicalRecords(filteredClinicalRecords);
       setTableClinicalRecords(clinicalRecords.filter(record => specialtyClinicalRecordIds.includes(record.clinical_record_type_id.toString())));
     }
@@ -43,6 +43,9 @@ export const PatientClinicalRecordApp = () => {
       setTableClinicalRecords(clinicalRecords.filter(record => specialtyClinicalRecordIds.includes(record.clinical_record_type_id.toString())));
     }
   }, [specializables, clinicalRecords]);
+  useEffect(() => {
+    console.log("Paciente: ", patient);
+  }, [patient]);
   const printClinicalRecord = (id, title) => {
     //@ts-ignore
     generarFormato("Consulta", id, "Impresion");
@@ -79,7 +82,7 @@ export const PatientClinicalRecordApp = () => {
     className: "d-flex align-items-center gap-2 justify-content-end"
   }, /*#__PURE__*/React.createElement(SeePatientInfoButton, {
     patientId: patientId
-  }), /*#__PURE__*/React.createElement("div", {
+  }), patient && patient.current_appointment && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
     className: "dropdown"
   }, /*#__PURE__*/React.createElement(Button, {
     label: "Crear Historia Cl\xEDnica",
@@ -96,7 +99,7 @@ export const PatientClinicalRecordApp = () => {
   }, /*#__PURE__*/React.createElement("a", {
     className: "dropdown-item",
     href: `consultas?patient_id=${patientId}&especialidad=${specialtyId}&tipo_historia=${record.key_}&appointment_id=${appointmentId}`
-  }, /*#__PURE__*/React.createElement("strong", null, "Crear ", record.name)))))))))), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("strong", null, "Crear", " ", record.name))))))))))), /*#__PURE__*/React.createElement("div", {
     className: "row mt-4"
   }, /*#__PURE__*/React.createElement(PatientClinicalRecordsTable, {
     records: tableClinicalRecords,

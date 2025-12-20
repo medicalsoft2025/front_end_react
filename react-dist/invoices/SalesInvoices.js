@@ -16,7 +16,7 @@ import { cleanJsonObject } from "../../services/utilidades.js";
 import { NewReceiptBoxModal } from "../accounting/paymentReceipt/modals/NewReceiptBoxModal.js";
 import { FormDebitCreditNotes } from "../invoices/form/FormDebitCreditNotes.js";
 import { useSaleInvoicesFormat } from "../documents-generation/hooks/billing/invoices/useSaleInvoiceFormat.js";
-import { useSalesInvoicesFormat } from "../documents-generation/hooks/useSalesInvoicesFormat.js";
+import { useGenericTableFormat } from "../documents-generation/hooks/useGenericTableFormat.js";
 export const SalesInvoices = () => {
   const {
     thirdParties
@@ -40,8 +40,8 @@ export const SalesInvoices = () => {
     generateFormatSaleInvoices
   } = useSaleInvoicesFormat();
   const {
-    generateSalesInvoicesFormat
-  } = useSalesInvoicesFormat();
+    generateGenericTableFormat
+  } = useGenericTableFormat();
   const generateInvoiceRef = useRef(generateFormatSaleInvoices);
   useEffect(() => {
     generateInvoiceRef.current = generateFormatSaleInvoices;
@@ -439,15 +439,12 @@ export const SalesInvoices = () => {
     aplicarFiltros(1, rows);
   }, []);
   const handleExportToPdf = () => {
-    console.log("Exportar a PDF");
-    //exportToPdf(tableItems, columns);
-    generateSalesInvoicesFormat({
+    generateGenericTableFormat({
       data: tableItems,
       columns: columns.filter(col => !["actions"].includes(col.field)),
       title: "Facturas de Venta",
       namePDF: "Facturas de Venta",
-      type: "Impresion",
-      filters: filtros
+      type: "Impresion"
     });
   };
   return /*#__PURE__*/React.createElement("main", {
@@ -551,7 +548,7 @@ export const SalesInvoices = () => {
     loading: tableLoading,
     onSearch: handleSearchChange,
     onReload: handleRefresh,
-    paginator: true,
+    lazy: true,
     rows: rows,
     first: first,
     onPage: onPageChange,

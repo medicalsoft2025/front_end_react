@@ -1,11 +1,11 @@
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 import React, { useState, useEffect } from "react";
 import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
-import { InputText } from 'primereact/inputtext';
-import { InputNumber } from 'primereact/inputnumber';
-import { Dropdown } from 'primereact/dropdown';
-import { InputSwitch } from 'primereact/inputswitch';
-import { Button } from 'primereact/button';
+import { InputText } from "primereact/inputtext";
+import { InputNumber } from "primereact/inputnumber";
+import { Dropdown } from "primereact/dropdown";
+import { InputSwitch } from "primereact/inputswitch";
+import { Button } from "primereact/button";
 import { examTypeService, taxesService, retentionsService } from "../../../../services/api/index.js";
 import { Dialog } from "primereact/dialog";
 import { ExamConfigFormModal } from "../../../exams-config/components/ExamConfigFormModal.js";
@@ -25,14 +25,14 @@ const PricesConfigForm = ({
   const [showTax, setShowTax] = useState(false);
   const [entityRows, setEntityRows] = useState([]);
   const [currentEntity, setCurrentEntity] = useState({
-    entity_id: '',
-    entity_name: '',
+    entity_id: "",
+    entity_name: "",
     price: 0,
-    tax_charge_id: '',
-    tax_name: '',
-    withholding_tax_id: '',
-    retention_name: '',
-    negotation_type: ''
+    tax_charge_id: "",
+    tax_name: "",
+    withholding_tax_id: "",
+    retention_name: "",
+    negotation_type: ""
   });
   const [examTypesData, setExamTypesData] = useState([]);
   const [taxes, setTaxes] = useState([]);
@@ -118,34 +118,45 @@ const PricesConfigForm = ({
   }, []);
   useEffect(() => {
     if (initialData) {
+      setValue("toggleIA", initialData.toggleIA || false);
+
       // Establecer product_id si existe para la actualización
       if (initialData.product_id) {
-        setValue('product_id', initialData.product_id);
+        setValue("product_id", initialData.product_id);
       }
-      setValue('name', initialData.name);
-      setValue('curp', initialData.curp);
-      setValue('attention_type', initialData.attention_type);
-      setValue('sale_price', initialData.sale_price);
-      setValue('copago', initialData.copago);
-      setValue('purchase_price', initialData.purchase_price);
-      setValue('exam_type_id', initialData.exam_type_id || '');
-      setValue('taxProduct_type', initialData.taxProduct_type || '');
+      setValue("name", initialData.name);
+      setValue("curp", initialData.curp);
+      setValue("attention_type", initialData.attention_type);
+      setValue("sale_price", initialData.sale_price);
+      setValue("copago", initialData.copago);
+      setValue("purchase_price", initialData.purchase_price);
+      setValue("exam_type_id", initialData.exam_type_id || "");
+      setValue("taxProduct_type", initialData.taxProduct_type || "");
+      if (initialData.formSupplies && initialData.formSupplies.length > 0) {
+        initialData.formSupplies.forEach(supply => {
+          addSupply(supply);
+        });
+        setValue("toggleInsumos", true);
+      } else {
+        removeSupply();
+        setValue("toggleInsumos", false);
+      }
 
       // Load entities if they exist
       if (initialData.entities && initialData.entities.length > 0) {
         setEntityRows([...initialData.entities]); // Crear nueva copia para forzar re-render
-        setValue('toggleEntities', true);
+        setValue("toggleEntities", true);
         setShowEntities(true);
       } else {
         setEntityRows([]);
-        setValue('toggleEntities', false);
+        setValue("toggleEntities", false);
         setShowEntities(false);
       }
-      if (initialData.taxProduct_type && initialData.taxProduct_type !== '0') {
-        setValue('toggleImpuesto', true);
+      if (initialData.taxProduct_type && initialData.taxProduct_type !== "0") {
+        setValue("toggleImpuesto", true);
         setShowTax(true);
       } else {
-        setValue('toggleImpuesto', false);
+        setValue("toggleImpuesto", false);
         setShowTax(false);
       }
     } else {
@@ -153,8 +164,8 @@ const PricesConfigForm = ({
       setEntityRows([]);
       setShowEntities(false);
       setShowTax(false);
-      setValue('toggleEntities', false);
-      setValue('toggleImpuesto', false);
+      setValue("toggleEntities", false);
+      setValue("toggleImpuesto", false);
     }
   }, [initialData, setValue]);
   const onSubmit = data => {
@@ -204,26 +215,26 @@ const PricesConfigForm = ({
     setRetentions(retentions.data);
   }
   const handleEntityChange = (field, value) => {
-    if (field === 'entity_id') {
+    if (field === "entity_id") {
       const selectedEntity = value ? entitiesData.find(e => e.id == value) : null;
       setCurrentEntity(prev => ({
         ...prev,
         entity_id: value,
-        entity_name: selectedEntity ? selectedEntity.name : ''
+        entity_name: selectedEntity ? selectedEntity.name : ""
       }));
-    } else if (field === 'tax_charge_id') {
+    } else if (field === "tax_charge_id") {
       const selectedTax = value ? taxes.find(t => t.id == value) : null;
       setCurrentEntity(prev => ({
         ...prev,
         tax_charge_id: value,
-        tax_name: selectedTax ? selectedTax.name : ''
+        tax_name: selectedTax ? selectedTax.name : ""
       }));
-    } else if (field === 'withholding_tax_id') {
+    } else if (field === "withholding_tax_id") {
       const selectedRetention = value ? retentions.find(r => r.id == value) : null;
       setCurrentEntity(prev => ({
         ...prev,
         withholding_tax_id: value,
-        retention_name: selectedRetention ? selectedRetention.name : ''
+        retention_name: selectedRetention ? selectedRetention.name : ""
       }));
     } else {
       setCurrentEntity(prev => ({
@@ -238,29 +249,29 @@ const PricesConfigForm = ({
         entity_id: currentEntity.entity_id,
         entity_name: currentEntity.entity_name,
         price: currentEntity.price,
-        tax_charge_id: currentEntity.tax_charge_id || '',
-        tax_name: currentEntity.tax_name || 'N/A',
-        withholding_tax_id: currentEntity.withholding_tax_id || '',
-        negotation_type: currentEntity.negotation_type || '',
-        retention_name: currentEntity.retention_name || 'N/A'
+        tax_charge_id: currentEntity.tax_charge_id || "",
+        tax_name: currentEntity.tax_name || "N/A",
+        withholding_tax_id: currentEntity.withholding_tax_id || "",
+        negotation_type: currentEntity.negotation_type || "",
+        retention_name: currentEntity.retention_name || "N/A"
       };
       setEntityRows([...entityRows, newRow]);
 
       // Reset current entity
       setCurrentEntity({
-        entity_id: '',
-        entity_name: '',
+        entity_id: "",
+        entity_name: "",
         price: 0,
-        tax_charge_id: '',
-        tax_name: '',
-        withholding_tax_id: '',
-        retention_name: '',
-        negotation_type: ''
+        tax_charge_id: "",
+        tax_name: "",
+        withholding_tax_id: "",
+        retention_name: "",
+        negotation_type: ""
       });
     }
   };
   const removeEntityRow = rowIndex => {
-    if (window.confirm('¿Estás seguro de eliminar esta entidad?')) {
+    if (window.confirm("¿Estás seguro de eliminar esta entidad?")) {
       const newRows = [...entityRows];
       newRows.splice(rowIndex, 1);
       setEntityRows(newRows);
@@ -305,7 +316,7 @@ const PricesConfigForm = ({
       className: "form-label",
       htmlFor: field.name
     }, "Nombre del item"), /*#__PURE__*/React.createElement(InputText, _extends({
-      className: `w-100 ${fieldState.error ? 'p-invalid' : ''}`,
+      className: `w-100 ${fieldState.error ? "p-invalid" : ""}`,
       id: field.name,
       placeholder: "Nombre del item"
     }, field)), getFormErrorMessage("name"))
@@ -326,7 +337,7 @@ const PricesConfigForm = ({
       className: "form-label",
       htmlFor: field.name
     }, "Cups"), /*#__PURE__*/React.createElement(InputText, _extends({
-      className: `w-100 ${fieldState.error ? 'p-invalid' : ''}`,
+      className: `w-100 ${fieldState.error ? "p-invalid" : ""}`,
       id: field.name,
       placeholder: "C\xF3digo Cups"
     }, field)), getFormErrorMessage("curp"))
@@ -347,7 +358,7 @@ const PricesConfigForm = ({
       className: "form-label",
       htmlFor: field.name
     }, "Tipo de atenci\xF3n"), /*#__PURE__*/React.createElement(Dropdown, {
-      className: `w-100 ${fieldState.error ? 'p-invalid' : ''}`,
+      className: `w-100 ${fieldState.error ? "p-invalid" : ""}`,
       id: field.name,
       value: field.value,
       onChange: e => field.onChange(e.value),
@@ -404,12 +415,12 @@ const PricesConfigForm = ({
     className: "p-button-primary",
     onClick: handleOpenExamModal,
     tooltipOptions: {
-      position: 'top'
+      position: "top"
     }
   })))), /*#__PURE__*/React.createElement("div", {
     className: "col-md-6",
     style: {
-      display: showLabFields ? 'block' : 'none'
+      display: showLabFields ? "block" : "none"
     }
   }, /*#__PURE__*/React.createElement(Controller, {
     name: "sale_price",
@@ -434,7 +445,7 @@ const PricesConfigForm = ({
   })), /*#__PURE__*/React.createElement("div", {
     className: "col-md-6",
     style: {
-      display: showLabFields ? 'block' : 'none'
+      display: showLabFields ? "block" : "none"
     }
   }, /*#__PURE__*/React.createElement(Controller, {
     name: "copago",
@@ -459,7 +470,7 @@ const PricesConfigForm = ({
   })), /*#__PURE__*/React.createElement("div", {
     className: "col-12",
     style: {
-      display: showLabFields ? 'block' : 'none'
+      display: showLabFields ? "block" : "none"
     }
   }, /*#__PURE__*/React.createElement(Controller, {
     name: "purchase_price",
@@ -484,7 +495,7 @@ const PricesConfigForm = ({
   })), /*#__PURE__*/React.createElement("div", {
     className: "col-md-3",
     style: {
-      display: showLabFields ? 'block' : 'none'
+      display: showLabFields ? "block" : "none"
     }
   }, /*#__PURE__*/React.createElement(Controller, {
     name: "toggleEntities",
@@ -504,7 +515,7 @@ const PricesConfigForm = ({
   })), /*#__PURE__*/React.createElement("div", {
     className: "col-md-3",
     style: {
-      display: showLabFields ? 'block' : 'none'
+      display: showLabFields ? "block" : "none"
     }
   }, /*#__PURE__*/React.createElement(Controller, {
     name: "toggleImpuesto",
@@ -522,14 +533,14 @@ const PricesConfigForm = ({
       onChange: e => {
         field.onChange(e.value);
         if (!e.value) {
-          setValue('taxProduct_type', '0');
+          setValue("taxProduct_type", "0");
         }
       }
     }))
   })), /*#__PURE__*/React.createElement("div", {
     className: "col-md-3",
     style: {
-      display: showLabFields ? 'block' : 'none'
+      display: showLabFields ? "block" : "none"
     }
   }, /*#__PURE__*/React.createElement(Controller, {
     name: "toggleInsumos",
@@ -547,14 +558,14 @@ const PricesConfigForm = ({
       onChange: e => {
         field.onChange(e.value);
         if (!e.value) {
-          setValue('taxProduct_type', '0');
+          setValue("taxProduct_type", "0");
         }
       }
     }))
   })), /*#__PURE__*/React.createElement("div", {
     className: "col-md-3",
     style: {
-      display: showLabFields ? 'block' : 'none'
+      display: showLabFields ? "block" : "none"
     }
   }, /*#__PURE__*/React.createElement(Controller, {
     name: "toggleIA",
@@ -572,7 +583,7 @@ const PricesConfigForm = ({
       onChange: e => {
         field.onChange(e.value);
         if (!e.value) {
-          setValue('taxProduct_type', '0');
+          setValue("taxProduct_type", "0");
         }
       }
     }))
@@ -614,11 +625,11 @@ const PricesConfigForm = ({
     type: "button"
   })), /*#__PURE__*/React.createElement(CustomPRTable, {
     columns: [{
-      field: 'name',
-      header: 'Nombre'
+      field: "name",
+      header: "Nombre"
     }, {
-      field: 'quantity',
-      header: 'Cantidad',
+      field: "quantity",
+      header: "Cantidad",
       body: data => /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(InputNumber, {
         value: data.quantity,
         onChange: e => {
@@ -633,8 +644,8 @@ const PricesConfigForm = ({
         placeholder: "Cantidad"
       }))
     }, {
-      field: 'accounting_account_debit_id',
-      header: 'Cuenta contable debita',
+      field: "accounting_account_debit_id",
+      header: "Cuenta contable debita",
       body: data => /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Dropdown, {
         value: data.accounting_account_debit_id,
         options: accounts,
@@ -652,8 +663,8 @@ const PricesConfigForm = ({
         showClear: true
       }))
     }, {
-      field: 'accounting_account_credit_id',
-      header: 'Cuenta contable acredita',
+      field: "accounting_account_credit_id",
+      header: "Cuenta contable acredita",
       body: data => /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Dropdown, {
         value: data.accounting_account_credit_id,
         options: accounts,
@@ -671,8 +682,8 @@ const PricesConfigForm = ({
         showClear: true
       }))
     }, {
-      field: 'actions',
-      header: 'Acciones',
+      field: "actions",
+      header: "Acciones",
       body: data => /*#__PURE__*/React.createElement("div", {
         className: "d-flex justify-content-center align-items-center"
       }, /*#__PURE__*/React.createElement(Button, {
@@ -800,7 +811,7 @@ const PricesConfigForm = ({
     className: "table table-striped"
   }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Entidad"), /*#__PURE__*/React.createElement("th", null, "Precio"), /*#__PURE__*/React.createElement("th", null, "Tipo Impuesto"), /*#__PURE__*/React.createElement("th", null, "Tipo Retenci\xF3n"), /*#__PURE__*/React.createElement("th", null, "Tipo negociaci\xF3n"), /*#__PURE__*/React.createElement("th", null))), /*#__PURE__*/React.createElement("tbody", null, entityRows.map((row, index) => /*#__PURE__*/React.createElement("tr", {
     key: index
-  }, /*#__PURE__*/React.createElement("td", null, row.entity_name), /*#__PURE__*/React.createElement("td", null, row.price), /*#__PURE__*/React.createElement("td", null, row.tax_name || 'N/A'), /*#__PURE__*/React.createElement("td", null, row.retention_name || 'N/A'), /*#__PURE__*/React.createElement("td", null, row.negotation_type || 'N/A'), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("button", {
+  }, /*#__PURE__*/React.createElement("td", null, row.entity_name), /*#__PURE__*/React.createElement("td", null, row.price), /*#__PURE__*/React.createElement("td", null, row.tax_name || "N/A"), /*#__PURE__*/React.createElement("td", null, row.retention_name || "N/A"), /*#__PURE__*/React.createElement("td", null, row.negotation_type || "N/A"), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "btn btn-danger btn-sm",
     onClick: () => removeEntityRow(index)

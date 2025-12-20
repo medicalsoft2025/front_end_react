@@ -140,6 +140,7 @@ export const FormDebitCreditNotes: React.FC<any> = ({
 
   useEffect(() => {
     if (invoices.length && initialData) {
+      console.log("initialData", initialData);
       loadPaymentMethods();
       const invoice = invoices.filter(
         (invoice: any) => invoice.id === Number(initialData.id)

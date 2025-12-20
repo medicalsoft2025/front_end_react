@@ -433,7 +433,7 @@ export const DebitCreditNotes = () => {
     loading: tableLoading,
     onSearch: handleSearchChange,
     onReload: handleRefresh,
-    paginator: true,
+    lazy: true,
     rows: rows,
     first: first,
     onPage: onPageChange,

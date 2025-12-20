@@ -5,12 +5,18 @@ import { Menu } from "primereact/menu";
 import { Button } from "primereact/button";
 import { Dropdown } from "primereact/dropdown";
 import { Calendar } from "primereact/calendar";
-import { MultiSelect } from 'primereact/multiselect';
-import { AutoComplete, AutoCompleteCompleteEvent } from "primereact/autocomplete";
-import { Accordion, AccordionTab } from 'primereact/accordion';
+import { MultiSelect } from "primereact/multiselect";
+import {
+    AutoComplete,
+    AutoCompleteCompleteEvent,
+} from "primereact/autocomplete";
+import { Accordion, AccordionTab } from "primereact/accordion";
 import { Nullable } from "primereact/ts-helpers";
 
-import { CustomPRTable, CustomPRTableColumnProps } from "../components/CustomPRTable";
+import {
+    CustomPRTable,
+    CustomPRTableColumnProps,
+} from "../components/CustomPRTable";
 import { CustomFormModal } from "../components/CustomFormModal";
 import { CustomModal } from "../components/CustomModal";
 import { UpdateAdmissionAuthorizationForm } from "./UpdateAdmissionAuthorizationForm";
@@ -19,7 +25,11 @@ import { KoneksiUploadAndVisualizeExamResultsModal } from "./KoneksiUploadAndVis
 import { formatDate } from "../../services/utilidades";
 import { SwalManager } from "../../services/alertManagerImported";
 import { cancelConsultationClaim } from "../../services/koneksiService";
-import { admissionService, patientService, inventoryService } from "../../services/api";
+import {
+    admissionService,
+    patientService,
+    inventoryService,
+} from "../../services/api";
 import { exportToExcel } from "../accounting/utils/ExportToExcelOptions";
 
 import { useUsers } from "../users/hooks/useUsers";
@@ -87,22 +97,32 @@ export const AdmissionTable: React.FC<AdmissionTableProps> = ({
     const { users } = useUsers();
     const { entities } = useEntities();
 
-    const [selectedAdmittedBy, setSelectedAdmittedBy] = useState<string | null>(null);
+    const [selectedAdmittedBy, setSelectedAdmittedBy] = useState<string | null>(
+        null
+    );
     const [patientSearch, setPatientSearch] = useState<string | null>(null);
-    const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
+    const [selectedPatient, setSelectedPatient] = useState<Patient | null>(
+        null
+    );
     const [selectedEntity, setSelectedEntity] = useState<string | null>(null);
-    const [selectedDate, setSelectedDate] = React.useState<Nullable<(Date | null)[]>>(null);
+    const [selectedDate, setSelectedDate] =
+        React.useState<Nullable<(Date | null)[]>>(null);
     const [selectedAdmissionId, setSelectedAdmissionId] = useState<string>("");
     const [patients, setPatients] = useState<Patient[]>([]);
 
-    const [showUpdateAuthorizationModal, setShowUpdateAuthorizationModal] = useState(false);
-    const [showUploadAndVisualizeResultsModal, setShowUploadAndVisualizeResultsModal] = useState(false);
+    const [showUpdateAuthorizationModal, setShowUpdateAuthorizationModal] =
+        useState(false);
+    const [
+        showUploadAndVisualizeResultsModal,
+        setShowUploadAndVisualizeResultsModal,
+    ] = useState(false);
     const [showAttachFileModal, setShowAttachFileModal] = useState(false);
     const [products, setProducts] = useState<any[]>([]);
     const [selectedProduct, setSelectedProduct] = useState<any>(null);
 
     const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
-    const [admissionToDelete, setAdmissionToDelete] = useState<AdmissionTableItem | null>(null);
+    const [admissionToDelete, setAdmissionToDelete] =
+        useState<AdmissionTableItem | null>(null);
 
     const toast = useRef<Toast>(null);
 
@@ -133,7 +153,7 @@ export const AdmissionTable: React.FC<AdmissionTableProps> = ({
             selectedPatient: selectedPatient?.id?.toString() || null,
             selectedEntity,
             selectedDate,
-            selectedProduct
+            selectedProduct,
         };
         handleFilter && handleFilter(filterValues);
     };
@@ -148,7 +168,13 @@ export const AdmissionTable: React.FC<AdmissionTableProps> = ({
         }, 500);
 
         return () => clearTimeout(timeoutId);
-    }, [selectedAdmittedBy, selectedPatient, selectedEntity, selectedDate, selectedProduct]);
+    }, [
+        selectedAdmittedBy,
+        selectedPatient,
+        selectedEntity,
+        selectedDate,
+        selectedProduct,
+    ]);
 
     async function fetchProducts() {
         try {
@@ -160,9 +186,9 @@ export const AdmissionTable: React.FC<AdmissionTableProps> = ({
     }
 
     const TableMenu: React.FC<{
-        rowData: AdmissionTableItem,
-        onEdit: (id: string) => void,
-        onDelete: (admission: AdmissionTableItem) => void
+        rowData: AdmissionTableItem;
+        onEdit: (id: string) => void;
+        onDelete: (admission: AdmissionTableItem) => void;
     }> = ({ rowData, onEdit, onDelete }) => {
         const menu = useRef<Menu>(null);
 
@@ -217,40 +243,54 @@ export const AdmissionTable: React.FC<AdmissionTableProps> = ({
             {
                 label: "Imprimir factura",
                 icon: <i className="fa-solid fa-receipt me-2"></i>,
-                command: () => { handlePrintInvoice(); },
+                command: () => {
+                    handlePrintInvoice();
+                },
             },
             {
                 label: "Descargar factura",
                 icon: <i className="fa-solid fa-receipt me-2"></i>,
                 command: handleDownloadInvoice,
             },
-            ...(!rowData.originalItem.document_minio_id ? [{
-                label: "Adjuntar documento",
-                icon: <i className="fa-solid fa-file-pdf me-2"></i>,
-                command: handleAttachDocument,
-            }] : []),
-            ...(rowData.originalItem.document_minio_id ? [{
-                label: "Ver documento adjunto",
-                icon: <i className="fa-solid fa-file-pdf me-2"></i>,
-                command: handleViewDocument,
-            }] : []),
-            ...(rowData.koneksiClaimId ? [
-                {
-                    label: "Cargar y visualizar resultados de examenes",
-                    icon: <i className="fa-solid fa-file-medical me-2"></i>,
-                    command: handleUploadResults,
-                },
-                {
-                    label: "Anular reclamación",
-                    icon: <i className="fa-solid fa-ban me-2"></i>,
-                    command: handleCancelClaim,
-                }
-            ] : []),
+            ...(!rowData.originalItem.document_minio_id
+                ? [
+                      {
+                          label: "Adjuntar documento",
+                          icon: <i className="fa-solid fa-file-pdf me-2"></i>,
+                          command: handleAttachDocument,
+                      },
+                  ]
+                : []),
+            ...(rowData.originalItem.document_minio_id
+                ? [
+                      {
+                          label: "Ver documento adjunto",
+                          icon: <i className="fa-solid fa-file-pdf me-2"></i>,
+                          command: handleViewDocument,
+                      },
+                  ]
+                : []),
+            ...(rowData.koneksiClaimId
+                ? [
+                      {
+                          label: "Cargar y visualizar resultados de examenes",
+                          icon: (
+                              <i className="fa-solid fa-file-medical me-2"></i>
+                          ),
+                          command: handleUploadResults,
+                      },
+                      {
+                          label: "Anular reclamación",
+                          icon: <i className="fa-solid fa-ban me-2"></i>,
+                          command: handleCancelClaim,
+                      },
+                  ]
+                : []),
             {
                 label: "Solicitar cancelación",
                 icon: <i className="fa-solid fa-times me-2"></i>,
                 command: handleCancelAdmission,
-            }
+            },
         ];
 
         return (
@@ -284,7 +324,9 @@ export const AdmissionTable: React.FC<AdmissionTableProps> = ({
             >
                 <TableMenu
                     rowData={rowData}
-                    onEdit={() => openUpdateAuthorizationModal(rowData.originalItem.id)}
+                    onEdit={() =>
+                        openUpdateAuthorizationModal(rowData.originalItem.id)
+                    }
                     onDelete={() => confirmDelete(rowData)}
                 />
             </div>
@@ -295,10 +337,22 @@ export const AdmissionTable: React.FC<AdmissionTableProps> = ({
         { header: "Admisionado el", field: "createdAt", sortable: true },
         { header: "Admisionado por", field: "admittedBy", sortable: true },
         { header: "Paciente", field: "patientName", sortable: true },
-        { header: "Número de identificación", field: "patientDNI", sortable: true },
+        {
+            header: "Número de identificación",
+            field: "patientDNI",
+            sortable: true,
+        },
         { header: "Entidad", field: "entityName", sortable: true },
-        { header: "Número de autorización", field: "authorizationNumber", sortable: true },
-        { header: "Monto autorizado", field: "authorizedAmount", sortable: true },
+        {
+            header: "Número de autorización",
+            field: "authorizationNumber",
+            sortable: true,
+        },
+        {
+            header: "Monto autorizado",
+            field: "authorizedAmount",
+            sortable: true,
+        },
         { header: "Codigo de factura", field: "invoiceCode", sortable: true },
         { header: "Id", field: "invoiceId", sortable: true },
         { header: "Productos", field: "products", sortable: true },
@@ -306,21 +360,24 @@ export const AdmissionTable: React.FC<AdmissionTableProps> = ({
             field: "status",
             header: "Estado",
             body: (data: AdmissionTableItem) => {
-                const color = clinicalRecordStateColors[data.status] || "secondary";
+                const color =
+                    clinicalRecordStateColors[data.status] || "secondary";
                 const text = clinicalRecordStates[data.status] || "SIN ESTADO";
                 return (
-                    <span className={`badge badge-phoenix badge-phoenix-${color}`}>
+                    <span
+                        className={`badge badge-phoenix badge-phoenix-${color}`}
+                    >
                         {text}
                     </span>
                 );
             },
-            sortable: true
+            sortable: true,
         },
         {
             header: "Acciones",
             field: "actions",
             body: actionBodyTemplate,
-            exportable: false
+            exportable: false,
         },
     ];
 
@@ -415,7 +472,9 @@ export const AdmissionTable: React.FC<AdmissionTableProps> = ({
                 await admissionService.update(selectedAdmissionId, {
                     document_minio_id: minioId.toString(),
                 });
-                SwalManager.success({ text: "Resultados guardados exitosamente" });
+                SwalManager.success({
+                    text: "Resultados guardados exitosamente",
+                });
             } else {
                 console.error("No se obtuvo un resultado válido.");
             }
@@ -479,7 +538,8 @@ export const AdmissionTable: React.FC<AdmissionTableProps> = ({
                     />
                     {admissionToDelete && (
                         <span>
-                            ¿Estás seguro que deseas cancelar la admisión del paciente <b>{admissionToDelete.patientName}</b>?
+                            ¿Estás seguro que deseas cancelar la admisión del
+                            paciente <b>{admissionToDelete.patientName}</b>?
                         </span>
                     )}
                 </div>
@@ -504,14 +564,6 @@ export const AdmissionTable: React.FC<AdmissionTableProps> = ({
                             <i className="fa-solid fa-file-excel me-2"></i>
                             Exportar a Excel
                         </Button>
-                        <Button
-                            className="p-button-secondary"
-                            onClick={onReload}
-                            disabled={loading}
-                        >
-                            <i className="fa-solid fa-refresh me-2"></i>
-                            Recargar
-                        </Button>
                     </div>
                     <Accordion>
                         <AccordionTab header="Filtrar admisiones">
@@ -519,7 +571,10 @@ export const AdmissionTable: React.FC<AdmissionTableProps> = ({
                                 <div className="flex-grow-1">
                                     <div className="row g-3">
                                         <div className="col-6">
-                                            <label htmlFor="rangoFechasCitas" className="form-label">
+                                            <label
+                                                htmlFor="rangoFechasCitas"
+                                                className="form-label"
+                                            >
                                                 Admisionado entre
                                             </label>
                                             <Calendar
@@ -536,7 +591,10 @@ export const AdmissionTable: React.FC<AdmissionTableProps> = ({
                                             />
                                         </div>
                                         <div className="col-6">
-                                            <label htmlFor="admittedBy" className="form-label">
+                                            <label
+                                                htmlFor="admittedBy"
+                                                className="form-label"
+                                            >
                                                 Admisionado por
                                             </label>
                                             <Dropdown
@@ -549,13 +607,18 @@ export const AdmissionTable: React.FC<AdmissionTableProps> = ({
                                                 className="w-100"
                                                 value={selectedAdmittedBy}
                                                 onChange={(e) => {
-                                                    setSelectedAdmittedBy(e.value);
+                                                    setSelectedAdmittedBy(
+                                                        e.value
+                                                    );
                                                 }}
                                                 showClear
                                             />
                                         </div>
                                         <div className="col-6">
-                                            <label htmlFor="patient" className="form-label">
+                                            <label
+                                                htmlFor="patient"
+                                                className="form-label"
+                                            >
                                                 Paciente
                                             </label>
                                             <AutoComplete
@@ -567,11 +630,16 @@ export const AdmissionTable: React.FC<AdmissionTableProps> = ({
                                                 inputClassName="w-100"
                                                 className={"w-100"}
                                                 appendTo={"self"}
-                                                value={selectedPatient?.label || patientSearch}
+                                                value={
+                                                    selectedPatient?.label ||
+                                                    patientSearch
+                                                }
                                                 onChange={(e) => {
                                                     setPatientSearch(e.value);
                                                     if (!e.value) {
-                                                        setSelectedPatient(null);
+                                                        setSelectedPatient(
+                                                            null
+                                                        );
                                                     }
                                                 }}
                                                 onSelect={(e) => {
@@ -584,7 +652,10 @@ export const AdmissionTable: React.FC<AdmissionTableProps> = ({
                                             />
                                         </div>
                                         <div className="col-6">
-                                            <label htmlFor="entity" className="form-label">
+                                            <label
+                                                htmlFor="entity"
+                                                className="form-label"
+                                            >
                                                 Entidad
                                             </label>
                                             <Dropdown
@@ -603,7 +674,10 @@ export const AdmissionTable: React.FC<AdmissionTableProps> = ({
                                             />
                                         </div>
                                         <div className="col-12">
-                                            <label htmlFor="procedure" className="form-label">
+                                            <label
+                                                htmlFor="procedure"
+                                                className="form-label"
+                                            >
                                                 Procedimientos
                                             </label>
                                             <MultiSelect
@@ -670,7 +744,11 @@ export const AdmissionTable: React.FC<AdmissionTableProps> = ({
                 onHide={() => setShowAttachFileModal(false)}
                 footerTemplate={
                     <>
-                        <input type="file" accept=".pdf" id="admissionDocumentInput" />
+                        <input
+                            type="file"
+                            accept=".pdf"
+                            id="admissionDocumentInput"
+                        />
                         <button
                             type="button"
                             className="btn btn-secondary"

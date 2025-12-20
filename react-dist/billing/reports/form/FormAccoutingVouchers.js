@@ -54,6 +54,9 @@ export const FormAccoutingVouchers = ({
   }, {
     label: "Cliente",
     value: "client"
+  }, {
+    label: "Entidad",
+    value: "entity"
   }];
   async function loadLastAccountingEntry() {
     const data = await accountingVouchersService.getLastRow();
@@ -63,14 +66,12 @@ export const FormAccoutingVouchers = ({
     loadLastAccountingEntry();
   }, []);
   useEffect(() => {
-    console.log("initialData: ", initialData);
     reset(initialData || {
       date: null
     });
   }, [initialData, reset]);
   useEffect(() => {
     if (editTransactions.length > 0) {
-      console.log("editTransactions: ", editTransactions);
       setTransactions(editTransactions);
     }
   }, [initialData, editTransactions]);
@@ -188,7 +189,7 @@ export const FormAccoutingVouchers = ({
           life: 3000
         });
         setTimeout(() => {
-          window.location.href = 'ComprobantesContables';
+          window.location.href = "ComprobantesContables";
         }, 2000);
       }).catch(error => {
         toast.current?.show({
@@ -296,7 +297,9 @@ export const FormAccoutingVouchers = ({
     header: "Terceros",
     body: rowData => /*#__PURE__*/React.createElement(ThirdPartyField, {
       rowData: rowData,
-      onChange: value => handleTransactionChange(rowData.id, "thirdParty", value)
+      onChange: value => {
+        handleTransactionChange(rowData.id, "thirdParty", value);
+      }
     })
   }, {
     field: "amount",
@@ -415,7 +418,7 @@ export const FormAccoutingVouchers = ({
   }, /*#__PURE__*/React.createElement("div", {
     className: "table-responsive",
     style: {
-      overflowX: 'auto'
+      overflowX: "auto"
     }
   }, /*#__PURE__*/React.createElement(DataTable, {
     value: transactions,
@@ -427,8 +430,8 @@ export const FormAccoutingVouchers = ({
     scrollable: true,
     scrollHeight: "flex",
     style: {
-      minWidth: '100%',
-      width: '100%'
+      minWidth: "100%",
+      width: "100%"
     }
   }, transactionColumns.map((col, i) => /*#__PURE__*/React.createElement(Column, {
     key: i,
@@ -560,7 +563,6 @@ const ThirdPartyField = ({
   const loadThirdParties = async () => {
     try {
       const response = await resourcesAdminService.getThirdParties();
-      console.log("Terceros: ", response.data);
       setAllThirdParties(response.data); // Guardamos todos los terceros
     } catch (error) {
       console.error("Error cargando terceros:", error);
@@ -575,12 +577,16 @@ const ThirdPartyField = ({
   const getFilteredThirdParties = thirdPartyType => {
     if (!thirdPartyType) return [];
     return allThirdParties.filter(thirdParty => {
-      if (thirdPartyType === "provider") {
-        return thirdParty.type === "provider";
-      } else if (thirdPartyType === "client") {
-        return thirdParty.type === "client";
+      switch (thirdPartyType) {
+        case "provider":
+          return thirdParty.type === "provider";
+        case "client":
+          return thirdParty.type === "client";
+        case "entity":
+          return thirdParty.type === "entity";
+        default:
+          return false;
       }
-      return false;
     });
   };
   useEffect(() => {

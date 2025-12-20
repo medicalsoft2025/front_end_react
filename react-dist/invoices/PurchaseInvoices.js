@@ -190,6 +190,7 @@ export const PurchaseInvoices = () => {
 
   // Funciones para las acciones
   const generateReceipt = invoice => {
+    console.log("invoice", invoice);
     setFacturaParaRecibo(invoice);
     setShowReciboModal(true);
   };
@@ -388,52 +389,52 @@ export const PurchaseInvoices = () => {
     actions: factura
   }));
   const columns = [{
-    field: 'numeroFactura',
-    header: 'Factura',
+    field: "numeroFactura",
+    header: "Factura",
     sortable: true
   }, {
-    field: 'fecha',
-    header: 'Fecha',
+    field: "fecha",
+    header: "Fecha",
     sortable: true,
     body: rowData => formatDate(rowData.fecha)
   }, {
-    field: 'identificacion',
-    header: 'Identificación',
+    field: "identificacion",
+    header: "Identificación",
     sortable: true
   }, {
-    field: 'proveedor',
-    header: 'Proveedor',
+    field: "proveedor",
+    header: "Proveedor",
     sortable: true
   }, {
-    field: 'paid',
-    header: 'Pagado',
+    field: "paid",
+    header: "Pagado",
     sortable: true,
     body: rowData => formatCurrency(rowData.paid)
   }, {
-    field: 'remainingAmount',
-    header: 'Restante',
+    field: "remainingAmount",
+    header: "Restante",
     sortable: true,
     body: rowData => formatCurrency(rowData.remainingAmount)
   }, {
-    field: 'monto',
-    header: 'Valor',
+    field: "monto",
+    header: "Valor",
     sortable: true,
     body: rowData => formatCurrency(rowData.monto)
   }, {
-    field: 'adjustedType',
-    header: 'Ajuste',
+    field: "adjustedType",
+    header: "Ajuste",
     sortable: true
   }, {
-    field: 'estado',
-    header: 'Estado',
+    field: "estado",
+    header: "Estado",
     sortable: true,
     body: rowData => /*#__PURE__*/React.createElement(Tag, {
       value: getEstadoLabel(rowData.estado),
       severity: getEstadoSeverity(rowData.estado)
     })
   }, {
-    field: 'actions',
-    header: 'Acciones',
+    field: "actions",
+    header: "Acciones",
     body: rowData => actionBodyTemplate(rowData.actions),
     exportable: false,
     width: "120px"
@@ -540,7 +541,7 @@ export const PurchaseInvoices = () => {
     loading: tableLoading,
     onSearch: handleSearchChange,
     onReload: handleRefresh,
-    paginator: true,
+    lazy: true,
     rows: rows,
     first: first,
     onPage: onPageChange,
@@ -558,7 +559,7 @@ export const PurchaseInvoices = () => {
     onSubmit: handleGenerarRecibo,
     onSaveAndDownload: handleGenerarRecibo,
     initialData: {
-      cliente: facturaParaRecibo?.third_party?.id?.toString() || "",
+      cliente: facturaParaRecibo?.original.third_party?.id?.toString() || "",
       idFactura: facturaParaRecibo?.id || 0,
       numeroFactura: facturaParaRecibo?.numeroFactura || "",
       fechaElaboracion: facturaParaRecibo?.fecha || new Date(),

@@ -1,10 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { Controller, SubmitHandler, useFieldArray, useForm, useWatch } from "react-hook-form";
-import { InputText } from 'primereact/inputtext';
-import { InputNumber } from 'primereact/inputnumber';
-import { Dropdown } from 'primereact/dropdown';
-import { InputSwitch } from 'primereact/inputswitch';
-import { Button } from 'primereact/button';
+import {
+    Controller,
+    SubmitHandler,
+    useFieldArray,
+    useForm,
+    useWatch,
+} from "react-hook-form";
+import { InputText } from "primereact/inputtext";
+import { InputNumber } from "primereact/inputnumber";
+import { Dropdown } from "primereact/dropdown";
+import { InputSwitch } from "primereact/inputswitch";
+import { Button } from "primereact/button";
 import {
     examTypeService,
     entitiesService,
@@ -18,7 +24,6 @@ import { ExamTypeInputs } from "../../../exams-config/components/ExamConfigForm"
 import { CustomPRTable } from "../../../components/CustomPRTable";
 import { useProductsByType } from "../../../products/hooks/useProductsByType";
 import { useAccountingAccounts } from "../../../accounting/hooks/useAccountingAccounts";
-
 
 type EntityRow = {
     entity_id: string | number;
@@ -47,6 +52,13 @@ export type ProductFormInputs = {
     toggleIA?: boolean;
     toggleInsumos?: boolean;
     supplies: any[];
+    formSupplies?: {
+        id: string;
+        name: string;
+        quantity: number;
+        accounting_account_debit_id: string;
+        accounting_account_credit_id: string;
+    }[];
 };
 
 interface ProductFormProps {
@@ -70,14 +82,14 @@ const PricesConfigForm: React.FC<ProductFormProps> = ({
     const [showTax, setShowTax] = useState(false);
     const [entityRows, setEntityRows] = useState<EntityRow[]>([]);
     const [currentEntity, setCurrentEntity] = useState({
-        entity_id: '',
-        entity_name: '',
+        entity_id: "",
+        entity_name: "",
         price: 0,
-        tax_charge_id: '',
-        tax_name: '',
-        withholding_tax_id: '',
-        retention_name: '',
-        negotation_type: ''
+        tax_charge_id: "",
+        tax_name: "",
+        withholding_tax_id: "",
+        retention_name: "",
+        negotation_type: "",
     });
     const [examTypesData, setExamTypesData] = useState<any[]>([]);
     const [taxes, setTaxes] = useState<any[]>([]);
@@ -113,10 +125,14 @@ const PricesConfigForm: React.FC<ProductFormProps> = ({
         },
     });
 
-
-    const { fields, append: addSupply, remove: removeSupply, update: updateSupply } = useFieldArray({
+    const {
+        fields,
+        append: addSupply,
+        remove: removeSupply,
+        update: updateSupply,
+    } = useFieldArray({
         control,
-        name: "supplies"
+        name: "supplies",
     });
 
     const attentionType = watch("attention_type");
@@ -126,11 +142,11 @@ const PricesConfigForm: React.FC<ProductFormProps> = ({
     const toggleInsumos = watch("toggleInsumos");
     const formSupplies = useWatch({
         control,
-        name: "supplies"
+        name: "supplies",
     });
 
-
-    const { productsByType: supplies, fetchProductsByType } = useProductsByType();
+    const { productsByType: supplies, fetchProductsByType } =
+        useProductsByType();
 
     useEffect(() => {
         if (attentionType === "PROCEDURE") {
@@ -164,36 +180,54 @@ const PricesConfigForm: React.FC<ProductFormProps> = ({
 
     useEffect(() => {
         if (initialData) {
+            setValue("toggleIA", initialData.toggleIA || false);
+
             // Establecer product_id si existe para la actualización
             if (initialData.product_id) {
-                setValue('product_id', initialData.product_id);
+                setValue("product_id", initialData.product_id);
             }
 
-            setValue('name', initialData.name);
-            setValue('curp', initialData.curp);
-            setValue('attention_type', initialData.attention_type);
-            setValue('sale_price', initialData.sale_price);
-            setValue('copago', initialData.copago);
-            setValue('purchase_price', initialData.purchase_price);
-            setValue('exam_type_id', initialData.exam_type_id || '');
-            setValue('taxProduct_type', initialData.taxProduct_type || '');
+            setValue("name", initialData.name);
+            setValue("curp", initialData.curp);
+            setValue("attention_type", initialData.attention_type);
+            setValue("sale_price", initialData.sale_price);
+            setValue("copago", initialData.copago);
+            setValue("purchase_price", initialData.purchase_price);
+            setValue("exam_type_id", initialData.exam_type_id || "");
+            setValue("taxProduct_type", initialData.taxProduct_type || "");
+
+            if (
+                initialData.formSupplies &&
+                initialData.formSupplies.length > 0
+            ) {
+                initialData.formSupplies.forEach((supply: any) => {
+                    addSupply(supply);
+                });
+                setValue("toggleInsumos", true);
+            } else {
+                removeSupply();
+                setValue("toggleInsumos", false);
+            }
 
             // Load entities if they exist
             if (initialData.entities && initialData.entities.length > 0) {
                 setEntityRows([...initialData.entities]); // Crear nueva copia para forzar re-render
-                setValue('toggleEntities', true);
+                setValue("toggleEntities", true);
                 setShowEntities(true);
             } else {
                 setEntityRows([]);
-                setValue('toggleEntities', false);
+                setValue("toggleEntities", false);
                 setShowEntities(false);
             }
 
-            if (initialData.taxProduct_type && initialData.taxProduct_type !== '0') {
-                setValue('toggleImpuesto', true);
+            if (
+                initialData.taxProduct_type &&
+                initialData.taxProduct_type !== "0"
+            ) {
+                setValue("toggleImpuesto", true);
                 setShowTax(true);
             } else {
-                setValue('toggleImpuesto', false);
+                setValue("toggleImpuesto", false);
                 setShowTax(false);
             }
         } else {
@@ -201,13 +235,12 @@ const PricesConfigForm: React.FC<ProductFormProps> = ({
             setEntityRows([]);
             setShowEntities(false);
             setShowTax(false);
-            setValue('toggleEntities', false);
-            setValue('toggleImpuesto', false);
+            setValue("toggleEntities", false);
+            setValue("toggleImpuesto", false);
         }
     }, [initialData, setValue]);
 
     const onSubmit: SubmitHandler<ProductFormInputs> = (data) => {
-
         const submitData: ProductFormInputs = {
             ...data,
             entities: entityRows,
@@ -229,14 +262,15 @@ const PricesConfigForm: React.FC<ProductFormProps> = ({
         { label: "Privado", value: "privado" },
     ];
     const handleExamSubmit = (data: ExamTypeInputs) => {
-
         handleCloseExamModal();
         loadExamTypes();
     };
 
     const getFormErrorMessage = (name: keyof ProductFormInputs) => {
         return (
-            errors[name] && <small className="text-danger">{errors[name]?.message}</small>
+            errors[name] && (
+                <small className="text-danger">{errors[name]?.message}</small>
+            )
         );
     };
 
@@ -259,26 +293,30 @@ const PricesConfigForm: React.FC<ProductFormProps> = ({
         field: keyof typeof currentEntity,
         value: any
     ) => {
-        if (field === 'entity_id') {
-            const selectedEntity = value ? entitiesData.find(e => e.id == value) : null;
+        if (field === "entity_id") {
+            const selectedEntity = value
+                ? entitiesData.find((e) => e.id == value)
+                : null;
             setCurrentEntity((prev) => ({
                 ...prev,
                 entity_id: value,
-                entity_name: selectedEntity ? selectedEntity.name : ''
+                entity_name: selectedEntity ? selectedEntity.name : "",
             }));
-        } else if (field === 'tax_charge_id') {
-            const selectedTax = value ? taxes.find(t => t.id == value) : null;
+        } else if (field === "tax_charge_id") {
+            const selectedTax = value ? taxes.find((t) => t.id == value) : null;
             setCurrentEntity((prev) => ({
                 ...prev,
                 tax_charge_id: value,
-                tax_name: selectedTax ? selectedTax.name : ''
+                tax_name: selectedTax ? selectedTax.name : "",
             }));
-        } else if (field === 'withholding_tax_id') {
-            const selectedRetention = value ? retentions.find(r => r.id == value) : null;
+        } else if (field === "withholding_tax_id") {
+            const selectedRetention = value
+                ? retentions.find((r) => r.id == value)
+                : null;
             setCurrentEntity((prev) => ({
                 ...prev,
                 withholding_tax_id: value,
-                retention_name: selectedRetention ? selectedRetention.name : ''
+                retention_name: selectedRetention ? selectedRetention.name : "",
             }));
         } else {
             setCurrentEntity((prev) => ({
@@ -294,31 +332,31 @@ const PricesConfigForm: React.FC<ProductFormProps> = ({
                 entity_id: currentEntity.entity_id,
                 entity_name: currentEntity.entity_name,
                 price: currentEntity.price,
-                tax_charge_id: currentEntity.tax_charge_id || '',
-                tax_name: currentEntity.tax_name || 'N/A',
-                withholding_tax_id: currentEntity.withholding_tax_id || '',
-                negotation_type: currentEntity.negotation_type || '',
-                retention_name: currentEntity.retention_name || 'N/A',
+                tax_charge_id: currentEntity.tax_charge_id || "",
+                tax_name: currentEntity.tax_name || "N/A",
+                withholding_tax_id: currentEntity.withholding_tax_id || "",
+                negotation_type: currentEntity.negotation_type || "",
+                retention_name: currentEntity.retention_name || "N/A",
             };
 
             setEntityRows([...entityRows, newRow]);
 
             // Reset current entity
             setCurrentEntity({
-                entity_id: '',
-                entity_name: '',
+                entity_id: "",
+                entity_name: "",
                 price: 0,
-                tax_charge_id: '',
-                tax_name: '',
-                withholding_tax_id: '',
-                retention_name: '',
-                negotation_type: ''
+                tax_charge_id: "",
+                tax_name: "",
+                withholding_tax_id: "",
+                retention_name: "",
+                negotation_type: "",
             });
         }
     };
 
     const removeEntityRow = (rowIndex: number) => {
-        if (window.confirm('¿Estás seguro de eliminar esta entidad?')) {
+        if (window.confirm("¿Estás seguro de eliminar esta entidad?")) {
             const newRows = [...entityRows];
             newRows.splice(rowIndex, 1);
             setEntityRows(newRows);
@@ -339,7 +377,11 @@ const PricesConfigForm: React.FC<ProductFormProps> = ({
         <div className="card mt-4">
             <div className="card-body">
                 <h5 className="card-title">Datos de producto</h5>
-                <form className="row g-3" id={formId} onSubmit={handleSubmit(onSubmit)}>
+                <form
+                    className="row g-3"
+                    id={formId}
+                    onSubmit={handleSubmit(onSubmit)}
+                >
                     <input type="hidden" {...register("product_id")} />
 
                     <div className="col-12">
@@ -349,11 +391,16 @@ const PricesConfigForm: React.FC<ProductFormProps> = ({
                             rules={{ required: "Este campo es requerido" }}
                             render={({ field, fieldState }) => (
                                 <div className="mb-3">
-                                    <label className="form-label" htmlFor={field.name}>
+                                    <label
+                                        className="form-label"
+                                        htmlFor={field.name}
+                                    >
                                         Nombre del item
                                     </label>
                                     <InputText
-                                        className={`w-100 ${fieldState.error ? 'p-invalid' : ''}`}
+                                        className={`w-100 ${
+                                            fieldState.error ? "p-invalid" : ""
+                                        }`}
                                         id={field.name}
                                         placeholder="Nombre del item"
                                         {...field}
@@ -371,11 +418,16 @@ const PricesConfigForm: React.FC<ProductFormProps> = ({
                             rules={{ required: "Este campo es requerido" }}
                             render={({ field, fieldState }) => (
                                 <div className="mb-3">
-                                    <label className="form-label" htmlFor={field.name}>
+                                    <label
+                                        className="form-label"
+                                        htmlFor={field.name}
+                                    >
                                         Cups
                                     </label>
                                     <InputText
-                                        className={`w-100 ${fieldState.error ? 'p-invalid' : ''}`}
+                                        className={`w-100 ${
+                                            fieldState.error ? "p-invalid" : ""
+                                        }`}
                                         id={field.name}
                                         placeholder="Código Cups"
                                         {...field}
@@ -393,20 +445,42 @@ const PricesConfigForm: React.FC<ProductFormProps> = ({
                             rules={{ required: "Este campo es requerido" }}
                             render={({ field, fieldState }) => (
                                 <div className="mb-3">
-                                    <label className="form-label" htmlFor={field.name}>
+                                    <label
+                                        className="form-label"
+                                        htmlFor={field.name}
+                                    >
                                         Tipo de atención
                                     </label>
                                     <Dropdown
-                                        className={`w-100 ${fieldState.error ? 'p-invalid' : ''}`}
+                                        className={`w-100 ${
+                                            fieldState.error ? "p-invalid" : ""
+                                        }`}
                                         id={field.name}
                                         value={field.value}
-                                        onChange={(e) => field.onChange(e.value)}
+                                        onChange={(e) =>
+                                            field.onChange(e.value)
+                                        }
                                         options={[
-                                            { label: "Procedimiento", value: "PROCEDURE" },
-                                            { label: "Consulta", value: "CONSULTATION" },
-                                            { label: "Laboratorio", value: "LABORATORY" },
-                                            { label: "Rehabilitación", value: "REHABILITATION" },
-                                            { label: "Optometría", value: "OPTOMETRY" }
+                                            {
+                                                label: "Procedimiento",
+                                                value: "PROCEDURE",
+                                            },
+                                            {
+                                                label: "Consulta",
+                                                value: "CONSULTATION",
+                                            },
+                                            {
+                                                label: "Laboratorio",
+                                                value: "LABORATORY",
+                                            },
+                                            {
+                                                label: "Rehabilitación",
+                                                value: "REHABILITATION",
+                                            },
+                                            {
+                                                label: "Optometría",
+                                                value: "OPTOMETRY",
+                                            },
                                         ]}
                                         placeholder="Seleccionar..."
                                     />
@@ -424,18 +498,25 @@ const PricesConfigForm: React.FC<ProductFormProps> = ({
                                     control={control}
                                     render={({ field }) => (
                                         <div className="flex-grow-1 me-2">
-                                            <label className="form-label" htmlFor={field.name}>
+                                            <label
+                                                className="form-label"
+                                                htmlFor={field.name}
+                                            >
                                                 Examen
                                             </label>
                                             <Dropdown
                                                 className="w-100"
                                                 id={field.name}
                                                 value={field.value}
-                                                onChange={(e) => field.onChange(e.value)}
-                                                options={examTypesData.map((exam) => ({
-                                                    label: exam.name,
-                                                    value: exam.id
-                                                }))}
+                                                onChange={(e) =>
+                                                    field.onChange(e.value)
+                                                }
+                                                options={examTypesData.map(
+                                                    (exam) => ({
+                                                        label: exam.name,
+                                                        value: exam.id,
+                                                    })
+                                                )}
                                                 placeholder="Seleccionar..."
                                             />
                                         </div>
@@ -447,20 +528,26 @@ const PricesConfigForm: React.FC<ProductFormProps> = ({
                                         icon={<i className="fas fa-plus"></i>}
                                         className="p-button-primary"
                                         onClick={handleOpenExamModal}
-                                        tooltipOptions={{ position: 'top' }}
+                                        tooltipOptions={{ position: "top" }}
                                     />
                                 </div>
                             </div>
                         </div>
                     )}
 
-                    <div className="col-md-6" style={{ display: showLabFields ? 'block' : 'none' }}>
+                    <div
+                        className="col-md-6"
+                        style={{ display: showLabFields ? "block" : "none" }}
+                    >
                         <Controller
                             name="sale_price"
                             control={control}
                             render={({ field }) => (
                                 <div className="mb-3">
-                                    <label className="form-label" htmlFor={field.name}>
+                                    <label
+                                        className="form-label"
+                                        htmlFor={field.name}
+                                    >
                                         Precio público
                                     </label>
                                     <InputNumber
@@ -468,7 +555,9 @@ const PricesConfigForm: React.FC<ProductFormProps> = ({
                                         id={field.name}
                                         placeholder="Precio público"
                                         value={field.value}
-                                        onValueChange={(e) => field.onChange(e.value)}
+                                        onValueChange={(e) =>
+                                            field.onChange(e.value)
+                                        }
                                         mode="currency"
                                         currency="COP"
                                         locale="es-CO"
@@ -478,13 +567,19 @@ const PricesConfigForm: React.FC<ProductFormProps> = ({
                         />
                     </div>
 
-                    <div className="col-md-6" style={{ display: showLabFields ? 'block' : 'none' }}>
+                    <div
+                        className="col-md-6"
+                        style={{ display: showLabFields ? "block" : "none" }}
+                    >
                         <Controller
                             name="copago"
                             control={control}
                             render={({ field }) => (
                                 <div className="mb-3">
-                                    <label className="form-label" htmlFor={field.name}>
+                                    <label
+                                        className="form-label"
+                                        htmlFor={field.name}
+                                    >
                                         Precio Copago
                                     </label>
                                     <InputNumber
@@ -492,7 +587,9 @@ const PricesConfigForm: React.FC<ProductFormProps> = ({
                                         id={field.name}
                                         placeholder="Precio Copago"
                                         value={field.value}
-                                        onValueChange={(e) => field.onChange(e.value)}
+                                        onValueChange={(e) =>
+                                            field.onChange(e.value)
+                                        }
                                         mode="currency"
                                         currency="COP"
                                         locale="es-CO"
@@ -502,13 +599,19 @@ const PricesConfigForm: React.FC<ProductFormProps> = ({
                         />
                     </div>
 
-                    <div className="col-12" style={{ display: showLabFields ? 'block' : 'none' }}>
+                    <div
+                        className="col-12"
+                        style={{ display: showLabFields ? "block" : "none" }}
+                    >
                         <Controller
                             name="purchase_price"
                             control={control}
                             render={({ field }) => (
                                 <div className="mb-3">
-                                    <label className="form-label" htmlFor={field.name}>
+                                    <label
+                                        className="form-label"
+                                        htmlFor={field.name}
+                                    >
                                         Costo
                                     </label>
                                     <InputNumber
@@ -516,7 +619,9 @@ const PricesConfigForm: React.FC<ProductFormProps> = ({
                                         id={field.name}
                                         placeholder="Costo"
                                         value={field.value}
-                                        onValueChange={(e) => field.onChange(e.value)}
+                                        onValueChange={(e) =>
+                                            field.onChange(e.value)
+                                        }
                                         mode="currency"
                                         currency="COP"
                                         locale="es-CO"
@@ -526,41 +631,58 @@ const PricesConfigForm: React.FC<ProductFormProps> = ({
                         />
                     </div>
 
-                    <div className="col-md-3" style={{ display: showLabFields ? 'block' : 'none' }}>
+                    <div
+                        className="col-md-3"
+                        style={{ display: showLabFields ? "block" : "none" }}
+                    >
                         <Controller
                             name="toggleEntities"
                             control={control}
                             render={({ field }) => (
                                 <div className="mb-3">
-                                    <label className="form-label d-block" htmlFor="toggleEntities">
+                                    <label
+                                        className="form-label d-block"
+                                        htmlFor="toggleEntities"
+                                    >
                                         Agregar entidades
                                     </label>
                                     <InputSwitch
                                         inputId="toggleEntities"
                                         checked={field.value || false}
-                                        onChange={(e) => field.onChange(e.value)}
+                                        onChange={(e) =>
+                                            field.onChange(e.value)
+                                        }
                                     />
                                 </div>
                             )}
                         />
                     </div>
 
-                    <div className="col-md-3" style={{ display: showLabFields ? 'block' : 'none' }}>
+                    <div
+                        className="col-md-3"
+                        style={{ display: showLabFields ? "block" : "none" }}
+                    >
                         <Controller
                             name="toggleImpuesto"
                             control={control}
                             render={({ field }) => (
                                 <div className="mb-3">
-                                    <label className="form-label d-block" htmlFor="toggleImpuesto">
+                                    <label
+                                        className="form-label d-block"
+                                        htmlFor="toggleImpuesto"
+                                    >
                                         Agregar Impuesto
                                     </label>
                                     <InputSwitch
                                         inputId="toggleImpuesto"
                                         checked={field.value || false}
                                         onChange={(e) => {
-                                            field.onChange(e.value)
+                                            field.onChange(e.value);
                                             if (!e.value) {
-                                                setValue('taxProduct_type', '0');
+                                                setValue(
+                                                    "taxProduct_type",
+                                                    "0"
+                                                );
                                             }
                                         }}
                                     />
@@ -569,22 +691,31 @@ const PricesConfigForm: React.FC<ProductFormProps> = ({
                         />
                     </div>
 
-                    <div className="col-md-3" style={{ display: showLabFields ? 'block' : 'none' }}>
+                    <div
+                        className="col-md-3"
+                        style={{ display: showLabFields ? "block" : "none" }}
+                    >
                         <Controller
                             name="toggleInsumos"
                             control={control}
                             render={({ field }) => (
                                 <div className="mb-3">
-                                    <label className="form-label d-block" htmlFor="toggleInsumos">
+                                    <label
+                                        className="form-label d-block"
+                                        htmlFor="toggleInsumos"
+                                    >
                                         Agregar Insumos
                                     </label>
                                     <InputSwitch
                                         inputId="toggleInsumos"
                                         checked={field.value || false}
                                         onChange={(e) => {
-                                            field.onChange(e.value)
+                                            field.onChange(e.value);
                                             if (!e.value) {
-                                                setValue('taxProduct_type', '0');
+                                                setValue(
+                                                    "taxProduct_type",
+                                                    "0"
+                                                );
                                             }
                                         }}
                                     />
@@ -593,22 +724,31 @@ const PricesConfigForm: React.FC<ProductFormProps> = ({
                         />
                     </div>
 
-                    <div className="col-md-3" style={{ display: showLabFields ? 'block' : 'none' }}>
+                    <div
+                        className="col-md-3"
+                        style={{ display: showLabFields ? "block" : "none" }}
+                    >
                         <Controller
                             name="toggleIA"
                             control={control}
                             render={({ field }) => (
                                 <div className="mb-3">
-                                    <label className="form-label d-block" htmlFor="toggleIA">
+                                    <label
+                                        className="form-label d-block"
+                                        htmlFor="toggleIA"
+                                    >
                                         Puede agendar con IA
                                     </label>
                                     <InputSwitch
                                         inputId="toggleIA"
                                         checked={field.value || false}
                                         onChange={(e) => {
-                                            field.onChange(e.value)
+                                            field.onChange(e.value);
                                             if (!e.value) {
-                                                setValue('taxProduct_type', '0');
+                                                setValue(
+                                                    "taxProduct_type",
+                                                    "0"
+                                                );
                                             }
                                         }}
                                     />
@@ -617,111 +757,171 @@ const PricesConfigForm: React.FC<ProductFormProps> = ({
                         />
                     </div>
 
-                    {toggleInsumos && (<>
-                        <div className="d-flex flex-column gap-3">
-                            <div className="d-flex flex-column gap-2">
-                                <label className="form-label" htmlFor="supply">Insumo</label>
-                                <Dropdown
-                                    id="supply"
-                                    placeholder="Seleccionar insumo"
-                                    className="w-100"
-                                    showClear
-                                    filter
-                                    optionLabel="name"
-                                    value={supply}
-                                    options={supplies}
-                                    onChange={(e) => setSupply(e.value)}
+                    {toggleInsumos && (
+                        <>
+                            <div className="d-flex flex-column gap-3">
+                                <div className="d-flex flex-column gap-2">
+                                    <label
+                                        className="form-label"
+                                        htmlFor="supply"
+                                    >
+                                        Insumo
+                                    </label>
+                                    <Dropdown
+                                        id="supply"
+                                        placeholder="Seleccionar insumo"
+                                        className="w-100"
+                                        showClear
+                                        filter
+                                        optionLabel="name"
+                                        value={supply}
+                                        options={supplies}
+                                        onChange={(e) => setSupply(e.value)}
+                                    />
+                                </div>
+                                <div className="d-flex justify-content-end">
+                                    <Button
+                                        label="Agregar"
+                                        icon={<i className="fas fa-plus"></i>}
+                                        onClick={() => {
+                                            if (supply) {
+                                                addSupply({
+                                                    id: supply.id,
+                                                    name: supply.name,
+                                                    quantity: 1,
+                                                });
+                                                setSupply(null);
+                                            }
+                                        }}
+                                        className="btn btn-primary"
+                                        type="button"
+                                    />
+                                </div>
+                                <CustomPRTable
+                                    columns={[
+                                        { field: "name", header: "Nombre" },
+                                        {
+                                            field: "quantity",
+                                            header: "Cantidad",
+                                            body: (data: any) => (
+                                                <>
+                                                    <InputNumber
+                                                        value={data.quantity}
+                                                        onChange={(e) => {
+                                                            updateSupply(
+                                                                formSupplies.indexOf(
+                                                                    data
+                                                                ),
+                                                                {
+                                                                    ...data,
+                                                                    quantity:
+                                                                        e.value,
+                                                                }
+                                                            );
+                                                        }}
+                                                        className="w-100"
+                                                        inputClassName="w-100"
+                                                        useGrouping={false}
+                                                        placeholder="Cantidad"
+                                                    />
+                                                </>
+                                            ),
+                                        },
+                                        {
+                                            field: "accounting_account_debit_id",
+                                            header: "Cuenta contable debita",
+                                            body: (data: any) => (
+                                                <>
+                                                    <Dropdown
+                                                        value={
+                                                            data.accounting_account_debit_id
+                                                        }
+                                                        options={accounts}
+                                                        onChange={(e) => {
+                                                            updateSupply(
+                                                                formSupplies.indexOf(
+                                                                    data
+                                                                ),
+                                                                {
+                                                                    ...data,
+                                                                    accounting_account_debit_id:
+                                                                        e.value,
+                                                                }
+                                                            );
+                                                        }}
+                                                        optionLabel="account_name"
+                                                        optionValue="id"
+                                                        placeholder="Cuenta contable debita"
+                                                        appendTo={document.body}
+                                                        filter
+                                                        showClear
+                                                    />
+                                                </>
+                                            ),
+                                        },
+                                        {
+                                            field: "accounting_account_credit_id",
+                                            header: "Cuenta contable acredita",
+                                            body: (data: any) => (
+                                                <>
+                                                    <Dropdown
+                                                        value={
+                                                            data.accounting_account_credit_id
+                                                        }
+                                                        options={accounts}
+                                                        onChange={(e) => {
+                                                            updateSupply(
+                                                                formSupplies.indexOf(
+                                                                    data
+                                                                ),
+                                                                {
+                                                                    ...data,
+                                                                    accounting_account_credit_id:
+                                                                        e.value,
+                                                                }
+                                                            );
+                                                        }}
+                                                        optionLabel="account_name"
+                                                        optionValue="id"
+                                                        placeholder="Cuenta contable acredita"
+                                                        appendTo={document.body}
+                                                        filter
+                                                        showClear
+                                                    />
+                                                </>
+                                            ),
+                                        },
+                                        {
+                                            field: "actions",
+                                            header: "Acciones",
+                                            body: (data: any) => (
+                                                <div className="d-flex justify-content-center align-items-center">
+                                                    <Button
+                                                        type="button"
+                                                        icon={
+                                                            <i className="fas fa-trash"></i>
+                                                        }
+                                                        onClick={() =>
+                                                            removeSupply(
+                                                                formSupplies.indexOf(
+                                                                    data
+                                                                )
+                                                            )
+                                                        }
+                                                        className="p-button-danger p-button-text"
+                                                    />
+                                                </div>
+                                            ),
+                                        },
+                                    ]}
+                                    data={formSupplies}
+                                    disablePaginator
+                                    disableReload
+                                    disableSearch
                                 />
                             </div>
-                            <div className="d-flex justify-content-end">
-                                <Button
-                                    label="Agregar"
-                                    icon={<i className="fas fa-plus"></i>}
-                                    onClick={() => {
-                                        if (supply) {
-                                            addSupply({
-                                                id: supply.id,
-                                                name: supply.name,
-                                                quantity: 1
-                                            });
-                                            setSupply(null);
-                                        }
-                                    }}
-                                    className="btn btn-primary"
-                                    type="button"
-                                />
-                            </div>
-                            <CustomPRTable
-                                columns={[
-                                    { field: 'name', header: 'Nombre' },
-                                    {
-                                        field: 'quantity', header: 'Cantidad', body: (data: any) => <>
-                                            <InputNumber
-                                                value={data.quantity}
-                                                onChange={(e) => {
-                                                    updateSupply(formSupplies.indexOf(data), { ...data, quantity: e.value });
-                                                }}
-                                                className="w-100"
-                                                inputClassName="w-100"
-                                                useGrouping={false}
-                                                placeholder="Cantidad"
-                                            />
-                                        </>
-                                    },
-                                    {
-                                        field: 'accounting_account_debit_id', header: 'Cuenta contable debita', body: (data: any) => <>
-                                            <Dropdown
-                                                value={data.accounting_account_debit_id}
-                                                options={accounts}
-                                                onChange={(e) => {
-                                                    updateSupply(formSupplies.indexOf(data), { ...data, accounting_account_debit_id: e.value });
-                                                }}
-                                                optionLabel="account_name"
-                                                optionValue="id"
-                                                placeholder="Cuenta contable debita"
-                                                appendTo={document.body}
-                                                filter
-                                                showClear
-                                            />
-                                        </>
-                                    },
-                                    {
-                                        field: 'accounting_account_credit_id', header: 'Cuenta contable acredita', body: (data: any) => <>
-                                            <Dropdown
-                                                value={data.accounting_account_credit_id}
-                                                options={accounts}
-                                                onChange={(e) => {
-                                                    updateSupply(formSupplies.indexOf(data), { ...data, accounting_account_credit_id: e.value });
-                                                }}
-                                                optionLabel="account_name"
-                                                optionValue="id"
-                                                placeholder="Cuenta contable acredita"
-                                                appendTo={document.body}
-                                                filter
-                                                showClear
-                                            />
-                                        </>
-                                    },
-                                    {
-                                        field: 'actions', header: 'Acciones', body: (data: any) => (
-                                            <div className="d-flex justify-content-center align-items-center">
-                                                <Button
-                                                    type="button"
-                                                    icon={<i className="fas fa-trash"></i>}
-                                                    onClick={() => removeSupply(formSupplies.indexOf(data))}
-                                                    className="p-button-danger p-button-text"
-                                                />
-                                            </div>
-                                        )
-                                    }
-                                ]}
-                                data={formSupplies}
-                                disablePaginator
-                                disableReload
-                                disableSearch
-                            />
-                        </div>
-                    </>)}
+                        </>
+                    )}
 
                     {showTax && (
                         <div className="col-12">
@@ -730,17 +930,22 @@ const PricesConfigForm: React.FC<ProductFormProps> = ({
                                 control={control}
                                 render={({ field }) => (
                                     <div className="mb-3">
-                                        <label className="form-label" htmlFor={field.name}>
+                                        <label
+                                            className="form-label"
+                                            htmlFor={field.name}
+                                        >
                                             Tipo de impuesto
                                         </label>
                                         <Dropdown
                                             className="w-100"
                                             id={field.name}
                                             value={field.value}
-                                            onChange={(e) => field.onChange(e.value)}
+                                            onChange={(e) =>
+                                                field.onChange(e.value)
+                                            }
                                             options={taxes.map((tax) => ({
                                                 label: tax.name,
-                                                value: tax.id
+                                                value: tax.id,
                                             }))}
                                             placeholder="Seleccionar..."
                                         />
@@ -762,11 +967,18 @@ const PricesConfigForm: React.FC<ProductFormProps> = ({
                                             <Dropdown
                                                 className="w-100"
                                                 value={currentEntity.entity_id}
-                                                onChange={(e) => handleEntityChange("entity_id", e.value)}
-                                                options={entitiesData.map((entity) => ({
-                                                    label: entity.name,
-                                                    value: entity.id
-                                                }))}
+                                                onChange={(e) =>
+                                                    handleEntityChange(
+                                                        "entity_id",
+                                                        e.value
+                                                    )
+                                                }
+                                                options={entitiesData.map(
+                                                    (entity) => ({
+                                                        label: entity.name,
+                                                        value: entity.id,
+                                                    })
+                                                )}
                                                 placeholder="Seleccionar..."
                                             />
                                         </div>
@@ -780,7 +992,12 @@ const PricesConfigForm: React.FC<ProductFormProps> = ({
                                                 className="w-100"
                                                 placeholder="Precio"
                                                 value={currentEntity.price}
-                                                onValueChange={(e) => handleEntityChange("price", e.value || 0)}
+                                                onValueChange={(e) =>
+                                                    handleEntityChange(
+                                                        "price",
+                                                        e.value || 0
+                                                    )
+                                                }
                                                 mode="currency"
                                                 currency="COP"
                                                 locale="es-CO"
@@ -794,11 +1011,18 @@ const PricesConfigForm: React.FC<ProductFormProps> = ({
                                             </label>
                                             <Dropdown
                                                 className="w-100"
-                                                value={currentEntity.tax_charge_id}
-                                                onChange={(e) => handleEntityChange("tax_charge_id", e.value)}
+                                                value={
+                                                    currentEntity.tax_charge_id
+                                                }
+                                                onChange={(e) =>
+                                                    handleEntityChange(
+                                                        "tax_charge_id",
+                                                        e.value
+                                                    )
+                                                }
                                                 options={taxes.map((tax) => ({
                                                     label: tax.name,
-                                                    value: tax.id
+                                                    value: tax.id,
                                                 }))}
                                                 placeholder="Seleccionar..."
                                             />
@@ -811,12 +1035,21 @@ const PricesConfigForm: React.FC<ProductFormProps> = ({
                                             </label>
                                             <Dropdown
                                                 className="w-100"
-                                                value={currentEntity.withholding_tax_id}
-                                                onChange={(e) => handleEntityChange("withholding_tax_id", e.value)}
-                                                options={retentions.map((retention) => ({
-                                                    label: retention.name,
-                                                    value: retention.id
-                                                }))}
+                                                value={
+                                                    currentEntity.withholding_tax_id
+                                                }
+                                                onChange={(e) =>
+                                                    handleEntityChange(
+                                                        "withholding_tax_id",
+                                                        e.value
+                                                    )
+                                                }
+                                                options={retentions.map(
+                                                    (retention) => ({
+                                                        label: retention.name,
+                                                        value: retention.id,
+                                                    })
+                                                )}
                                                 placeholder="Seleccionar..."
                                             />
                                         </div>
@@ -828,8 +1061,15 @@ const PricesConfigForm: React.FC<ProductFormProps> = ({
                                             </label>
                                             <Dropdown
                                                 className="w-100"
-                                                value={currentEntity.negotation_type}
-                                                onChange={(e) => handleEntityChange("negotation_type", e.value)}
+                                                value={
+                                                    currentEntity.negotation_type
+                                                }
+                                                onChange={(e) =>
+                                                    handleEntityChange(
+                                                        "negotation_type",
+                                                        e.value
+                                                    )
+                                                }
                                                 options={regimeOptions}
                                                 placeholder="Seleccionar..."
                                             />
@@ -865,14 +1105,26 @@ const PricesConfigForm: React.FC<ProductFormProps> = ({
                                                 <tr key={index}>
                                                     <td>{row.entity_name}</td>
                                                     <td>{row.price}</td>
-                                                    <td>{row.tax_name || 'N/A'}</td>
-                                                    <td>{row.retention_name || 'N/A'}</td>
-                                                    <td>{row.negotation_type || 'N/A'}</td>
+                                                    <td>
+                                                        {row.tax_name || "N/A"}
+                                                    </td>
+                                                    <td>
+                                                        {row.retention_name ||
+                                                            "N/A"}
+                                                    </td>
+                                                    <td>
+                                                        {row.negotation_type ||
+                                                            "N/A"}
+                                                    </td>
                                                     <td>
                                                         <button
                                                             type="button"
                                                             className="btn btn-danger btn-sm"
-                                                            onClick={() => removeEntityRow(index)}
+                                                            onClick={() =>
+                                                                removeEntityRow(
+                                                                    index
+                                                                )
+                                                            }
                                                         >
                                                             Eliminar
                                                         </button>
@@ -903,7 +1155,11 @@ const PricesConfigForm: React.FC<ProductFormProps> = ({
                 <Dialog
                     header="Crear Exámenes"
                     visible={showExamModal}
-                    style={{ width: "90vw", maxWidth: "1000px", height: "80vh" }}
+                    style={{
+                        width: "90vw",
+                        maxWidth: "1000px",
+                        height: "80vh",
+                    }}
                     onHide={handleCloseExamModal}
                     modal
                 >

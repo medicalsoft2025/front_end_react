@@ -1,26 +1,30 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { PricesTableConfig } from '../prices/table/PricesTableConfig';
-import PricesConfigFormModal from '../prices/form/PricesConfigFormModal';
-import { PrimeReactProvider } from 'primereact/api';
-import { ProductFormInputs } from '../prices/form/PricesConfigForm';
-import { ProductMapperCreate, ProductMapperUpdate } from './mappers';
-import { usePricesConfigTable } from './hooks/usePricesConfigTable';
-import { usePriceConfigCreate } from './hooks/usePriceConfigCreate';
-import { usePriceConfigUpdate } from './hooks/usePriceConfigUpdate';
-import { usePriceConfigById } from './hooks/usePriceConfigById';
-import { usePriceConfigDelete } from './hooks/usePriceConfigDelete';
+import React, { useEffect, useState, useRef } from "react";
+import { PricesTableConfig } from "../prices/table/PricesTableConfig";
+import PricesConfigFormModal from "../prices/form/PricesConfigFormModal";
+import { PrimeReactProvider } from "primereact/api";
+import { ProductFormInputs } from "../prices/form/PricesConfigForm";
+import { ProductMapperCreate, ProductMapperUpdate } from "./mappers";
+import { usePricesConfigTable } from "./hooks/usePricesConfigTable";
+import { usePriceConfigCreate } from "./hooks/usePriceConfigCreate";
+import { usePriceConfigUpdate } from "./hooks/usePriceConfigUpdate";
+import { usePriceConfigById } from "./hooks/usePriceConfigById";
+import { usePriceConfigDelete } from "./hooks/usePriceConfigDelete";
 import { entitiesService } from "../../../services/api";
-import { SwalManager } from '../../../services/alertManagerImported';
+import { SwalManager } from "../../../services/alertManagerImported";
 
 interface PricesConfigProps {
     onConfigurationComplete?: (isComplete: boolean) => void;
     isConfigurationContext?: boolean;
-
 }
 
-export const PricesConfig = ({ onConfigurationComplete, isConfigurationContext = false }: PricesConfigProps) => {
+export const PricesConfig = ({
+    onConfigurationComplete,
+    isConfigurationContext = false,
+}: PricesConfigProps) => {
     const [showFormModal, setShowFormModal] = useState(false);
-    const [initialData, setInitialData] = useState<ProductFormInputs | undefined>(undefined);
+    const [initialData, setInitialData] = useState<
+        ProductFormInputs | undefined
+    >(undefined);
     const [entitiesData, setEntitiesData] = useState<any[]>([]);
     const [isMounted, setIsMounted] = useState(true);
     const modalRef = useRef<HTMLDivElement>(null);
@@ -31,8 +35,6 @@ export const PricesConfig = ({ onConfigurationComplete, isConfigurationContext =
     const { fetchPriceById, priceById, setPriceById } = usePriceConfigById();
     const { deleteProduct } = usePriceConfigDelete();
 
-
-
     const isComplete = products && products.length > 0;
     const showValidations = isConfigurationContext;
 
@@ -42,8 +44,6 @@ export const PricesConfig = ({ onConfigurationComplete, isConfigurationContext =
         const hasProducts = products && products.length > 0;
         onConfigurationComplete?.(hasProducts);
     }, [products, onConfigurationComplete, isMounted]);
-
-
 
     // Cleanup para evitar el error de removeChild
     useEffect(() => {
@@ -59,12 +59,22 @@ export const PricesConfig = ({ onConfigurationComplete, isConfigurationContext =
     };
 
     const handleSubmit = async (data: ProductFormInputs) => {
-        const mapperDataProduct = ProductMapperCreate(data)
-        const mapperDataProductUpdate = ProductMapperUpdate(data)
+        const mapperDataProduct = ProductMapperCreate(data);
+        const mapperDataProductUpdate = ProductMapperUpdate(data);
 
         try {
             if (priceById) {
-                await updateProduct(priceById.id.toString(), mapperDataProductUpdate);
+                console.log(
+                    "update product: ",
+                    priceById.id.toString(),
+                    data,
+                    mapperDataProductUpdate
+                );
+
+                await updateProduct(
+                    priceById.id.toString(),
+                    mapperDataProductUpdate
+                );
             } else {
                 await createProduct(mapperDataProduct);
             }
@@ -92,7 +102,7 @@ export const PricesConfig = ({ onConfigurationComplete, isConfigurationContext =
             const entities = await entitiesService.getEntities();
             setEntitiesData(entities.data);
         } catch (error) {
-            console.error('Error loading entities:', error);
+            console.error("Error loading entities:", error);
         }
     }
 
@@ -109,22 +119,53 @@ export const PricesConfig = ({ onConfigurationComplete, isConfigurationContext =
                 curp: priceById.barcode,
                 sale_price: priceById.sale_price,
                 copago: +priceById.copayment,
-                taxProduct_type: priceById.tax_charge_id ?? '0',
-                exam_type_id: priceById.exam_type_id?.toString() ?? '',
+                taxProduct_type: priceById.tax_charge_id ?? "0",
+                exam_type_id: priceById.exam_type_id?.toString() ?? "",
                 purchase_price: priceById.purchase_price,
-                entities: priceById.entities?.map(entity => {
+                toggleIA: priceById.scheduleable_by_ai,
+                formSupplies: priceById.supplies.map((supply) => {
                     return {
-                        entity_id: entity.pivot?.entity_id || entity.entity_id || entity.id,
-                        entity_name: entitiesData.find(e => e.id === entity?.entity_id)?.name || 'N/A',
-                        price: +(entity.pivot?.price || entity?.price || 0),
-                        tax_charge_id: entity?.pivot?.tax_charge_id || entity?.tax_charge_id || null,
-                        tax_name: entity?.tax_charge?.name || 'N/A',
-                        withholding_tax_id: entity?.pivot?.withholding_tax_id || entity?.withholding_tax_id || '',
-                        retention_name: entity?.withholding_tax?.name || 'N/A',
-                        negotation_type: entity?.negotation_type || entity?.negotation_type || '',
+                        id: supply.id,
+                        name: supply.product.name,
+                        quantity: supply.quantity,
+                        accounting_account_debit_id:
+                            supply.accounting_account_debit_id,
+                        accounting_account_credit_id:
+                            supply.accounting_account_credit_id,
                     };
-                }) || []
+                }),
+                entities:
+                    priceById.entities?.map((entity) => {
+                        return {
+                            entity_id:
+                                entity.pivot?.entity_id ||
+                                entity.entity_id ||
+                                entity.id,
+                            entity_name:
+                                entitiesData.find(
+                                    (e) => e.id === entity?.entity_id
+                                )?.name || "N/A",
+                            price: +(entity.pivot?.price || entity?.price || 0),
+                            tax_charge_id:
+                                entity?.pivot?.tax_charge_id ||
+                                entity?.tax_charge_id ||
+                                null,
+                            tax_name: entity?.tax_charge?.name || "N/A",
+                            withholding_tax_id:
+                                entity?.pivot?.withholding_tax_id ||
+                                entity?.withholding_tax_id ||
+                                "",
+                            retention_name:
+                                entity?.withholding_tax?.name || "N/A",
+                            negotation_type:
+                                entity?.negotation_type ||
+                                entity?.negotation_type ||
+                                "",
+                        };
+                    }) || [],
             };
+            console.log("initial data", data);
+
             setInitialData(data);
         }
     }, [priceById, entitiesData, isMounted]);
@@ -137,21 +178,32 @@ export const PricesConfig = ({ onConfigurationComplete, isConfigurationContext =
 
     return (
         <>
-            <PrimeReactProvider value={{
-                appendTo: modalRef.current || 'self',
-                zIndex: {
-                    overlay: 100000
-                }
-            }}>
+            <PrimeReactProvider
+                value={{
+                    appendTo: modalRef.current || "self",
+                    zIndex: {
+                        overlay: 100000,
+                    },
+                }}
+            >
                 <div ref={modalRef}>
                     {showValidations && (
                         <div className="validation-section mb-3">
-                            <div className={`alert ${isComplete ? 'alert-success' : 'alert-info'} p-3`}>
-                                <i className={`${isComplete ? 'pi pi-check-circle' : 'pi pi-info-circle'} me-2`}></i>
+                            <div
+                                className={`alert ${
+                                    isComplete ? "alert-success" : "alert-info"
+                                } p-3`}
+                            >
+                                <i
+                                    className={`${
+                                        isComplete
+                                            ? "pi pi-check-circle"
+                                            : "pi pi-info-circle"
+                                    } me-2`}
+                                ></i>
                                 {isComplete
-                                    ? 'Precios configurados correctamente! Puede continuar al siguiente módulo.'
-                                    : 'Configure al menos un rol de usuario para habilitar el botón "Siguiente Módulo"'
-                                }
+                                    ? "Precios configurados correctamente! Puede continuar al siguiente módulo."
+                                    : 'Configure al menos un rol de usuario para habilitar el botón "Siguiente Módulo"'}
                             </div>
                         </div>
                     )}
@@ -165,7 +217,7 @@ export const PricesConfig = ({ onConfigurationComplete, isConfigurationContext =
                                 disabled={loading}
                             >
                                 <i className="fas fa-plus me-2"></i>
-                                {loading ? 'Cargando...' : 'Nuevo Precio'}
+                                {loading ? "Cargando..." : "Nuevo Precio"}
                             </button>
                         </div>
                     </div>

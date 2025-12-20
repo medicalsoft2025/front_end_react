@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { FilterMatchMode } from 'primereact/api';
+import React, { useState } from "react";
+import { FilterMatchMode } from "primereact/api";
 import { CustomPRTable } from "../../../components/CustomPRTable.js";
 const DocumentTable = ({
   data,
@@ -47,12 +47,11 @@ const DocumentTable = ({
     onSearch: handleSearch,
     globalFilterFields: globalFilterFields,
     customFilters: filters,
-    paginator: true,
     rows: 10,
     rowsPerPageOptions: [5, 10, 25, 50],
     emptyMessage: "No se encontraron consentimientos",
     showGridlines: true,
-    lazy: false,
+    lazy: true,
     first: 0,
     totalRecords: data.length,
     disableSearch: false,

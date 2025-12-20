@@ -175,7 +175,8 @@ export const CashRegisterApp = () => {
                 due_date: dueDate.toISOString().split('T')[0],
                 observations: "Venta desde punto de venta",
                 third_party_id: client?.id,
-                billing: billing?.data
+                billing: billing?.data,
+                sub_type: "farmacy",
             },
             invoice_detail: products.map(item => ({
                 product_id: item.id,

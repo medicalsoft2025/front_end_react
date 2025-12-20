@@ -1,7 +1,7 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from "react";
 import { PricesTableConfig } from "../prices/table/PricesTableConfig.js";
 import PricesConfigFormModal from "../prices/form/PricesConfigFormModal.js";
-import { PrimeReactProvider } from 'primereact/api';
+import { PrimeReactProvider } from "primereact/api";
 import { ProductMapperCreate, ProductMapperUpdate } from "./mappers/index.js";
 import { usePricesConfigTable } from "./hooks/usePricesConfigTable.js";
 import { usePriceConfigCreate } from "./hooks/usePriceConfigCreate.js";
@@ -61,6 +61,7 @@ export const PricesConfig = ({
     const mapperDataProductUpdate = ProductMapperUpdate(data);
     try {
       if (priceById) {
+        console.log("update product: ", priceById.id.toString(), data, mapperDataProductUpdate);
         await updateProduct(priceById.id.toString(), mapperDataProductUpdate);
       } else {
         await createProduct(mapperDataProduct);
@@ -86,7 +87,7 @@ export const PricesConfig = ({
       const entities = await entitiesService.getEntities();
       setEntitiesData(entities.data);
     } catch (error) {
-      console.error('Error loading entities:', error);
+      console.error("Error loading entities:", error);
     }
   }
   useEffect(() => {
@@ -101,22 +102,33 @@ export const PricesConfig = ({
         curp: priceById.barcode,
         sale_price: priceById.sale_price,
         copago: +priceById.copayment,
-        taxProduct_type: priceById.tax_charge_id ?? '0',
-        exam_type_id: priceById.exam_type_id?.toString() ?? '',
+        taxProduct_type: priceById.tax_charge_id ?? "0",
+        exam_type_id: priceById.exam_type_id?.toString() ?? "",
         purchase_price: priceById.purchase_price,
+        toggleIA: priceById.scheduleable_by_ai,
+        formSupplies: priceById.supplies.map(supply => {
+          return {
+            id: supply.id,
+            name: supply.product.name,
+            quantity: supply.quantity,
+            accounting_account_debit_id: supply.accounting_account_debit_id,
+            accounting_account_credit_id: supply.accounting_account_credit_id
+          };
+        }),
         entities: priceById.entities?.map(entity => {
           return {
             entity_id: entity.pivot?.entity_id || entity.entity_id || entity.id,
-            entity_name: entitiesData.find(e => e.id === entity?.entity_id)?.name || 'N/A',
+            entity_name: entitiesData.find(e => e.id === entity?.entity_id)?.name || "N/A",
             price: +(entity.pivot?.price || entity?.price || 0),
             tax_charge_id: entity?.pivot?.tax_charge_id || entity?.tax_charge_id || null,
-            tax_name: entity?.tax_charge?.name || 'N/A',
-            withholding_tax_id: entity?.pivot?.withholding_tax_id || entity?.withholding_tax_id || '',
-            retention_name: entity?.withholding_tax?.name || 'N/A',
-            negotation_type: entity?.negotation_type || entity?.negotation_type || ''
+            tax_name: entity?.tax_charge?.name || "N/A",
+            withholding_tax_id: entity?.pivot?.withholding_tax_id || entity?.withholding_tax_id || "",
+            retention_name: entity?.withholding_tax?.name || "N/A",
+            negotation_type: entity?.negotation_type || entity?.negotation_type || ""
           };
         }) || []
       };
+      console.log("initial data", data);
       setInitialData(data);
     }
   }, [priceById, entitiesData, isMounted]);
@@ -127,7 +139,7 @@ export const PricesConfig = ({
   };
   return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(PrimeReactProvider, {
     value: {
-      appendTo: modalRef.current || 'self',
+      appendTo: modalRef.current || "self",
       zIndex: {
         overlay: 100000
       }
@@ -137,10 +149,10 @@ export const PricesConfig = ({
   }, showValidations && /*#__PURE__*/React.createElement("div", {
     className: "validation-section mb-3"
   }, /*#__PURE__*/React.createElement("div", {
-    className: `alert ${isComplete ? 'alert-success' : 'alert-info'} p-3`
+    className: `alert ${isComplete ? "alert-success" : "alert-info"} p-3`
   }, /*#__PURE__*/React.createElement("i", {
-    className: `${isComplete ? 'pi pi-check-circle' : 'pi pi-info-circle'} me-2`
-  }), isComplete ? 'Precios configurados correctamente! Puede continuar al siguiente módulo.' : 'Configure al menos un rol de usuario para habilitar el botón "Siguiente Módulo"')), /*#__PURE__*/React.createElement("div", {
+    className: `${isComplete ? "pi pi-check-circle" : "pi pi-info-circle"} me-2`
+  }), isComplete ? "Precios configurados correctamente! Puede continuar al siguiente módulo." : 'Configure al menos un rol de usuario para habilitar el botón "Siguiente Módulo"')), /*#__PURE__*/React.createElement("div", {
     className: "d-flex justify-content-between align-items-center mb-4"
   }, /*#__PURE__*/React.createElement("h4", {
     className: "mb-1"
@@ -152,7 +164,7 @@ export const PricesConfig = ({
     disabled: loading
   }, /*#__PURE__*/React.createElement("i", {
     className: "fas fa-plus me-2"
-  }), loading ? 'Cargando...' : 'Nuevo Precio'))), /*#__PURE__*/React.createElement(PricesTableConfig, {
+  }), loading ? "Cargando..." : "Nuevo Precio"))), /*#__PURE__*/React.createElement(PricesTableConfig, {
     prices: products,
     onEditItem: handleTableEdit,
     onDeleteItem: handleTableDelete

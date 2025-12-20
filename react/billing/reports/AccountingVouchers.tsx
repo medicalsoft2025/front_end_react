@@ -70,8 +70,6 @@ export const AccountingVouchers: React.FC = () => {
         params.codigo_contable = filters.codigoContable;
       }
 
-      console.log("Parámetros de búsqueda:", params); // Para debug
-
       const response = await accountingVouchersService.getAccountingVouchers(params);
 
       const dataMapped = response.data.map((voucher: any) => ({
@@ -179,9 +177,9 @@ export const AccountingVouchers: React.FC = () => {
 
     const rows = voucher.details.reduce((acc: string, rowData: any) => {
       if (rowData.type === "debit") {
-        totalDebit += rowData.amount;
+        totalDebit += Number(rowData.amount);
       } else if (rowData.type === "credit") {
-        totalCredit += rowData.amount;
+        totalCredit += Number(rowData.amount);
       }
 
       return (
