@@ -164,6 +164,7 @@ const ProductsPaymentStep = ({
     // }
 
     addPayment({
+      id: method.id,
       method: method.method,
       amount: paymentAmount,
       total: paymentAmount - modalChange,

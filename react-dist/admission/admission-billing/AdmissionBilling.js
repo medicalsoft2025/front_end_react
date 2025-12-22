@@ -309,7 +309,6 @@ const AdmissionBilling = ({
     setFormData(prev => ({
       ...prev,
       payments: [...prev.payments, {
-        id: prev.payments.length + 1,
         ...payment
       }]
     }));

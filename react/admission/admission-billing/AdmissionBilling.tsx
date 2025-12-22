@@ -446,7 +446,6 @@ const AdmissionBilling: React.FC<AdmissionBillingProps> = ({
             payments: [
                 ...prev.payments,
                 {
-                    id: prev.payments.length + 1,
                     ...payment,
                 },
             ],
