@@ -582,8 +582,10 @@ export const BillingEntity = () => {
     const tableItems = facturas.map((factura) => ({
         id: factura.id,
         biller: factura.biller,
-        invoice_code: factura.invoice_code,
-        entity: factura.entity?.name || "",
+        invoice_code:
+            factura.invoice_code ||
+            `F-${factura.id.toString().padStart(4, "0")}`,
+        entity: factura.entity?.name || "--",
         total_amount: factura.total_amount,
         paid_amount: factura.paid_amount,
         elaboration_date: factura.elaboration_date,

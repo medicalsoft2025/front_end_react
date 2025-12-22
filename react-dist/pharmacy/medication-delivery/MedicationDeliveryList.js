@@ -1,18 +1,17 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { forwardRef, useEffect, useImperativeHandle, useState } from "react";
 import { Divider } from "primereact/divider";
 import { InputText } from "primereact/inputtext";
 import { formatDateDMY } from "../../../services/utilidades.js";
 import { useAllRecipes } from "./hooks/useAllRecipes.js";
 import { MedicationPrescriptionManager } from "./helpers/MedicationPrescriptionManager.js";
-import { Menu } from "primereact/menu";
-import { Button } from "primereact/button";
 import { Dropdown } from "primereact/dropdown";
 import { useActiveTenantConvenios } from "../../convenios/hooks/useActiveTenantConvenios.js";
 import { useConvenioRecipes } from "../../convenios/hooks/useConvenioRecipes.js";
-export const MedicationDeliveryList = ({
+import { useDebounce } from "primereact/hooks";
+export const MedicationDeliveryList = /*#__PURE__*/forwardRef(({
   onDeliverySelect,
   onDeliverySelectConvenio
-}) => {
+}, ref) => {
   const {
     fetchAllRecipes,
     recipes
@@ -24,19 +23,22 @@ export const MedicationDeliveryList = ({
     fetchConvenioRecipes,
     recipes: convenioRecipes
   } = useConvenioRecipes();
-  const [search, setSearch] = useState('');
+  const [search, debouncedSearch, setSearch] = useDebounce("", 500);
   const [selectedConvenio, setSelectedConvenio] = useState(null);
+  const [selectedStatus, setSelectedStatus] = useState("PENDING");
   const statusItems = [{
-    label: 'Todos',
+    label: "Todos",
+    value: "ALL",
     command: () => fetchRecipes("ALL")
   }, {
-    label: 'Pendiente',
+    label: "Pendiente",
+    value: "PENDING",
     command: () => fetchRecipes("PENDING")
   }, {
-    label: 'Entregado',
+    label: "Entregado",
+    value: "DELIVERED",
     command: () => fetchRecipes("DELIVERED")
   }];
-  const statusMenu = useRef(null);
   const finalRecipes = selectedConvenio ? convenioRecipes : recipes;
 
   // useEffect(() => {
@@ -44,7 +46,7 @@ export const MedicationDeliveryList = ({
   // }, [selectedConvenio]);
 
   const fetchRecipes = status => {
-    if (search.length < 3) {
+    if (search.length < 3 && selectedConvenio) {
       return;
     }
     if (!selectedConvenio) {
@@ -60,21 +62,31 @@ export const MedicationDeliveryList = ({
     }
   };
   useEffect(() => {
-    fetchRecipes("PENDING");
-  }, [search]);
+    refreshList();
+  }, [debouncedSearch, selectedConvenio, selectedStatus]);
+  useEffect(() => {
+    fetchRecipes(selectedStatus);
+  }, []);
+  const refreshList = () => {
+    fetchRecipes(selectedStatus);
+  };
+  useImperativeHandle(ref, () => ({
+    refreshList
+  }));
   return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
     className: "d-flex flex-wrap justify-content-between gap-2 align-items-center mb-3"
-  }, /*#__PURE__*/React.createElement(Button, {
-    icon: /*#__PURE__*/React.createElement("i", {
-      className: "fa fa-filter me-2"
-    }),
-    label: "Filtrar por estado",
-    onClick: event => statusMenu.current?.toggle(event),
-    className: "btn btn-sm btn-outline-secondary"
-  }), /*#__PURE__*/React.createElement(Menu, {
-    model: statusItems,
-    popup: true,
-    ref: statusMenu
+  }, /*#__PURE__*/React.createElement(Dropdown, {
+    inputId: "statusDropdown",
+    options: statusItems,
+    optionLabel: "label",
+    filter: true,
+    showClear: true,
+    placeholder: "Filtrar por estado",
+    className: "w-100",
+    value: selectedStatus,
+    onChange: e => {
+      setSelectedStatus(e.value);
+    }
   })), /*#__PURE__*/React.createElement("div", {
     className: "mb-3"
   }, /*#__PURE__*/React.createElement(Dropdown, {
@@ -87,7 +99,6 @@ export const MedicationDeliveryList = ({
     className: "w-100",
     value: selectedConvenio,
     onChange: e => {
-      console.log(e.value);
       setSelectedConvenio(e.value);
       onDeliverySelectConvenio(e.value);
     }
@@ -110,8 +121,8 @@ export const MedicationDeliveryList = ({
       className: "card shadow-sm border-0 cursor-pointer hover-shadow",
       onClick: () => onDeliverySelect(recipe),
       style: {
-        transition: 'all 0.2s ease',
-        borderRadius: '8px'
+        transition: "all 0.2s ease",
+        borderRadius: "8px"
       }
     }, /*#__PURE__*/React.createElement("div", {
       className: "card-body p-3"
@@ -124,7 +135,7 @@ export const MedicationDeliveryList = ({
     }, "Receta #", recipe.id), /*#__PURE__*/React.createElement("span", {
       className: `badge fs-7 bg-${manager.statusSeverity}`,
       style: {
-        fontSize: '0.7rem'
+        fontSize: "0.7rem"
       }
     }, manager.statusLabel)), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("small", {
       className: "text-muted fw-medium"
@@ -138,7 +149,7 @@ export const MedicationDeliveryList = ({
       className: "fw-semibold text-muted fs-7"
     }, "Paciente:"), /*#__PURE__*/React.createElement("small", {
       className: "text-dark fs-7"
-    }, manager?.prescriber?.name || '--'))))));
+    }, manager?.prescriber?.name || "--"))))));
   })), /*#__PURE__*/React.createElement("style", null, `
                 .hover-shadow:hover {
                     box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
@@ -157,4 +168,4 @@ export const MedicationDeliveryList = ({
                     line-height: 1.4 !important;
                 }
             `));
-};
+});

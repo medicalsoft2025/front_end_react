@@ -293,6 +293,7 @@
         let tickets = [];
         let modules = [];
         let appointmentStates = [];
+        let company = {};
 
         let processedTickets = new Set();
         let processedAppointments = new Set();
@@ -322,7 +323,7 @@
 
             async initialize() {
                 try {
-                    const [appointmentStates, modules, tickets, company] = await Promise.all([
+                    [appointmentStates, modules, tickets, company] = await Promise.all([
                         appointmentStateService.getAll().catch(e => {
                             console.error("Error loading states:", e);
                             return [];
@@ -1216,6 +1217,9 @@
 
         handleAppointmentEvent(data) {
             console.log('📊 Procesando evento de cita:', data);
+            console.log(' citas en cache:', appointments);
+            console.log('estados en cache:', appointmentStates);
+
 
             let appointment = appointments.find(app => app.id == data.appointmentId);
 

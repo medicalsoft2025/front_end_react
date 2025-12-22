@@ -8,7 +8,10 @@ const mapInvoiceData = (response) => {
         const mappedItem = {
             id: attr.id.toString(),
             numeroFactura: `F-${attr.id.toString().padStart(4, "0")}`,
-            proveedor: attr.third_party?.full_name || "Sin cliente",
+            proveedor:
+                attr.third_party?.full_name ||
+                attr.third_party?.name ||
+                "Sin cliente",
             fecha: new Date(attr.created_at),
             identificacion: attr.third_party?.id || "",
             monto: parseFloat(attr.total_amount),

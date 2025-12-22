@@ -348,14 +348,14 @@ export function cleanJsonObject(obj) {
     return result === undefined ? {} : result;
 }
 
-export function debounce(func, delay) {
-    let timeoutId;
-    return function (...args) {
-        console.log(args, delay);
-
-        clearTimeout(timeoutId);
-        timeoutId = setTimeout(() => func.apply(this, args), delay);
-    };
+export const debounce = (callback, wait) => {
+  let timeoutId = null;
+  return (...args) => {
+    window.clearTimeout(timeoutId);
+    timeoutId = window.setTimeout(() => {
+      callback(...args);
+    }, wait);
+  };
 }
 
 export function formatWhatsAppMessage(html, replacements) {

@@ -15,19 +15,19 @@ import { useProductsWithAvailableStock } from "../../products/hooks/useProductsW
 import { InputNumber } from "primereact/inputnumber";
 import { Divider } from "primereact/divider";
 import { InputTextarea } from "primereact/inputtextarea";
-import { farmaciaService } from "../../../Farmacia/js/services/api.service.js";
 import { usePaymentMethods } from "../../payment-methods/hooks/usePaymentMethods.js";
 import { usePRToast } from "../../hooks/usePRToast.js";
 import { Toast } from "primereact/toast";
 import { useConvenioRecipe } from "../../convenios/hooks/useConvenioRecipe.js";
-import { thirdPartyService, userService } from "../../../services/api/index.js";
+import { farmaciaService, thirdPartyService, userService } from "../../../services/api/index.js";
 import { Dialog } from "primereact/dialog";
 import { useTemplate } from "../../hooks/useTemplate.js";
 import { useMassMessaging } from "../../hooks/useMassMessaging.js";
 import { SwalManager } from "../../../services/alertManagerImported.js";
 export const MedicationDeliveryDetail = ({
   deliveryId,
-  selectedConvenio
+  selectedConvenio,
+  onSaveSuccess
 }) => {
   const [finalPrescription, setFinalPrescription] = useState(null);
   const [finalPaymentMethods, setFinalPaymentMethods] = useState([]);
@@ -192,12 +192,11 @@ export const MedicationDeliveryDetail = ({
   const [medicationPrescriptionManager, setMedicationPrescriptionManager] = useState(null);
   const [dialogVisible, setDialogVisible] = useState(false);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null);
-  const [deliveryNotes, setDeliveryNotes] = useState('');
+  const [deliveryNotes, setDeliveryNotes] = useState("");
   const [processing, setProcessing] = useState(false);
-  console.log("medications", medications);
 
   // Calcular productos verificados para entrega
-  const verifiedProductsForDelivery = medications.filter(med => med.quantity_to_deliver && med.quantity_to_deliver > 0 && med.product_id && med.sale_price);
+  const verifiedProductsForDelivery = medications.filter(med => (med.quantity_to_deliver !== null && med.quantity_to_deliver !== undefined && med.quantity_to_deliver > 0 || med.quantity === 0) && med.product_id && med.sale_price);
 
   // Calcular total
   const totalAmount = verifiedProductsForDelivery.reduce((total, med) => {
@@ -295,10 +294,10 @@ export const MedicationDeliveryDetail = ({
   }, [verifyMedicationsBulkResult]);
   const getVerificationDescription = medicationVerification => {
     switch (medicationVerification.status) {
-      case 'PRODUCT_NOT_FOUND':
-        return 'No ha sido posible identificar el medicamento. Por favor verifique el producto manualmente.';
-      case 'STOCK_NOT_ENOUGH':
-        return 'No hay stock suficiente para la cantidad solicitada. Solo hay ' + medicationVerification.available_stock + ' unidades disponibles. Si desea hacer una entrega parcial, por favor ingrese la cantidad a entregar.';
+      case "PRODUCT_NOT_FOUND":
+        return "No ha sido posible identificar el medicamento. Por favor verifique el producto manualmente.";
+      case "STOCK_NOT_ENOUGH":
+        return "No hay stock suficiente para la cantidad solicitada. Solo hay " + medicationVerification.available_stock + " unidades disponibles. Si desea hacer una entrega parcial, por favor ingrese la cantidad a entregar.";
       default:
         return medicationVerification.message;
     }
@@ -308,7 +307,7 @@ export const MedicationDeliveryDetail = ({
     generateFormat({
       prescription: finalPrescription,
       prescriptionManager: medicationPrescriptionManager,
-      type: 'Impresion'
+      type: "Impresion"
     });
   };
   const getFormErrorMessage = name => {
@@ -415,8 +414,8 @@ export const MedicationDeliveryDetail = ({
         data: billing
       } = await farmaciaService.getBillingByType("consumer");
       const thirdParty = await thirdPartyService.verifyAndStore({
-        type: 'client',
-        name: `${finalPrescription.patient.first_name || ''} ${finalPrescription.patient.middle_name || ''} ${finalPrescription.patient.last_name || ''} ${finalPrescription.patient.second_last_name || ''}`,
+        type: "client",
+        name: `${finalPrescription.patient.first_name || ""} ${finalPrescription.patient.middle_name || ""} ${finalPrescription.patient.last_name || ""} ${finalPrescription.patient.second_last_name || ""}`,
         external_id: finalPrescription.patient.id.toString(),
         document_type: finalPrescription.patient.document_type,
         document_number: finalPrescription.patient.document_number,
@@ -462,6 +461,7 @@ export const MedicationDeliveryDetail = ({
       setResponseInvoice(facturaResult);
       await sendMessageWhatsapp(facturaResult);
       setFinishDialogVisible(true);
+      onSaveSuccess?.();
 
       // 8. Mensaje final
       const finalMessage = deliveryResult.status === "PARTIALLY_DELIVERED" ? "Entrega parcial registrada. Se facturaron los productos disponibles." : "La entrega y factura fueron registradas correctamente.";
@@ -472,7 +472,7 @@ export const MedicationDeliveryDetail = ({
 
       // Limpiar estado
       setSelectedPaymentMethod(null);
-      setDeliveryNotes('');
+      setDeliveryNotes("");
       fetchProductsWithAvailableStock("Medicamentos", "pharmacy");
       fetchPrescription(finalPrescription?.id);
     } catch (error) {
@@ -483,15 +483,6 @@ export const MedicationDeliveryDetail = ({
     }
   };
   const onSubmit = data => {
-    // Verificar que haya productos para entregar
-    const hasProductsToDeliver = medications.some(med => med.quantity_to_deliver && med.quantity_to_deliver > 0);
-    if (!hasProductsToDeliver) {
-      showErrorToast({
-        title: "Advertencia",
-        message: "No hay productos verificados para entregar. Por favor, verifique las cantidades a entregar."
-      });
-      return;
-    }
     handleSubmitDelivery();
   };
   const getDeliveryStatusBadges = deposit => {
@@ -514,7 +505,7 @@ export const MedicationDeliveryDetail = ({
     return null;
   };
   const delivered = () => {
-    return ["DELIVERED"].includes(finalPrescription?.status || '');
+    return ["DELIVERED"].includes(finalPrescription?.status || "");
   };
   return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Toast, {
     ref: toast
@@ -540,13 +531,13 @@ export const MedicationDeliveryDetail = ({
     className: "card-title"
   }, "Informaci\xF3n del paciente"), /*#__PURE__*/React.createElement("div", {
     className: "mb-2"
-  }, /*#__PURE__*/React.createElement("strong", null, "Nombre: "), /*#__PURE__*/React.createElement("span", null, medicationPrescriptionManager?.patient?.name || '--')), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("strong", null, "Nombre: "), /*#__PURE__*/React.createElement("span", null, medicationPrescriptionManager?.patient?.name || "--")), /*#__PURE__*/React.createElement("div", {
     className: "mb-2"
-  }, /*#__PURE__*/React.createElement("strong", null, "Correo electr\xF3nico: "), /*#__PURE__*/React.createElement("span", null, medicationPrescriptionManager?.patient?.email || '--')), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("strong", null, "Correo electr\xF3nico: "), /*#__PURE__*/React.createElement("span", null, medicationPrescriptionManager?.patient?.email || "--")), /*#__PURE__*/React.createElement("div", {
     className: "mb-2"
-  }, /*#__PURE__*/React.createElement("strong", null, "Tel\xE9fono: "), /*#__PURE__*/React.createElement("span", null, medicationPrescriptionManager?.patient?.phone || '--')), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("strong", null, "Tel\xE9fono: "), /*#__PURE__*/React.createElement("span", null, medicationPrescriptionManager?.patient?.phone || "--")), /*#__PURE__*/React.createElement("div", {
     className: "mb-2"
-  }, /*#__PURE__*/React.createElement("strong", null, "Direcci\xF3n: "), /*#__PURE__*/React.createElement("span", null, medicationPrescriptionManager?.patient?.address || '--'))))), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("strong", null, "Direcci\xF3n: "), /*#__PURE__*/React.createElement("span", null, medicationPrescriptionManager?.patient?.address || "--"))))), /*#__PURE__*/React.createElement("div", {
     className: "col-md-6"
   }, /*#__PURE__*/React.createElement("div", {
     className: "card"
@@ -556,32 +547,32 @@ export const MedicationDeliveryDetail = ({
     className: "card-title"
   }, "M\xE9dico Prescriptor"), /*#__PURE__*/React.createElement("div", {
     className: "mb-2"
-  }, /*#__PURE__*/React.createElement("strong", null, "Nombre: "), /*#__PURE__*/React.createElement("span", null, `${medicationPrescriptionManager?.prescriber?.name || '--'}`)), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("strong", null, "Nombre: "), /*#__PURE__*/React.createElement("span", null, `${medicationPrescriptionManager?.prescriber?.name || "--"}`)), /*#__PURE__*/React.createElement("div", {
     className: "mb-2"
-  }, /*#__PURE__*/React.createElement("strong", null, "Correo electr\xF3nico: "), /*#__PURE__*/React.createElement("span", null, medicationPrescriptionManager?.prescriber?.email || '--')), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("strong", null, "Correo electr\xF3nico: "), /*#__PURE__*/React.createElement("span", null, medicationPrescriptionManager?.prescriber?.email || "--")), /*#__PURE__*/React.createElement("div", {
     className: "mb-2"
-  }, /*#__PURE__*/React.createElement("strong", null, "Tel\xE9fono: "), /*#__PURE__*/React.createElement("span", null, medicationPrescriptionManager?.prescriber?.phone || '--')), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("strong", null, "Tel\xE9fono: "), /*#__PURE__*/React.createElement("span", null, medicationPrescriptionManager?.prescriber?.phone || "--")), /*#__PURE__*/React.createElement("div", {
     className: "mb-2"
-  }, /*#__PURE__*/React.createElement("strong", null, "Direcci\xF3n: "), /*#__PURE__*/React.createElement("span", null, medicationPrescriptionManager?.prescriber?.address || '--')))))), !delivered() && /*#__PURE__*/React.createElement(CustomPRTable, {
+  }, /*#__PURE__*/React.createElement("strong", null, "Direcci\xF3n: "), /*#__PURE__*/React.createElement("span", null, medicationPrescriptionManager?.prescriber?.address || "--")))))), !delivered() && /*#__PURE__*/React.createElement(CustomPRTable, {
     data: medications,
     columns: [{
-      field: 'product_name_concentration',
-      header: 'Medicamentos'
+      field: "product_name_concentration",
+      header: "Medicamentos"
     }, {
-      field: 'quantity',
-      header: 'Cantidad'
+      field: "quantity",
+      header: "Cantidad"
     }, {
-      field: 'sale_price',
-      header: 'Precio',
+      field: "sale_price",
+      header: "Precio",
       body: deposit => deposit.sale_price?.currency()
     }, {
-      field: 'status',
-      header: 'Estado',
+      field: "status",
+      header: "Estado",
       body: deposit => /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
         className: "mb-2"
       }, getDeliveryStatusBadges(deposit)), /*#__PURE__*/React.createElement("div", {
         className: "mb-3"
-      }, deposit.verification_description || "--"), deposit.verification_status === 'STOCK_NOT_ENOUGH' && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+      }, deposit.verification_description || "--"), deposit.verification_status === "STOCK_NOT_ENOUGH" && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
         className: "d-flex flex-column gap-2"
       }, /*#__PURE__*/React.createElement("label", {
         htmlFor: "quantity",
@@ -604,7 +595,7 @@ export const MedicationDeliveryDetail = ({
             });
           }
         }
-      }))), deposit.verification_status === 'PRODUCT_NOT_FOUND' && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Dropdown, {
+      }))), deposit.verification_status === "PRODUCT_NOT_FOUND" && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Dropdown, {
         options: productsWithAvailableStock,
         optionLabel: "name",
         value: deposit.product,
@@ -632,7 +623,7 @@ export const MedicationDeliveryDetail = ({
         filter: true,
         placeholder: "Seleccione del inventario",
         className: "w-100"
-      }), deposit.product && deposit.product.pharmacy_product_stock < deposit.quantity && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Divider, null), /*#__PURE__*/React.createElement("p", null, "No hay stock suficiente para la cantidad solicitada. Solo hay ", deposit.product.pharmacy_product_stock, " unidades disponibles. Si desea hacer una entrega parcial, por favor ingrese la cantidad a entregar."), /*#__PURE__*/React.createElement("div", {
+      }), deposit.product && deposit.product.pharmacy_product_stock < deposit.quantity && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Divider, null), /*#__PURE__*/React.createElement("p", null, "No hay stock suficiente para la cantidad solicitada. Solo hay", " ", deposit.product.pharmacy_product_stock, " ", "unidades disponibles. Si desea hacer una entrega parcial, por favor ingrese la cantidad a entregar."), /*#__PURE__*/React.createElement("div", {
         className: "mb-2"
       }, /*#__PURE__*/React.createElement("label", {
         htmlFor: "quantity",
@@ -663,11 +654,11 @@ export const MedicationDeliveryDetail = ({
   }), delivered() && /*#__PURE__*/React.createElement(CustomPRTable, {
     data: medications,
     columns: [{
-      field: 'product_name_concentration',
-      header: 'Medicamentos'
+      field: "product_name_concentration",
+      header: "Medicamentos"
     }, {
-      field: 'quantity',
-      header: 'Cantidad'
+      field: "quantity",
+      header: "Cantidad"
     }],
     disablePaginator: true,
     disableSearch: true,
@@ -691,7 +682,7 @@ export const MedicationDeliveryDetail = ({
     className: "text-center text-muted"
   }, "No hay productos verificados para entrega"))))), /*#__PURE__*/React.createElement("div", {
     className: "text-end mb-4"
-  }, /*#__PURE__*/React.createElement("h5", null, "Total: ", /*#__PURE__*/React.createElement("span", {
+  }, /*#__PURE__*/React.createElement("h5", null, "Total:", " ", /*#__PURE__*/React.createElement("span", {
     className: "text-primary"
   }, totalAmount.currency()))), /*#__PURE__*/React.createElement("div", {
     className: "mb-3"
@@ -737,25 +728,28 @@ export const MedicationDeliveryDetail = ({
     className: "fw-medium"
   }, "Receta #", finalPrescription?.id), /*#__PURE__*/React.createElement("div", {
     className: "text-muted small"
-  }, medicationPrescriptionManager?.patient?.name || '--', " - ", formatDateDMY(finalPrescription?.created_at)))), /*#__PURE__*/React.createElement("div", {
-    className: "d-flex"
-  }, /*#__PURE__*/React.createElement("button", {
+  }, medicationPrescriptionManager?.patient?.name || "--", " ", "-", " ", formatDateDMY(finalPrescription?.created_at)))), /*#__PURE__*/React.createElement("div", {
+    className: "d-flex gap-2"
+  }, /*#__PURE__*/React.createElement(Button, {
     type: "button",
-    className: "btn btn-sm btn-outline-primary me-2",
-    onClick: () => setDialogVisible(true)
-  }, /*#__PURE__*/React.createElement("i", {
-    className: "fas fa-eye me-1"
-  }), " Ver receta"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setDialogVisible(true),
+    icon: /*#__PURE__*/React.createElement("i", {
+      className: "fas fa-eye me-1"
+    }),
+    label: "Ver receta"
+  }), /*#__PURE__*/React.createElement(Button, {
     type: "button",
-    className: "btn btn-sm btn-outline-secondary",
-    onClick: handlePrint
-  }, /*#__PURE__*/React.createElement("i", {
-    className: "fas fa-print me-1"
-  }), " Imprimir")))))), /*#__PURE__*/React.createElement("div", {
+    className: "p-button-secondary",
+    onClick: handlePrint,
+    icon: /*#__PURE__*/React.createElement("i", {
+      className: "fas fa-print me-1"
+    }),
+    label: "Imprimir"
+  })))))), delivered() && /*#__PURE__*/React.createElement("div", {
     className: "text-center py-6 px-4 bg-light rounded-3 shadow-sm",
     style: {
-      maxWidth: '600px',
-      margin: '0 auto'
+      maxWidth: "600px",
+      margin: "0 auto"
     }
   }, /*#__PURE__*/React.createElement("i", {
     className: "pi pi-check-circle text-6xl text-success mb-4"
@@ -769,7 +763,7 @@ export const MedicationDeliveryDetail = ({
     type: "button",
     label: "Enviar por WhatsApp",
     icon: /*#__PURE__*/React.createElement("i", {
-      className: "fas fa-whatsapp"
+      className: "fas fa-whatsapp me-1"
     }),
     className: "p-button-success p-button-lg",
     onClick: handleSendWhatsApp,
@@ -793,11 +787,6 @@ export const MedicationDeliveryDetail = ({
       const user = await userService.getLoggedUser();
       await generateInvoiceFromInvoice(responseInvoice.invoice, user, finalPrescription?.patient, true);
     }
-  }), /*#__PURE__*/React.createElement(Button, {
-    type: "button",
-    label: "Cerrar",
-    className: "p-button-secondary p-button-lg",
-    onClick: () => setFinishDialogVisible(false)
   })), sendingWhatsApp && /*#__PURE__*/React.createElement("div", {
     className: "mt-3 text-sm text-muted"
   }, /*#__PURE__*/React.createElement("i", {
@@ -806,15 +795,20 @@ export const MedicationDeliveryDetail = ({
     className: "d-flex justify-content-between align-items-center mt-4"
   }, /*#__PURE__*/React.createElement(Button, {
     type: "button",
-    icon: "pi pi-times",
+    icon: /*#__PURE__*/React.createElement("i", {
+      className: "fas fa-times me-1"
+    }),
     label: "Cancelar",
     className: "p-button-secondary",
     onClick: () => window.history.back(),
     disabled: processing
   }), /*#__PURE__*/React.createElement(Button, {
-    icon: processing ? "pi pi-spin pi-spinner" : "pi pi-check",
+    icon: processing ? /*#__PURE__*/React.createElement("i", {
+      className: "fas fa-spinner me-1"
+    }) : /*#__PURE__*/React.createElement("i", {
+      className: "fas fa-check me-1"
+    }),
     label: processing ? "Procesando..." : "Entregar Pedido",
-    className: "btn btn-primary",
     type: "submit",
     disabled: processing || verifiedProductsForDelivery.length === 0 || !selectedPaymentMethod
   }))), /*#__PURE__*/React.createElement(MedicationDeliveryDetailDialog, {
@@ -827,8 +821,8 @@ export const MedicationDeliveryDetail = ({
   }, /*#__PURE__*/React.createElement("div", {
     className: "text-center py-6 px-4 bg-light rounded-3 shadow-sm",
     style: {
-      maxWidth: '600px',
-      margin: '0 auto'
+      maxWidth: "600px",
+      margin: "0 auto"
     }
   }, /*#__PURE__*/React.createElement("i", {
     className: "pi pi-check-circle text-6xl text-success mb-4"
@@ -842,7 +836,7 @@ export const MedicationDeliveryDetail = ({
     type: "button",
     label: "Enviar por WhatsApp",
     icon: /*#__PURE__*/React.createElement("i", {
-      className: "fas fa-whatsapp"
+      className: "fas fa-whatsapp me-1"
     }),
     className: "p-button-success p-button-lg",
     onClick: handleSendWhatsApp,

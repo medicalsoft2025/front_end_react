@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from "react";
 import useTimer from "../../components/timer/hooks/useTimer.js";
 import { MedicationDeliveryList } from "./MedicationDeliveryList.js";
 import { MedicationDeliveryDetail } from "./MedicationDeliveryDetail.js";
@@ -11,13 +11,17 @@ export const ProductsDelivery = () => {
   });
   const [selectedDelivery, setSelectedDelivery] = useState(null);
   const [selectedConvenio, setSelectedConvenio] = useState(null);
+  const listRef = useRef(null);
+  const refreshList = () => {
+    listRef.current?.refreshList();
+  };
   return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
     className: "d-flex flex-column gap-3"
   }, /*#__PURE__*/React.createElement("div", {
     className: "d-flex justify-content-between align-items-center"
   }, /*#__PURE__*/React.createElement("h4", null, "Entrega de Medicamentos"), /*#__PURE__*/React.createElement("div", {
     className: "d-flex gap-2 align-items-center"
-  }, /*#__PURE__*/React.createElement("span", null, "Fecha: ", new Date().toISOString().split('T')[0]), /*#__PURE__*/React.createElement("span", null, "Hora: ", formatCurrentTime(true)))), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("span", null, "Fecha: ", new Date().toISOString().split("T")[0]), /*#__PURE__*/React.createElement("span", null, "Hora: ", formatCurrentTime(true)))), /*#__PURE__*/React.createElement("div", {
     className: "row"
   }, /*#__PURE__*/React.createElement("div", {
     className: "col-4"
@@ -36,6 +40,6 @@ export const ProductsDelivery = () => {
     className: "card-body"
   }, selectedDelivery && /*#__PURE__*/React.createElement(MedicationDeliveryDetail, {
     deliveryId: selectedDelivery?.id,
-    selectedConvenio: selectedConvenio
+    onSaveSuccess: () => refreshList()
   }), !selectedDelivery && /*#__PURE__*/React.createElement("p", null, "Seleccione un pedido")))))));
 };

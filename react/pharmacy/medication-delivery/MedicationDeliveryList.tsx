@@ -1,38 +1,56 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, {
+    forwardRef,
+    useEffect,
+    useImperativeHandle,
+    useRef,
+    useState,
+} from "react";
 import { Divider } from "primereact/divider";
 import { InputText } from "primereact/inputtext";
 import { formatDateDMY } from "../../../services/utilidades";
 import { useAllRecipes } from "./hooks/useAllRecipes";
 import { MedicationPrescriptionManager } from "./helpers/MedicationPrescriptionManager";
 import { PrescriptionDto } from "../../models/models";
-import { MenuItem } from "primereact/menuitem";
-import { Menu } from "primereact/menu";
-import { Button } from "primereact/button";
 import { Dropdown } from "primereact/dropdown";
 import { useActiveTenantConvenios } from "../../convenios/hooks/useActiveTenantConvenios";
 import { useConvenioRecipes } from "../../convenios/hooks/useConvenioRecipes";
+import { useDebounce } from "primereact/hooks";
 
 interface MedicationDeliveryListProps {
     onDeliverySelect: (delivery: PrescriptionDto) => void;
     onDeliverySelectConvenio: (delivery: PrescriptionDto) => void;
 }
 
-export const MedicationDeliveryList = ({ onDeliverySelect, onDeliverySelectConvenio }: MedicationDeliveryListProps) => {
+export interface MedicationDeliveryListRef {
+    refreshList: () => void;
+}
 
+export const MedicationDeliveryList = forwardRef<
+    MedicationDeliveryListRef,
+    MedicationDeliveryListProps
+>(({ onDeliverySelect, onDeliverySelectConvenio }, ref) => {
     const { fetchAllRecipes, recipes } = useAllRecipes();
     const { convenios } = useActiveTenantConvenios();
-    const { fetchConvenioRecipes, recipes: convenioRecipes } = useConvenioRecipes();
+    const { fetchConvenioRecipes, recipes: convenioRecipes } =
+        useConvenioRecipes();
 
-    const [search, setSearch] = useState('');
+    const [search, debouncedSearch, setSearch] = useDebounce("", 500);
     const [selectedConvenio, setSelectedConvenio] = useState<any>(null);
+    const [selectedStatus, setSelectedStatus] = useState<string>("PENDING");
 
-    const statusItems: MenuItem[] = [
-        { label: 'Todos', command: () => fetchRecipes("ALL") },
-        { label: 'Pendiente', command: () => fetchRecipes("PENDING") },
-        { label: 'Entregado', command: () => fetchRecipes("DELIVERED") },
+    const statusItems: any[] = [
+        { label: "Todos", value: "ALL", command: () => fetchRecipes("ALL") },
+        {
+            label: "Pendiente",
+            value: "PENDING",
+            command: () => fetchRecipes("PENDING"),
+        },
+        {
+            label: "Entregado",
+            value: "DELIVERED",
+            command: () => fetchRecipes("DELIVERED"),
+        },
     ];
-
-    const statusMenu = useRef<Menu>(null);
 
     const finalRecipes = selectedConvenio ? convenioRecipes : recipes;
 
@@ -41,7 +59,7 @@ export const MedicationDeliveryList = ({ onDeliverySelect, onDeliverySelectConve
     // }, [selectedConvenio]);
 
     const fetchRecipes = (status: string) => {
-        if (search.length < 3) {
+        if (search.length < 3 && selectedConvenio) {
             return;
         }
         if (!selectedConvenio) {
@@ -49,28 +67,48 @@ export const MedicationDeliveryList = ({ onDeliverySelect, onDeliverySelectConve
         } else {
             fetchConvenioRecipes({
                 tenantId: selectedConvenio.tenant_b_id,
-                apiKey: selectedConvenio.api_keys.find((apiKey: any) => apiKey.module === "farmacia").key,
+                apiKey: selectedConvenio.api_keys.find(
+                    (apiKey: any) => apiKey.module === "farmacia"
+                ).key,
                 module: "farmacia",
                 search,
-                status
+                status,
             });
         }
     };
 
     useEffect(() => {
-        fetchRecipes("PENDING");
-    }, [search]);
+        refreshList();
+    }, [debouncedSearch, selectedConvenio, selectedStatus]);
+
+    useEffect(() => {
+        fetchRecipes(selectedStatus);
+    }, []);
+
+    const refreshList = () => {
+        fetchRecipes(selectedStatus);
+    };
+
+    useImperativeHandle(ref, () => ({
+        refreshList,
+    }));
 
     return (
         <>
             <div className="d-flex flex-wrap justify-content-between gap-2 align-items-center mb-3">
-                <Button
-                    icon={<i className="fa fa-filter me-2"></i>}
-                    label="Filtrar por estado"
-                    onClick={(event) => statusMenu.current?.toggle(event)}
-                    className="btn btn-sm btn-outline-secondary"
+                <Dropdown
+                    inputId="statusDropdown"
+                    options={statusItems}
+                    optionLabel="label"
+                    filter
+                    showClear
+                    placeholder="Filtrar por estado"
+                    className="w-100"
+                    value={selectedStatus}
+                    onChange={(e) => {
+                        setSelectedStatus(e.value as string);
+                    }}
                 />
-                <Menu model={statusItems} popup ref={statusMenu} />
             </div>
 
             <div className="mb-3">
@@ -84,9 +122,8 @@ export const MedicationDeliveryList = ({ onDeliverySelect, onDeliverySelectConve
                     className="w-100"
                     value={selectedConvenio}
                     onChange={(e) => {
-                        console.log(e.value)
-                        setSelectedConvenio(e.value)
-                        onDeliverySelectConvenio(e.value)
+                        setSelectedConvenio(e.value);
+                        onDeliverySelectConvenio(e.value);
                     }}
                 />
             </div>
@@ -113,8 +150,8 @@ export const MedicationDeliveryList = ({ onDeliverySelect, onDeliverySelectConve
                             className="card shadow-sm border-0 cursor-pointer hover-shadow"
                             onClick={() => onDeliverySelect(recipe)}
                             style={{
-                                transition: 'all 0.2s ease',
-                                borderRadius: '8px'
+                                transition: "all 0.2s ease",
+                                borderRadius: "8px",
                             }}
                         >
                             <div className="card-body p-3">
@@ -126,7 +163,7 @@ export const MedicationDeliveryList = ({ onDeliverySelect, onDeliverySelectConve
                                         </h6>
                                         <span
                                             className={`badge fs-7 bg-${manager.statusSeverity}`}
-                                            style={{ fontSize: '0.7rem' }}
+                                            style={{ fontSize: "0.7rem" }}
                                         >
                                             {manager.statusLabel}
                                         </span>
@@ -146,14 +183,15 @@ export const MedicationDeliveryList = ({ onDeliverySelect, onDeliverySelectConve
                                                 Paciente:
                                             </small>
                                             <small className="text-dark fs-7">
-                                                {manager?.prescriber?.name || '--'}
+                                                {manager?.prescriber?.name ||
+                                                    "--"}
                                             </small>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    )
+                    );
                 })}
             </div>
 
@@ -177,4 +215,4 @@ export const MedicationDeliveryList = ({ onDeliverySelect, onDeliverySelectConve
             `}</style>
         </>
     );
-};
+});
